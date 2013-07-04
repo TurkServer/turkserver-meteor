@@ -1,0 +1,18 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "turkserver": {
+        "path": "."
+      }
+    },
+    "packages": {
+      "turkserver": {
+        "path": "."
+      },
+      "user-status": {
+        "path": "../meteor-user-status"
+      }
+    }
+  }
+}

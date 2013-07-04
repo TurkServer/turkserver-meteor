@@ -1,0 +1,9 @@
+{
+    "name": "turkserver",
+    "description": "Online experiment framework built on Meteor",
+    "homepage": "https://github.com/HarvardEconCS/turkserver-meteor",
+    "author": "Andrew Mao  (http://www.andrewmao.net)",
+    "version": "0.0.1",
+    "git": "https://github.com/HarvardEconCS/turkserver-meteor.git",
+    "packages": {}
+}
