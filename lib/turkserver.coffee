@@ -6,3 +6,5 @@ this.Workers = new Meteor.Collection("workers")
 # TODO create indices on these collections
 
 
+Meteor.publish "tsAdmin", ->
+  # TODO push collections describing experiments/users

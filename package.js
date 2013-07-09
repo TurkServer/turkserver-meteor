@@ -9,26 +9,26 @@ Npm.depends({
 var both = ['client', 'server'];
 
 Package.on_use(function (api) {
-    api.use('bootstrap', 'client');
-    api.use('templating', 'client');
+    api.use(['bootstrap', 'templating'], 'client');
 
-    api.use('stylus', 'server');
-    api.use('coffeescript', 'server');
+    api.use(['accounts-base', 'stylus', 'coffeescript'], 'server');
 
     // TODO add an explicit dependency for this
     api.use('user-status', 'server');
 
     // Client
     api.add_files([
-        'client/tsClient.styl',
+        'client/ts_client.styl',
 
-        'client/tsPanel.html',
+        'client/ts_panel.html',
 
-        'client/tsPanel.coffee'
+        'client/ts_panel.coffee',
+        'client/ts_client.coffee'
     ], 'client');
 
     // Server files
     api.add_files([
+        'lib/accounts_mturk.coffee',
         'lib/turkserver.coffee'
     ], 'server');
 });

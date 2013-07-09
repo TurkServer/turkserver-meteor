@@ -3,7 +3,7 @@
 Template.turkserver.events =
   "click .ts-adminToggle": (e) ->
     e.preventDefault()
-    $("#ts-tabs").slideToggle()
+    $("#ts-content").slideToggle()
 
 Template.tsAdmin.adminEnabled = ->
   Session.equals("admin", true)
