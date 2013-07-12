@@ -1,9 +1,14 @@
 
-
 Template.turkserver.events =
   "click .ts-adminToggle": (e) ->
     e.preventDefault()
     $("#ts-content").slideToggle()
 
-Template.tsAdmin.adminEnabled = ->
-  Session.equals("admin", true)
+adminSubscription = null
+
+# TODO make this login a bit more secure
+Deps.autorun ->
+  if Session.equals("admin", true)
+    adminSubscription = Meteor.subscribe("tsAdmin")
+  else
+    adminSubscription?.stop()

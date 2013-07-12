@@ -28,8 +28,8 @@ Package.on_use(function (api) {
 
     // Server files
     api.add_files([
-        'lib/accounts_mturk.coffee',
-        'lib/turkserver.coffee'
+        'lib/turkserver.coffee',
+        'lib/accounts_mturk.coffee'
     ], 'server');
 });
 
@@ -39,10 +39,11 @@ Package.on_test(function (api) {
     api.use('tinytest', both);
 
     api.use('session', 'client');
+
     // api.add_files('tests/router_client_tests.js', 'client');
 
 //    api.use('http', 'server');
-//    api.add_files('tests/router_server_tests.js', 'server');
+    api.add_files('tests/authentication_tests.coffee', 'server');
 //
 //    api.add_files('tests/router_common_tests.js', ['client', 'server']);
 });
