@@ -1,7 +1,5 @@
 mturk = Npm.require('mturk')
 
-this.TurkServer = TurkServer? || {}
-
 TurkServer.settings = {
   experiment : {
     limit: {
@@ -27,6 +25,12 @@ Assignments._ensureIndex
 
 # TODO create indices on these collections
 
+# Publish turkserver user fields
+Meteor.publish null, ->
+  return null unless @userId
+
+  return Meteor.users.find @userId,
+    fields: { turkserver: 1 }
 
 TurkServer.sessionStatus = (record) ->
   # Use 'of' in order to avoid 0's being ignored
@@ -40,7 +44,4 @@ TurkServer.sessionStatus = (record) ->
     "assigned"
   else
     "unassigned"
-
-Meteor.publish "tsAdmin", ->
-  # TODO push collections describing experiments/users
 

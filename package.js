@@ -13,8 +13,13 @@ Package.on_use(function (api) {
 
     api.use(['accounts-base', 'stylus', 'coffeescript'], 'server');
 
-    // TODO add an explicit dependency for this
     api.use('user-status', 'server');
+
+    // Shared files
+    api.add_files([
+        'lib/common.coffee',
+        'lib/grouping.coffee'
+    ], both)
 
     // Client
     api.add_files([
@@ -26,11 +31,15 @@ Package.on_use(function (api) {
         'client/ts_client.coffee'
     ], 'client');
 
+
     // Server files
     api.add_files([
         'lib/turkserver.coffee',
+        'lib/connections.coffee',
+        'lib/admin.coffee',
         'lib/accounts_mturk.coffee'
     ], 'server');
+
 });
 
 Package.on_test(function (api) {
@@ -38,12 +47,14 @@ Package.on_test(function (api) {
     api.use('test-helpers', both);
     api.use('tinytest', both);
 
+    api.use('accounts-testing', both);
     api.use('session', 'client');
 
     // api.add_files('tests/router_client_tests.js', 'client');
 
 //    api.use('http', 'server');
     api.add_files('tests/authentication_tests.coffee', 'server');
+    api.add_files('tests/grouping_tests.coffee', both);
 //
 //    api.add_files('tests/router_common_tests.js', ['client', 'server']);
 });
