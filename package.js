@@ -13,6 +13,7 @@ Package.on_use(function (api) {
 
     api.use(['accounts-base', 'stylus', 'coffeescript'], 'server');
 
+    api.use('collection-hooks', both);
     api.use('user-status', 'server');
 
     // Shared files
@@ -43,6 +44,8 @@ Package.on_use(function (api) {
 });
 
 Package.on_test(function (api) {
+    // api.use(['random', 'ejson', 'json', 'underscore', 'minimongo', 'logging', 'livedata'], both);
+
     api.use('turkserver', both);
     api.use('test-helpers', both);
     api.use('tinytest', both);
@@ -53,8 +56,10 @@ Package.on_test(function (api) {
     // api.add_files('tests/router_client_tests.js', 'client');
 
 //    api.use('http', 'server');
+    api.add_files('tests/browser_tests.coffee', 'client');
     api.add_files('tests/authentication_tests.coffee', 'server');
     api.add_files('tests/grouping_tests.coffee', both);
+
 //
 //    api.add_files('tests/router_common_tests.js', ['client', 'server']);
 });
