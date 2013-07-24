@@ -35,7 +35,7 @@ if Meteor.isServer
       if _.has(groupingCollections, fullName)
         collection = groupingCollections[fullName]
         if needToConfigure is true
-          consdole.log "collections inconsistently exist"
+          console.log "collections inconsistently exist"
           throw new Error("collections inconsistently exist")
         needToConfigure = false
       else
@@ -67,12 +67,27 @@ if Meteor.isServer
     Meteor._debug "grouping publication activated"
 
     if needToConfigure
+
+      Meteor.methods
+        serverUpdate: (name, selector, mutator) ->
+          return groupingCollections[name + nonce].update(selector, mutator)
+        serverRemove: (name, selector) ->
+          return groupingCollections[name + nonce].remove(selector)
+        getCollection: (name, selector) ->
+          return groupingCollections[name + nonce].noHookFind(selector || {}).fetch()
+        getMyCollection: (name, selector) ->
+          return groupingCollections[name + nonce].find(selector || {}).fetch()
+        printCollection: (name) ->
+          console.log groupingCollections[name + nonce].noHookFind().fetch()
+        printMyCollection: (name) ->
+          console.log groupingCollections[name + nonce].find().fetch()
+
       twoGroupCollection.noHookInsert
-        groupId: myGroup
-        a: myGroup
+        _groupId: myGroup
+        a: 1
       twoGroupCollection.noHookInsert
-        groupId: otherGroup
-        a: otherGroup
+        _groupId: otherGroup
+        a: 1
 
       Meteor._debug "collections configured"
     else
@@ -85,7 +100,8 @@ if Meteor.isClient
     # Ensure that the group id has been recorded before subscribing
     Tinytest.addAsync "grouping - received group id", (test, next) ->
       Deps.autorun (c) ->
-        if Meteor.user()?.turkserver?.group
+        record = Meteor.user()
+        if record?.turkserver?.group
           c.stop()
           next()
 
@@ -97,7 +113,8 @@ if Meteor.isClient
     # Tell the server to make, configure, and publish a set of collections unique
     # to our test run. Since the method does not unblock, this will complete
     # running on the server before anything else happens.
-    Meteor.subscribe("groupingTests", nonce)
+    handle = Meteor.subscribe("groupingTests", nonce)
+
     console.log "done subscription"
 
     # helper for defining a collection, subscribing to it, and defining
@@ -123,6 +140,12 @@ if Meteor.isClient
     window.basicInsertCollection = defineCollection("basicInsert")
     window.twoGroupCollection = defineCollection("twoGroup")
 
+    Tinytest.addAsync "grouping - test subscriptions ready", (test, next) ->
+      Deps.autorun (c) ->
+        if handle.ready()
+          c.stop()
+          next()
+
     console.log "starting grouping tests"
 
     Tinytest.add "grouping - local empty find", (test) ->
@@ -138,9 +161,55 @@ if Meteor.isClient
         test.equal basicInsertCollection.findOne(a: 1)._groupId, myGroup
     ]
 
-    Tinytest.add "grouping - find from two groups", (test) ->
+    testAsyncMulti "grouping - find from two groups", [ (test, expect) ->
       test.equal twoGroupCollection.find().count(), 1
-      # TODO Make sure other stuff isn't actually sent over from the server
+      Meteor.call "getCollection", "twoGroup", expect (err, res) ->
+        test.isFalse err
+        test.equal res.length, 2
+    ]
+
+    testAsyncMulti "grouping - insert into two groups", [
+      (test, expect) ->
+        twoGroupCollection.insert {a: 2}, expect (err) ->
+          test.isFalse err, JSON.stringify(err)
+          test.equal twoGroupCollection.find().count(), 2
+    , (test, expect) ->
+        Meteor.call "getMyCollection", "twoGroup", expect (err, res) ->
+          test.isFalse err, JSON.stringify(err)
+          test.equal res.length, 2
+    , (test, expect) -> # Ensure that the other half is still on the server
+        Meteor.call "getCollection", "twoGroup", expect (err, res) ->
+          test.isFalse err, JSON.stringify(err)
+          test.equal res.length, 3
+    ]
+
+    testAsyncMulti "grouping - server update identical keys across groups", [
+      (test, expect) ->
+        Meteor.call "serverUpdate", "twoGroup",
+          {a: 1},
+          $set: { b: 1 }, expect (err, res) ->
+            test.isFalse err
+    , (test, expect) -> # Make sure that the other group's record didn't get updated
+        Meteor.call "getCollection", "twoGroup", expect (err, res) ->
+          test.isFalse err
+          _.each res, (doc) ->
+            if doc.a is 1 and doc._groupId is myGroup
+              test.equal doc.b, 1
+            else
+              test.isFalse doc.b
+    ]
+
+    testAsyncMulti "grouping - server remove identical keys across groups", [
+      (test, expect) ->
+        Meteor.call "serverRemove", "twoGroup",
+          {a: 1}, expect (err, res) ->
+            test.isFalse err
+    , (test, expect) -> # Make sure that the other group's record didn't get updated
+        Meteor.call "getCollection", "twoGroup", {a: 1}, expect (err, res) ->
+          test.isFalse err
+          test.equal res.length, 1
+          test.equal res[0].a, 1
+    ]
 
   # Ensure we are logged in before running these tests
   # TODO can we provide a better way to ensure this login?
