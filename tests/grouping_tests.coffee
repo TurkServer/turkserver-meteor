@@ -53,26 +53,32 @@ if Meteor.isServer
         m["clear-collection-" + fullName] = -> collection.remove({})
         Meteor.methods(m)
 
-        # Attach the turkserver hooks to the collection
+        # Attach the turkserver hooks to the collec tion
         TurkServer.registerCollection(collection)
 
-      cursors.push collection.find.call(this)
+      # TODO we need to figure out some way to get this.userId to the hook
+      cursors.push( collection.find({}, {}, @userId) )
       return collection
 
     # defined collections
-    foo = defineCollection("foo", true) #insecure
+    basicInsertCollection = defineCollection.call(this, "basicInsert", true) #insecure
+    twoGroupCollection = defineCollection.call(this, "twoGroup", true)
 
     Meteor._debug "grouping publication activated"
 
     if needToConfigure
+      twoGroupCollection.noHookInsert
+        groupId: myGroup
+        a: myGroup
+      twoGroupCollection.noHookInsert
+        groupId: otherGroup
+        a: otherGroup
+
       Meteor._debug "collections configured"
     else
       Meteor._debug "skipping configuration"
 
     return cursors
-
-
-  testAsyncMulti "grouping - foo", []
 
 if Meteor.isClient
   runTests = ->
@@ -114,22 +120,27 @@ if Meteor.isClient
 
     # resticted collection with same allowed modifications, both with and
     # without the `insecure` package
-    foo = defineCollection("foo")
+    window.basicInsertCollection = defineCollection("basicInsert")
+    window.twoGroupCollection = defineCollection("twoGroup")
 
     console.log "starting grouping tests"
 
-    testAsyncMulti "grouping - insert", [
+    Tinytest.add "grouping - local empty find", (test) ->
+      test.equal basicInsertCollection.find().count(), 0
+
+    testAsyncMulti "grouping - basic insert", [
       (test, expect) ->
-        id = foo.insert { a: 1 }, expect((err, res) ->
+        id = basicInsertCollection.insert { a: 1 }, expect (err, res) ->
+          test.isFalse err, JSON.stringify(err)
           test.equal res, id
-        )
     , (test, expect) ->
-        test.equal foo.find({a: 1}).count(), 1
-        test.equal foo.findOne(a: 1)._groupId, myGroup
-        expect()
+        test.equal basicInsertCollection.find({a: 1}).count(), 1
+        test.equal basicInsertCollection.findOne(a: 1)._groupId, myGroup
     ]
 
-    Tinytest.add "grouping - client foo", ->
+    Tinytest.add "grouping - find from two groups", (test) ->
+      test.equal twoGroupCollection.find().count(), 1
+      # TODO Make sure other stuff isn't actually sent over from the server
 
   # Ensure we are logged in before running these tests
   # TODO can we provide a better way to ensure this login?
