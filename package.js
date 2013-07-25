@@ -47,8 +47,8 @@ Package.on_test(function (api) {
     // api.use(['random', 'ejson', 'json', 'underscore', 'minimongo', 'logging', 'livedata'], both);
 
     api.use('turkserver', both);
-    api.use('test-helpers', both);
     api.use('tinytest', both);
+    api.use('test-helpers', both);
 
     api.use('accounts-testing', both);
     api.use('session', 'client');
