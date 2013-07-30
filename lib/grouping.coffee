@@ -38,7 +38,6 @@ if Meteor.isServer
 
     # These will hook the _validated methods as well
     collection.before "insert", (userId, doc) ->
-
       throw new Meteor.Error(403, userIdErr) unless userId
       group = Meteor.users.findOne(userId)?.turkserver?.group
       throw new Meteor.Error(403, groupErr) unless group

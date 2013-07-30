@@ -9,9 +9,10 @@ Npm.depends({
 var both = ['client', 'server'];
 
 Package.on_use(function (api) {
-    api.use(['bootstrap', 'templating'], 'client');
+    api.use(['bootstrap', 'session', 'templating'], 'client');
 
-    api.use(['accounts-base', 'stylus', 'coffeescript'], 'server');
+    api.use(['accounts-base', 'deps'], both);
+    api.use(['stylus', 'coffeescript'], both);
 
     api.use('collection-hooks', both);
     api.use('user-status', 'server');
@@ -20,7 +21,7 @@ Package.on_use(function (api) {
     api.add_files([
         'lib/common.coffee',
         'lib/grouping.coffee'
-    ], both)
+    ], both);
 
     // Client
     api.add_files([
@@ -31,7 +32,6 @@ Package.on_use(function (api) {
         'client/ts_panel.coffee',
         'client/ts_client.coffee'
     ], 'client');
-
 
     // Server files
     api.add_files([

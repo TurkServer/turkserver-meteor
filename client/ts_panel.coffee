@@ -1,5 +1,5 @@
 
-Template.turkserver.events =
+Template.turkserverPulldown.events =
   "click .ts-adminToggle": (e) ->
     e.preventDefault()
     $("#ts-content").slideToggle()
