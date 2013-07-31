@@ -71,17 +71,19 @@ Accounts.registerLoginHandler (loginRequest) ->
   TurkServer.authenticateWorker(loginRequest)
 
   stampedToken = Accounts._generateStampedLoginToken();
-  Meteor.users.update userId,
-    $push: {'services.resume.loginTokens': stampedToken}
+
+  # TODO We probably don't want to push this token; disable resume force login each time
+#  Meteor.users.update userId,
+#    $push: {'services.resume.loginTokens': stampedToken}
 
   # Delete old resume tokens so they don't clog up the db
-  cutoff = +(new Date) - (24*60*60)*1000
-  Meteor.users.update userId, {
-    $pull:
-      'services.resume.loginTokens':
-        when: {$lt: cutoff}
-  },
-  {multi : true}
+#  cutoff = +(new Date) - (24*60*60)*1000
+#  Meteor.users.update userId, {
+#    $pull:
+#      'services.resume.loginTokens':
+#        when: {$lt: cutoff}
+#  },
+#  {multi : true}
 
   return {
     id: userId,

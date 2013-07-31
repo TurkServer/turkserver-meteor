@@ -25,6 +25,9 @@ params = getURLParams()
 
 Handlebars.registerHelper "hitParams", -> params
 
+Handlebars.registerHelper "hitIsViewing", ->
+  params.assignmentId and params.assignmentId is "ASSIGNMENT_ID_NOT_AVAILABLE"
+
 Meteor.startup ->
   return unless params.hitId and params.assignmentId and params.workerId
   mturkLogin(hitId, assignmentId, workerId)

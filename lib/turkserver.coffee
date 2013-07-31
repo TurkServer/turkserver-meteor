@@ -13,17 +13,18 @@ this.Assignments = new Meteor.Collection("assignments")
 this.Experiments = new Meteor.Collection("experiments")
 this.Workers = new Meteor.Collection("workers")
 
-# Index on unique assignments
+# TODO more careful indices on these collections
+
+# Index on unique assignment-worker pairs
 Assignments._ensureIndex
   hitId: 1
   assignmentId: 1
+  workerId: 1
 , { unique: 1 }
 
-# Index on workers
+# Allow fast lookup of a worker's previous HITs
 Assignments._ensureIndex
   workerId: 1
-
-# TODO create indices on these collections
 
 # Publish turkserver user fields
 Meteor.publish null, ->

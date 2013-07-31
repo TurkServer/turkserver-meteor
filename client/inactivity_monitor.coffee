@@ -35,10 +35,10 @@ class InactivityMonitor
 
     return unless inactiveTime > @inactivityThreshold
 
-    # TODO Send inactivity to turkserver
-#    @channelSend @userSubscription[0],
-#      status: "inactive",
-#      start: @lastInactive,
-#      time: inactiveTime
+    # Send inactivity to turkserver
+    Meteor.call "inactive", {
+      start: @lastInactive,
+      time: inactiveTime
+    }
 
     @callback?(inactiveTime)
