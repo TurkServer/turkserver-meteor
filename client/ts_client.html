@@ -1,0 +1,7 @@
+<template name="mturkSubmit">
+    <form action="{{hitParams.turkSubmitTo}}/mturk/externalSubmit" method="POST">
+        <input type="hidden" name="hitId" value="{{hitParams.hitId}}">
+        <input type="hidden" name="assignmentId" value="{{hitParams.assignmentId}}">
+        <input type="hidden" name="workerId" value="{{hitParams.workerId}}">
+    </form>
+</template>

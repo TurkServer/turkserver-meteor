@@ -21,8 +21,11 @@ mturkLogin = (hitId, assignmentId, workerId, callback) ->
     }],
     userCallback: callback
 
+params = getURLParams()
+
+Handlebars.registerHelper "hitParams", -> params
+
 Meteor.startup ->
-  params = getURLParams()
   return unless params.hitId and params.assignmentId and params.workerId
   mturkLogin(hitId, assignmentId, workerId)
 

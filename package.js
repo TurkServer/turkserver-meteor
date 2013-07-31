@@ -26,7 +26,7 @@ Package.on_use(function (api) {
     // Client
     api.add_files([
         'client/ts_client.styl',
-
+        'client/ts_client.html',
         'client/ts_panel.html',
 
         'client/ts_panel.coffee',
