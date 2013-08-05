@@ -2,13 +2,10 @@
   "meteor": {},
   "dependencies": {
     "basePackages": {
-      "turkserver": {
-        "path": "."
-      }
     },
     "packages": {
-      "turkserver": {
-        "path": "."
+      "accounts-testing": {
+        "path": "../meteor-accounts-testing"
       },
       "collection-hooks": {
         "path": "../meteor-collection-hooks"

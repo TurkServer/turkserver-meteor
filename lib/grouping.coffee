@@ -53,6 +53,7 @@ if Meteor.isServer
             Otherwise, please define your own security beforehand."""
       )
 
+      # TODO only allow logged-in users (or in experiment)
       collection.allow
         insert: -> true
         update: -> true

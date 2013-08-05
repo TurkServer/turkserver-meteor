@@ -9,10 +9,19 @@ Npm.depends({
 var both = ['client', 'server'];
 
 Package.on_use(function (api) {
-    api.use(['bootstrap', 'session', 'templating'], 'client');
+    api.use([
+        'bootstrap',
+        'session',
+        'handlebars',
+        'templating'
+    ], 'client');
 
-    api.use(['accounts-base', 'deps'], both);
-    api.use(['stylus', 'coffeescript'], both);
+    api.use([
+        'accounts-base',
+        'deps',
+        'stylus',
+        'coffeescript'
+    ], both);
 
     api.use('collection-hooks', both);
     api.use('user-status', 'server');
