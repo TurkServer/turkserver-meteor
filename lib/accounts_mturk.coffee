@@ -85,6 +85,10 @@ Accounts.registerLoginHandler (loginRequest) ->
 #  },
 #  {multi : true}
 
+  # TODO temporary; let's do something better organized later
+  # Add user to the lobby
+  TurkServer.addToLobby userId
+
   return {
     id: userId,
     token: stampedToken.token

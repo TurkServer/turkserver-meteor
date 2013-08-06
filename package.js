@@ -23,6 +23,7 @@ Package.on_use(function (api) {
         'coffeescript'
     ], both);
 
+    api.use('waiting-lobby', both);
     api.use('collection-hooks', both);
     api.use('user-status', 'server');
 

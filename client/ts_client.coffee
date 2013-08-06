@@ -30,5 +30,5 @@ Handlebars.registerHelper "hitIsViewing", ->
 
 Meteor.startup ->
   return unless params.hitId and params.assignmentId and params.workerId
-  mturkLogin(hitId, assignmentId, workerId)
+  mturkLogin(params.hitId, params.assignmentId, params.workerId)
 
