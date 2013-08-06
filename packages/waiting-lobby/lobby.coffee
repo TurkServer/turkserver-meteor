@@ -10,6 +10,10 @@ TurkServer.addToLobby = (userId) ->
     _id: userId
     status: false
 
+  Meteor.users.update userId,
+    $set:
+      "turkserver.state": "lobby"
+
 Meteor.methods
   "toggleStatus" : ->
     userId = Meteor.userId()
@@ -23,7 +27,6 @@ Meteor.methods
 
     Lobby.update userId,
       $set: { status: not existing.status }
-
 
 if Meteor.isServer
   # Clear lobby status on startup

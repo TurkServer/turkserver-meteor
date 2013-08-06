@@ -32,3 +32,16 @@ Meteor.startup ->
   return unless params.hitId and params.assignmentId and params.workerId
   mturkLogin(params.hitId, params.assignmentId, params.workerId)
 
+# TODO check that this works properly
+Deps.autorun ->
+  userId = Meteor.userId()
+  return unless userId
+  turkserver = Meteor.users.findOne(
+    _id: userId
+    "turkserver.state": { $exists: true }
+  , fields:
+    "turkserver.state" : 1
+  )?.turkserver
+  return unless turkserver
+
+  Session.set("turkserver.state", turkserver.state)
