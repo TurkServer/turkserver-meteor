@@ -23,7 +23,6 @@ Package.on_use(function (api) {
         'coffeescript'
     ], both);
 
-    api.use('waiting-lobby', both);
     api.use('collection-hooks', both);
     api.use('user-status', 'server');
 
@@ -50,6 +49,16 @@ Package.on_use(function (api) {
         'lib/admin.coffee',
         'lib/accounts_mturk.coffee'
     ], 'server');
+
+    // Lobby
+    api.add_files([
+        'lobby/lobby.coffee'
+    ], both);
+
+    api.add_files([
+        'lobby/lobby_client.html',
+        'lobby/lobby_client.coffee'
+    ], 'client');
 
 });
 
