@@ -45,3 +45,7 @@ Deps.autorun ->
   return unless turkserver
 
   Session.set("turkserver.state", turkserver.state)
+
+# Reactive variables for state
+TurkServer.inLobby = ->
+  Session.equals("turkserver.state", "lobby")
