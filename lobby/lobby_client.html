@@ -1,45 +1,44 @@
-<template name="waitingLobby">
-
+<template name="tsLobby">
     <div class="container">
-        <h3>Waiting for enough users to start...</h3>
+    <h3>Waiting for enough users to start...</h3>
 
-        <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>User</th>
-                <th>Status</th>
-                <th style="width: 120px"></th>
-            </tr>
-        </thead>
-        <tbody>
-        {{#each lobbyInfo}}
-            <tr>
-                <td>
-                    {{_id}}
-                </td>
-                <td>
-                    <strong>
-                        {{#if status}}
-                        <span class="text-success">READY</span>
-                        {{else}}
-                        <span class="text-error">NOT READY</span>
-                        {{/if}}
-                    </strong>
-                </td>
-                <td>
-                {{#if readyEnabled}}
-                    <a href="#" class="changeStatus btn btn-primary">
-                        {{#if status}}
-                            I'm not ready.
-                        {{else}}
-                            I'm ready!
-                        {{/if}}
-                    </a>
-                {{/if}}
-                </td>
-            </tr>
-        {{/each}}
-        </tbody>
-        </table>
+    <table class="table table-striped">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Status</th>
+            <th style="width: 120px"></th>
+        </tr>
+    </thead>
+    <tbody>
+    {{#each lobbyInfo}}
+        <tr>
+            <td>
+                {{_id}}
+            </td>
+            <td>
+                <strong>
+                    {{#if status}}
+                    <span class="text-success">READY</span>
+                    {{else}}
+                    <span class="text-error">NOT READY</span>
+                    {{/if}}
+                </strong>
+            </td>
+            <td>
+            {{#if readyEnabled}}
+                <a href="#" class="changeStatus btn btn-primary">
+                    {{#if status}}
+                        I'm not ready.
+                    {{else}}
+                        I'm ready!
+                    {{/if}}
+                </a>
+            {{/if}}
+            </td>
+        </tr>
+    {{/each}}
+    </tbody>
+    </table>
     </div>
 </template>

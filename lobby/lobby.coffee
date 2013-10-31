@@ -6,9 +6,9 @@ userNotInLobbyErr = "User not in lobby"
 this.Lobby = new Meteor.Collection("lobby")
 
 TurkServer.addToLobby = (userId) ->
-  Lobby.insert
-    _id: userId
-    status: false
+  # Insert or update status in lobby
+  Lobby.upsert userId,
+    $set: {status: false} # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
 
   Meteor.users.update userId,
     $set:

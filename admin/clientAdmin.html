@@ -1,0 +1,108 @@
+<!-- pulldown interface for accessing turkserver when iron router is not being used -->
+
+<template name="turkserverPulldown">
+    <div id="ts-container">
+        <div class="tabbable tabs-below container">
+            <div id="ts-content" class="tab-content well">
+                {{> turkserver}}
+            </div>
+            <ul id="ts-tabs" class="nav nav-tabs pull-right">
+                <li><a href="#" class="ts-adminToggle">TurkServer</a></li>
+            </ul>
+        </div>
+    </div>
+</template>
+
+<template name="tsAdminLogin">
+    <div class="container">
+        <div class="alert">
+            Please log in to access this part of the site.
+        </div>
+
+        <form class="form-inline">
+            <fieldset>
+                <input type="password" class="input-small" placeholder="Password">
+                <button type="submit" class="btn">Sign in</button>
+            </fieldset>
+        </form>
+    </div>
+</template>
+
+<template name="tsAdminDenied">
+    <div class="container">
+        <div class="alert alert-error">
+            Sorry, you are not permitted to access this.
+        </div>
+    </div>
+</template>
+
+<template name="tsAdminLayout">
+    <div class="container">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <ul class="nav">
+                    <li>
+                        <a href="/turkserver">Overview</a>
+                    </li>
+                    <li>
+                        <a href="/turkserver/hits">HITs</a>
+                    </li>
+                    <li>
+                        <a href="/turkserver/users">Users</a>
+                    </li>
+                    <li>
+                        <a href="/turkserver/lobby">Lobby</a>
+                    </li>
+                    <li>
+                        <a href="/turkserver/experiments">Experiments</a>
+                    </li>
+                </ul>
+
+                <ul class="nav pull-right">
+                    <li class="navbar-text">
+                        {{loginButtons align="right"}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {{yield}}
+    </div>
+</template>
+
+<template name="tsAdminOverview">
+    <h3>TurkServer Console</h3>
+</template>
+
+<template name="tsAdminHits">
+    <h3>Outstanding HITs</h3>
+</template>
+
+<template name="tsAdminUsers">
+    <h3>Connected Users</h3>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>User</th>
+            <th>WorkerId</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each users}}
+        <tr>
+            <td>{{_id}}</td>
+            <td>{{workerId}}</td>
+            <td><strong>{{turkserver.state}}</strong></td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</template>
+
+<template name="tsAdminExperiments">
+    <h3>Ongoing Experiments</h3>
+
+    <h3>Completed Experiments</h3>
+</template>

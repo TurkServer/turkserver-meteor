@@ -3,12 +3,12 @@ groupSize = 2
 
 Meteor.subscribe("lobby")
 
-Template.waitingLobby.lobbyInfo = -> Lobby.find()
+Template.tsLobby.lobbyInfo = -> Lobby.find()
 
-Template.waitingLobby.readyEnabled = ->
+Template.tsLobby.readyEnabled = ->
   return Lobby.find().count() >= groupSize and @_id is Meteor.userId()
 
-Template.waitingLobby.events =
+Template.tsLobby.events =
   "click a.changeStatus": (ev) ->
     ev.preventDefault()
 

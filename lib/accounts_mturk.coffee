@@ -85,7 +85,7 @@ Accounts.registerLoginHandler (loginRequest) ->
 #  },
 #  {multi : true}
 
-  # TODO temporary; let's do something better organized later
+  # TODO temporary; let's do something better organized later; this was causing dup key issues
   # Add user to the lobby
   TurkServer.addToLobby userId
 

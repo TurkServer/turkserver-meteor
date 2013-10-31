@@ -29,8 +29,19 @@ Handlebars.registerHelper "hitIsViewing", ->
   params.assignmentId and params.assignmentId is "ASSIGNMENT_ID_NOT_AVAILABLE"
 
 Meteor.startup ->
-  return unless params.hitId and params.assignmentId and params.workerId
-  mturkLogin(params.hitId, params.assignmentId, params.workerId)
+  # Remember our previous hit parameters unless they have been replaced
+  # TODO make sure this doesn't interfere with actual HITs
+  if params.hitId and params.assignmentId and params.workerId
+    Session.set("_hitId", params.hitId)
+    Session.set("_assignmentId", params.assignmentId)
+    Session.set("_workerId", params.workerId)
+
+  # Recover either page params or stored session params as above
+  hitId = Session.get("_hitId")
+  assignmentId = Session.get("_assignmentId")
+  workerId = Session.get("_workerId")
+
+  mturkLogin(hitId, assignmentId, workerId) if hitId and assignmentId and workerId
 
 # TODO check that this works properly
 Deps.autorun ->
@@ -49,3 +60,9 @@ Deps.autorun ->
 # Reactive variables for state
 TurkServer.inLobby = ->
   Session.equals("turkserver.state", "lobby")
+
+# Paths for lobby
+Package['iron-router']?.Router.map ->
+  @route "lobby",
+    template: "tsLobby",
+    layoutTemplate: "tsContainer"

@@ -45,4 +45,3 @@ TurkServer.sessionStatus = (record) ->
     "assigned"
   else
     "unassigned"
-

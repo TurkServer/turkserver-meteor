@@ -1,0 +1,34 @@
+<template name="tsAdminLobby">
+    <h3>Current Lobby</h3>
+
+    {{> tsAdminLobbyHeader}}
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>User</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each lobbyUsers}}
+        <tr>
+            <td>{{_id}}</td>
+            <td>
+                <strong>
+                    {{#if status}}
+                    <span class="text-success">READY</span>
+                    {{else}}
+                    <span class="text-error">NOT READY</span>
+                    {{/if}}
+                </strong>
+            </td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</template>
+
+<template name="tsAdminLobbyHeader">
+    <p>{{count}} users currently in lobby.</p>
+</template>
