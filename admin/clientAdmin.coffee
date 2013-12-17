@@ -15,6 +15,7 @@ Package['iron-router']?.Router.map ->
         when "lobby" then @render("tsAdminLobby")
         when "experiments" then @render("tsAdminExperiments")
         else @render("tsAdminOverview")
+      return
 
 Template.turkserverPulldown.events =
   "click .ts-adminToggle": (e) ->
@@ -37,5 +38,8 @@ Template.tsAdminLogin.events =
     Meteor.loginWithPassword "admin", password, (err) ->
       bootbox.alert("Unable to login: " + err.reason) if err?
 
-# All non-admin users
-Template.tsAdminUsers.users = -> Meteor.users.find({admin: {$exists: false}})
+# All non-admin users who are online
+Template.tsAdminUsers.users = ->
+  Meteor.users.find
+    admin: {$exists: false}
+    "profile.online": true

@@ -46,6 +46,7 @@ Package.on_use(function (api) {
 
     // Client
     api.add_files([
+        'client/helpers.coffee',
         'client/ts_client.styl',
         'client/ts_client.html',
         'client/ts_client.coffee'
@@ -55,6 +56,8 @@ Package.on_use(function (api) {
     api.add_files([
         'admin/clientAdmin.html',
         'admin/clientAdmin.coffee',
+        'admin/experimentAdmin.html',
+        'admin/experimentAdmin.coffee',
         'admin/lobbyAdmin.html',
         'admin/lobbyAdmin.coffee'
     ], 'client');

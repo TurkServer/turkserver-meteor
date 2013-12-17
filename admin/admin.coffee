@@ -1,3 +1,5 @@
+# Server admin code
+
 Meteor.publish "tsAdmin", ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 
@@ -10,12 +12,10 @@ Meteor.publish "tsAdmin", ->
         turkserver: 1
         workerId: 1
     ),
-    Experiments.find()
-    ,
-    Assignments.find()
-    ,
-    Workers.find()
-    ,
+    Batches.find(),
+    Experiments.find(),
+    Assignments.find(),
+    Workers.find(),
     Lobby.find()
   ]
 

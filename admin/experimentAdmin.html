@@ -1,0 +1,58 @@
+<template name="tsAdminExperiments">
+    <h3>Ongoing Experiments</h3>
+
+    <h3>Completed Experiments</h3>
+
+    <h3>Manage Experiments</h3>
+    {{> tsAdminActiveBatches }}
+    {{> tsAdminBatchList }}
+</template>
+
+<template name="tsAdminActiveBatches">
+    {{#withif activeBatch}}
+    <div class="alert alert-info">
+        <b>{{name}}</b> is the current active batch.
+        <button class="btn btn-danger -ts-retire-batch">Retire</button>
+    </div>
+    {{else}}
+    <div class="alert">
+        No batch of experiments is currently active.
+        <button class="btn btn-primary -ts-new-batch">Create Batch</button>
+        <button class="btn btn-warning -ts-test-batch">Create Test Batch</button>
+    </div>
+    {{/withif}}
+</template>
+
+<template name="tsAdminBatchList">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Batch</th>
+            <th>Note</th>
+            <th>Active</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each batches}}
+        <tr>
+            <td><b>{{name}}</b></td>
+            <td>{{desc}}</td>
+            <td>
+                {{#if active}}
+                <span class="badge badge-inverse">
+                <i class="icon-ok icon-white"></i>
+                </span>
+                {{/if}}
+            </td>
+        </tr>
+        {{/each}}
+        {{#if zeroBatches}}
+        <tr>
+            <td colspan="3">
+                <i>No experiment batches yet.</i>
+            </td>
+        </tr>
+        {{/if}}
+        </tbody>
+    </table>
+</template>

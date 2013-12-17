@@ -1,3 +1,5 @@
+# Server-side code
+
 mturk = Npm.require('mturk')
 
 TurkServer.settings = {
@@ -8,10 +10,6 @@ TurkServer.settings = {
     }
   }
 }
-
-this.Assignments = new Meteor.Collection("assignments")
-this.Experiments = new Meteor.Collection("experiments")
-this.Workers = new Meteor.Collection("workers")
 
 # TODO more careful indices on these collections
 
