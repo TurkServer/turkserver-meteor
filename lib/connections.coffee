@@ -41,11 +41,12 @@ TurkServer.handleConnection = (doc) ->
     return
 
   # None of the above, throw them into the assignment mechanism
-  TurkServer.assignUser(userId)
+  if Batches.findOne(active: true).lobby
+    TurkServer.addToLobby(userId)
+  else
+    TurkServer.assignUser(userId)
 
 TurkServer.assignUser = (userId) ->
 
-  # TODO temporary; let's do something better organized later; this was causing dup key issues
-  # Add user to the lobby
-  TurkServer.addToLobby(userId)
+
 
