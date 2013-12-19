@@ -78,11 +78,21 @@ Package.on_use(function (api) {
 
 Package.on_test(function (api) {
     api.use('turkserver');
-    api.use('tinytest');
-    api.use('test-helpers');
 
-    api.use('accounts-testing');
+    api.use([
+      'accounts-base',
+      'accounts-password',
+      'deps',
+      'coffeescript'
+    ]);
+    api.use([
+      'tinytest',
+      'test-helpers'
+    ]);
+
     api.use('session', 'client');
+
+    api.add_files("tests/insecure_login.js");
 
     api.add_files('tests/browser_tests.coffee', 'client');
     api.add_files('tests/authentication_tests.coffee', 'server');

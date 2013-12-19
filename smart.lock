@@ -10,9 +10,6 @@
       "turkserver": {
         "path": "."
       },
-      "accounts-testing": {
-        "path": "../meteor-accounts-testing"
-      },
       "collection-hooks": {
         "path": "../meteor-collection-hooks"
       },

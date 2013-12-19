@@ -21,7 +21,7 @@ if Meteor.isClient
 if Meteor.isServer
 
   # No allow/deny for find so we make our own checks
-  modifySelector = (userId, selector) ->
+  modifySelector = (userId, selector, options) ->
     throw new Meteor.Error(403, userIdErr) unless userId
     # for find(id) we should not touch this
     return true if typeof selector is "string"
@@ -33,19 +33,19 @@ if Meteor.isServer
 
   TurkServer.registerCollection = (collection) ->
     # TODO delete the groupId on found records if/when it becomes necessary
-    collection.before "find", modifySelector
-    collection.before "findOne", modifySelector
+    collection.before.find modifySelector
+    collection.before.findOne modifySelector
 
     # These will hook the _validated methods as well
-    collection.before "insert", (userId, doc) ->
+    collection.before.insert (userId, doc) ->
       throw new Meteor.Error(403, userIdErr) unless userId
       group = Meteor.users.findOne(userId)?.turkserver?.group
       throw new Meteor.Error(403, groupErr) unless group
       doc._groupId = group
       return true
 
-    collection.before "update", modifySelector
-    collection.before "remove", modifySelector
+    collection.before.update modifySelector
+    collection.before.remove modifySelector
 
     if collection._isInsecure()
       Meteor._debug("The " + collection._name +

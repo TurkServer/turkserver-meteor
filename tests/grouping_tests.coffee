@@ -54,8 +54,21 @@ if Meteor.isServer
         m["clear-collection-" + fullName] = -> collection.remove({})
         Meteor.methods(m)
 
-        # Attach the turkserver hooks to the collec tion
+        # Enable direct insert - comes before the other insert hook modifies groupId
+        collection.before.insert (userId, doc) ->
+          if doc._direct
+            delete doc._direct
+            @_super.call(@context, doc)
+            return false
+          return
+
+        # Attach the turkserver hooks to the collection
         TurkServer.registerCollection(collection)
+
+        # Enable direct find which removes the added _groupId after the find hook
+        collection.before.find (userId, selector, options) ->
+          if options._direct
+            delete selector._groupId # This is what I added before
 
       cursors.push( collection.find() )
       return collection
@@ -67,11 +80,13 @@ if Meteor.isServer
     Meteor._debug "grouping publication activated"
 
     if needToConfigure
-
-      twoGroupCollection.directInsert
+      twoGroupCollection.insert
+        _direct: true
         _groupId: myGroup
         a: 1
-      twoGroupCollection.directInsert
+
+      twoGroupCollection.insert
+        _direct: true
         _groupId: otherGroup
         a: 1
 
@@ -87,11 +102,11 @@ if Meteor.isServer
     serverRemove: (name, selector) ->
       return groupingCollections[name].remove(selector)
     getCollection: (name, selector) ->
-      return groupingCollections[name].directFind(selector || {}).fetch()
+      return groupingCollections[name].find(selector || {}, {_direct: true}).fetch()
     getMyCollection: (name, selector) ->
       return groupingCollections[name].find(selector || {}).fetch()
     printCollection: (name) ->
-      console.log groupingCollections[name].directFind().fetch()
+      console.log groupingCollections[name].find({}, {_direct: true}).fetch()
     printMyCollection: (name) ->
       console.log groupingCollections[name].find().fetch()
 
@@ -151,7 +166,6 @@ if Meteor.isClient
 
     Tinytest.addAsync "grouping - local empty find", (test, next) ->
       test.equal basicInsertCollection.find().count(), 0
-
       next()
 
     testAsyncMulti "grouping - basic insert", [

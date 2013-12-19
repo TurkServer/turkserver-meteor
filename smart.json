@@ -7,9 +7,6 @@
     "git": "https://github.com/HarvardEconCS/turkserver-meteor.git",
     "packages": {
         "bootboxjs": {},
-        "accounts-testing": {
-            "path": "../meteor-accounts-testing"
-        },
         "collection-hooks": {
             "path": "../meteor-collection-hooks"
         },
