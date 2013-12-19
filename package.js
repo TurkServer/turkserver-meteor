@@ -33,13 +33,14 @@ Package.on_use(function (api) {
 
     // Shared files
     api.add_files([
-        'lib/common.coffee',
-        'lib/grouping.coffee'
+        'lib/common.coffee'
     ]);
 
     // Server files
     api.add_files([
         'lib/turkserver.coffee',
+        'lib/grouping.coffee',
+        'lib/assigners.coffee',
         'lib/connections.coffee',
         'lib/accounts_mturk.coffee'
     ], 'server');

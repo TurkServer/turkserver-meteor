@@ -72,7 +72,10 @@ Accounts.registerLoginHandler (loginRequest) ->
 
   stampedToken = Accounts._generateStampedLoginToken();
 
-  # TODO We probably don't want to push this token; disable resume force login each time
+  ###
+    TODO We probably don't want to push this token - disable resume and force login each time
+  ###
+
 #  Meteor.users.update userId,
 #    $push: {'services.resume.loginTokens': stampedToken}
 
@@ -85,9 +88,11 @@ Accounts.registerLoginHandler (loginRequest) ->
 #  },
 #  {multi : true}
 
-  # TODO temporary; let's do something better organized later; this was causing dup key issues
-  # Add user to the lobby
-  TurkServer.addToLobby userId
+  TurkServer.handleConnection
+    hitId: loginRequest.hitId
+    assignmentId: loginRequest.assignmentId
+    workerId: loginRequest.workerId
+    userId: userId
 
   return {
     id: userId,

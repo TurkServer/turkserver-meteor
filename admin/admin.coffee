@@ -14,6 +14,7 @@ Meteor.publish "tsAdmin", ->
     ),
     Batches.find(),
     Experiments.find(),
+    Grouping.find(),
     Assignments.find(),
     Workers.find(),
     Lobby.find()
