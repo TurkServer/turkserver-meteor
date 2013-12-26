@@ -70,8 +70,6 @@ Accounts.registerLoginHandler (loginRequest) ->
   # should we let this worker in or not?
   TurkServer.authenticateWorker(loginRequest)
 
-  stampedToken = Accounts._generateStampedLoginToken();
-
   ###
     TODO We probably don't want to push this token - disable resume and force login each time
   ###
@@ -93,6 +91,8 @@ Accounts.registerLoginHandler (loginRequest) ->
     assignmentId: loginRequest.assignmentId
     workerId: loginRequest.workerId
     userId: userId
+
+  stampedToken = Accounts._generateStampedLoginToken();
 
   return {
     id: userId,

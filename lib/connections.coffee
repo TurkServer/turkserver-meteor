@@ -1,5 +1,14 @@
 UserStatus.on "sessionLogin", (userId, sessionId, ipAddr) ->
+  # Update ip address in assignments for this worker
+  user = Meteor.users.findOne(userId)
 
+  # TODO verify this is valid as we reject multiple connections on login
+  Assignments.update {
+    workerId: user.workerId
+    status: "ASSIGNED"
+  }, {
+    $set: {ipAddr: ipAddr}
+  }
 
 UserStatus.on "sessionLogout", (userId, sessionId, ipAddr) ->
   # TODO record disconnection
@@ -15,10 +24,9 @@ TurkServer.handleConnection = (doc) ->
   Assignments.update {
     hitId: doc.hitId
     assignmentId: doc.assignmentId
-    workerId: {$not: doc.workerId}
+    workerId: {$ne: doc.workerId}
   }, {
-    $set:
-      status: "RETURNED"
+    $set: { status: "RETURNED" }
   }, { multi: true }
 
   # Track this worker as assigned
@@ -27,10 +35,7 @@ TurkServer.handleConnection = (doc) ->
     assignmentId: doc.assignmentId
     workerId: doc.workerId
   }, {
-    $set:
-      status: "ASSIGNED"
-    # Shouldn't have a problem here as we reject multiple connections on login
-      ipAddr: UserSessions.findOne(userId: doc.userId).ipAddr
+    $set: { status: "ASSIGNED" }
   }
 
   # TODO Does the worker need to take quiz/tutorial?
@@ -41,7 +46,10 @@ TurkServer.handleConnection = (doc) ->
     return
 
   # None of the above, throw them into the assignment mechanism
-  if Batches.findOne(active: true).lobby
+  activeBatch = Batches.findOne(active: true)
+  throw new Meteor.Error(403, "No active batch configured on server") unless activeBatch?
+
+  if activeBatch.lobby
     TurkServer.addToLobby(userId)
   else
     TurkServer.assignUser(userId)

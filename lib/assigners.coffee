@@ -5,13 +5,13 @@
 class Assigner
 
 
-# Puts everyone who joins into a default group.
+# Puts everyone who joins into a single group.
 class Assigners.TestAssigner extends Assigner
 
 
-# Puts people who join into a lobby, which fills fixed size groups when ready.
-class Assigners.LobbyAssigner extends Assigner
-  constructor: (@groupSize) ->
+# Assigns treatments to groups in a randomized, round-robin fashion
+class Assigners.RoundRobinAssigner extends Assigner
+  constructor: (@treatments) ->
 
 
-# TODO: separate lobby from treatment/item assignment
+# TODO: separate group from treatment/item assignment

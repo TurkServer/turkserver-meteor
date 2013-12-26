@@ -12,16 +12,38 @@ getURLParams = ->
       i++
   return params
 
-mturkLogin = (hitId, assignmentId, workerId, callback) ->
-  Accounts.callLoginMethod
-    methodArguments: [{
-      hitId: hitId
-      assignmentId: assignmentId
-      workerId: workerId
-    }],
-    userCallback: callback
-
 params = getURLParams()
+
+loginCallback = (e) ->
+  return unless e?
+  bootbox.dialog("<p>Unable to login:</p>" + e.message)
+
+mturkLogin = (args) ->
+  Accounts.callLoginMethod
+    methodArguments: [ args ],
+    userCallback: loginCallback
+
+testLogin = ->
+  return if Meteor.userId()
+  console.log "Trying login with fake credentials"
+  str = Random.id()
+  hitId = str + "_HIT"
+  asstId = str + "_Asst"
+  workerId = str + "_Worker"
+  prompt =
+    """<p>TurkServer can create a fake user for testing purposes.</p>
+       <p>Press <b>OK</b> to log in with the following credentials, or <b>Cancel</b> to stay logged out.</p>
+        <br> HIT id: <b>#{hitId}</b>
+        <br> Assignment id: <b>#{asstId}</b>
+        <br> Worker id: <b>#{workerId}</b>
+    """
+  bootbox.confirm prompt, (result) ->
+    mturkLogin({
+      hitId: hitId
+      assignmentId: asstId
+      workerId: workerId
+      test: true
+    }) if result?
 
 Handlebars.registerHelper "hitParams", -> params
 
@@ -41,7 +63,14 @@ Meteor.startup ->
   assignmentId = Session.get("_assignmentId")
   workerId = Session.get("_workerId")
 
-  mturkLogin(hitId, assignmentId, workerId) if hitId and assignmentId and workerId
+  if hitId and assignmentId and workerId
+    mturkLogin({
+      hitId: hitId
+      assignmentId: assignmentId
+      workerId: workerId
+    })
+  else
+    Meteor.defer testLogin, 500
 
 # TODO check that this works properly
 Deps.autorun ->
