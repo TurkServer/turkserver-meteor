@@ -47,6 +47,7 @@ Package.on_use(function (api) {
 
     // Client
     api.add_files([
+        'client/disconnection.coffee',
         'client/helpers.coffee',
         'client/ts_client.styl',
         'client/ts_client.html',
