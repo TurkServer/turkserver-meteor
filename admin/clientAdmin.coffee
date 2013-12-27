@@ -43,4 +43,4 @@ Template.tsAdminLogin.events =
 Template.tsAdminUsers.users = ->
   Meteor.users.find
     admin: {$exists: false}
-    "profile.online": true
+    "status.online": true

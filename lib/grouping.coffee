@@ -57,7 +57,7 @@ TurkServer.registerCollection = (collection) ->
     _groupId: 1
 
 # Remove group ids when users go offline
-Meteor.users.find({"profile.online": true}).observeChanges
+Meteor.users.find({"status.online": true}).observeChanges
   removed: (id) ->
     Meteor.users.update id,
       $unset: {"turkserver.group": null}

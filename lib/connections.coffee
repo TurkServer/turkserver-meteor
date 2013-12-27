@@ -1,16 +1,16 @@
-UserStatus.on "sessionLogin", (userId, sessionId, ipAddr) ->
+UserStatus.on "sessionLogin", (doc) ->
   # Update ip address in assignments for this worker
-  user = Meteor.users.findOne(userId)
+  user = Meteor.users.findOne(doc.userId)
 
   # TODO verify this is valid as we reject multiple connections on login
   Assignments.update {
     workerId: user.workerId
     status: "ASSIGNED"
   }, {
-    $set: {ipAddr: ipAddr}
+    $set: {ipAddr: doc.ipAddr}
   }
 
-UserStatus.on "sessionLogout", (userId, sessionId, ipAddr) ->
+UserStatus.on "sessionLogout", (doc) ->
   # TODO record disconnection
 
 Meteor.methods

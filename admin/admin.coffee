@@ -6,9 +6,9 @@ Meteor.publish "tsAdmin", ->
   # Publish all admin data
   return [
     Meteor.users.find(
-      {"profile.online": true},
+      {"status.online": true},
       fields:
-        profile: 1
+        status: 1
         turkserver: 1
         workerId: 1
     ),
