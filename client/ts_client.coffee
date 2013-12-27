@@ -24,8 +24,9 @@ mturkLogin = (args) ->
     userCallback: loginCallback
 
 testLogin = ->
-  return if Meteor.userId()
-  console.log "Trying login with fake credentials"
+  # Don't try logging in if we are logged in or already have parameters
+  return if Meteor.userId() or Session.get("_loginParams")
+
   str = Random.id()
   hitId = str + "_HIT"
   asstId = str + "_Asst"
@@ -38,12 +39,17 @@ testLogin = ->
         <br> Worker id: <b>#{workerId}</b>
     """
   bootbox.confirm prompt, (result) ->
-    mturkLogin({
+    return unless result
+    console.log "Trying login with fake credentials"
+    # Save parameters and login
+    loginParams = {
       hitId: hitId
       assignmentId: asstId
       workerId: workerId
       test: true
-    }) if result?
+    }
+    Session.set("_loginParams", loginParams)
+    mturkLogin(loginParams)
 
 Handlebars.registerHelper "hitParams", -> params
 
@@ -54,22 +60,19 @@ Meteor.startup ->
   # Remember our previous hit parameters unless they have been replaced
   # TODO make sure this doesn't interfere with actual HITs
   if params.hitId and params.assignmentId and params.workerId
-    Session.set("_hitId", params.hitId)
-    Session.set("_assignmentId", params.assignmentId)
-    Session.set("_workerId", params.workerId)
+    Session.set("_loginParams", {
+      hitId: params.hitId
+      assignmentId: params.assignmentId
+      workerId: params.workerId
+    })
 
   # Recover either page params or stored session params as above
-  hitId = Session.get("_hitId")
-  assignmentId = Session.get("_assignmentId")
-  workerId = Session.get("_workerId")
+  loginParams = Session.get("_loginParams")
 
-  if hitId and assignmentId and workerId
-    mturkLogin({
-      hitId: hitId
-      assignmentId: assignmentId
-      workerId: workerId
-    })
+  if loginParams
+    mturkLogin(loginParams)
   else
+    # TODO we can make sure these test logins maintain parameters as well
     Meteor.defer testLogin, 500
 
 # TODO check that this works properly

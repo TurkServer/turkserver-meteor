@@ -11,6 +11,32 @@ TurkServer.settings = {
   }
 }
 
+isAdmin = (userId) ->
+  Meteor.users.findOne(userId).admin is true
+
+###
+  Batches
+  Treatments
+  Experiments
+###
+
+Batches.allow
+  insert: isAdmin
+  update: isAdmin
+  remove: isAdmin
+
+Treatments._ensureIndex {name: 1}, {unique: 1}
+
+Treatments.allow
+  insert: isAdmin
+  update: isAdmin
+  remove: isAdmin
+
+###
+  Workers
+  Assignments
+###
+
 # TODO more careful indices on these collections
 
 # Index on unique assignment-worker pairs

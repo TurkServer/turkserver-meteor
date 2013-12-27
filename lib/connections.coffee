@@ -50,9 +50,9 @@ TurkServer.handleConnection = (doc) ->
   throw new Meteor.Error(403, "No active batch configured on server") unless activeBatch?
 
   if activeBatch.lobby
-    TurkServer.addToLobby(userId)
+    TurkServer.addToLobby(doc.userId)
   else
-    TurkServer.assignUser(userId)
+    TurkServer.assignUser(doc.userId)
 
 TurkServer.assignUser = (userId) ->
 

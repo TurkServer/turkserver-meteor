@@ -3,9 +3,69 @@
 
     <h3>Completed Experiments</h3>
 
-    <h3>Manage Experiments</h3>
+</template>
+
+<template name="tsAdminManage">
+    <h3>Manage Treatments</h3>
+    <div class="row">
+        <div class="span6">
+        {{> tsAdminTreatments }}
+        </div>
+        <div class="span6">
+        {{> tsAdminNewTreatment}}
+        </div>
+    </div>
+
+    <h3>Manage Batches</h3>
     {{> tsAdminActiveBatches }}
     {{> tsAdminBatchList }}
+</template>
+
+<template name="tsAdminTreatments">
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Treatments</th>
+            <th></th>
+        </tr>
+        </thead>
+        {{#each treatments}}
+        <tr>
+            <td><span class="label label-default">{{name}}</span></td>
+            <td><button class="btn btn-mini btn-danger -ts-delete-treatment">
+                <i class="icon-white icon-trash"></i>
+            </button></td>
+        </tr>
+        {{/each}}
+        {{#if zeroTreatments}}
+        <tr>
+            <td colspan="2"><i>No treatments configured yet.</i></td>
+        </tr>
+        {{/if}}
+    </table>
+</template>
+
+<template name="tsAdminNewTreatment">
+    <form class="form-inline">
+        <input type="text" name="name" class="input-large" placeholder="New treatment name...">
+        <button type="submit" class="btn btn-primary">Add treatment</button>
+    </form>
+</template>
+
+<template name="tsAdminNewTestBatch">
+    <form class="ts-new-test-batch">
+        <fieldset>
+            <legend>Create New Test Batch</legend>
+            <label>Batch Name:</label>
+            <input type="text" name="name" placeholder="Name of this batch…">
+            <label>Choose treatment:</label>
+            <select>
+                {{#each treatments}}
+                <option>{{name}}</option>
+                {{/each}}
+            </select>
+        </fieldset>
+    </form>
 </template>
 
 <template name="tsAdminActiveBatches">
@@ -28,6 +88,7 @@
         <thead>
         <tr>
             <th>Batch</th>
+            <th>Treatments</th>
             <th>Note</th>
             <th>Active</th>
         </tr>
@@ -36,12 +97,20 @@
         {{#each batches}}
         <tr>
             <td><b>{{name}}</b></td>
+            <td>
+                {{#each treatmentIds}}
+                <span class="label label-default">{{treatmentName this}}</span>
+                {{/each}}
+            </td>
             <td>{{desc}}</td>
             <td>
                 {{#if active}}
                 <span class="badge badge-inverse">
                 <i class="icon-ok icon-white"></i>
                 </span>
+                {{/if}}
+                {{#if activatable}}
+                <button class="btn btn-danger btn-mini -ts-activate-batch">Make Active</button>
                 {{/if}}
             </td>
         </tr>

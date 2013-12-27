@@ -13,6 +13,7 @@ Meteor.publish "tsAdmin", ->
         workerId: 1
     ),
     Batches.find(),
+    Treatments.find(),
     Experiments.find(),
     Grouping.find(),
     Assignments.find(),
@@ -30,7 +31,8 @@ Meteor.startup ->
     Meteor._debug "No admin password found for Turkserver. Please configure it in your settings."
     return
 
-  unless Meteor.users.findOne(username: "admin")
+  adminUser = Meteor.users.findOne(username: "admin")
+  unless adminUser
     Accounts.createUser
       username: "admin"
       password: adminPw
@@ -38,3 +40,6 @@ Meteor.startup ->
 
     Meteor.users.update {username: "admin"},
       $set: {admin: true}
+  else
+    # Make sure password matches that of settings file
+    Accounts.setPassword(adminUser._id, adminPw)

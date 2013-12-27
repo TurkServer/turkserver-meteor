@@ -14,6 +14,7 @@ Package['iron-router']?.Router.map ->
         when "users" then @render("tsAdminUsers")
         when "lobby" then @render("tsAdminLobby")
         when "experiments" then @render("tsAdminExperiments")
+        when "manage" then @render("tsAdminManage")
         else @render("tsAdminOverview")
       return
 
