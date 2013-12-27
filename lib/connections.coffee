@@ -55,6 +55,6 @@ TurkServer.handleConnection = (doc) ->
     TurkServer.assignUser(doc.userId)
 
 TurkServer.assignUser = (userId) ->
-
+  activeBatch = Batches.findOne(active: true)
 
 

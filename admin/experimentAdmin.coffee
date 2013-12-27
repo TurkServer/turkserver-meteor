@@ -22,6 +22,10 @@ Template.tsAdminNewTreatment.events =
     , (e) -> bootbox.alert(e.message) if e
 
 Template.tsAdminNewTestBatch.events =
+  "change input[name=groupRadios]": (e, tmpl) ->
+    # Adjust state of radio button
+    tmpl.find("input[name=lobby]").disabled = (e.target.value isnt "groupSize")
+
   # Don't let this form submit itself
   "submit form": (e) -> e.preventDefault()
 
@@ -46,16 +50,27 @@ Template.tsAdminActiveBatches.events =
         $form = $("form.ts-new-test-batch")
         name = $form.find("input[name=name]").val()
         treatment = Spark.getDataContext($form.find(":selected")[0])
+        lobby = $form.find("input[name=lobby]").is(":checked")
+        groupVal = parseInt($form.find("input[name=groupVal]").val())
 
         unless name
           bootbox.alert "Batch name cannot be empty."
           return
 
-        Batches.insert
+        unless groupVal
+          bootbox.alert "Invalid group value."
+          return
+
+        options =
           name: name
           treatmentIds: [ treatment._id ]
+          lobby: lobby
           desc: "Test batch."
           active: true
+
+        options[$form.find("input[name=groupRadios]:checked").val()] = groupVal
+
+        Batches.insert(options)
     }]
 
   "click .-ts-new-batch": ->

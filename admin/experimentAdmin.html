@@ -64,6 +64,19 @@
                 <option>{{name}}</option>
                 {{/each}}
             </select>
+            <label class="radio">
+                <input type="radio" name="groupRadios" value="groupSize" checked>
+                Fixed group size
+            </label>
+            <label class="checkbox">
+                <input type="checkbox" name="lobby">Use lobby
+            </label>
+            <label class="radio">
+                <input type="radio" name="groupRadios" value="groupCount">
+                Fixed number of groups
+            </label>
+            <label>Grouping Value:</label>
+            <input type="number" min="1" step="1" value="1" pattern="\d+" name="groupVal">
         </fieldset>
     </form>
 </template>
@@ -89,6 +102,7 @@
         <tr>
             <th>Batch</th>
             <th>Treatments</th>
+            <th>Grouping</th>
             <th>Note</th>
             <th>Active</th>
         </tr>
@@ -101,6 +115,14 @@
                 {{#each treatmentIds}}
                 <span class="label label-default">{{treatmentName this}}</span>
                 {{/each}}
+            </td>
+            <td>
+            {{#withif groupSize}}
+            Fixed group size <b>({{this}})</b>
+            {{/withif}}
+            {{#withif groupCount}}
+            Fixed number of groups <b>({{this}})</b>
+            {{/withif}}
             </td>
             <td>{{desc}}</td>
             <td>

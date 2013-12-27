@@ -1,12 +1,12 @@
 # Create a global object for storing things
 @TurkServer = @TurkServer || {}
 
-@Batches = new Meteor.Collection("_batches")
-@Treatments = new Meteor.Collection("_treatments")
-@Experiments = new Meteor.Collection("_experiments")
+@Batches = new Meteor.Collection("ts.batches")
+@Treatments = new Meteor.Collection("ts.treatments")
+@Experiments = new Meteor.Collection("ts.experiments")
 
-@Workers = new Meteor.Collection("_workers")
-@Assignments = new Meteor.Collection("_assignments")
+@Workers = new Meteor.Collection("ts.workers")
+@Assignments = new Meteor.Collection("ts.assignments")
 
 # TODO: only the admin is allowed to modify these from the client side
 Meteor.methods
