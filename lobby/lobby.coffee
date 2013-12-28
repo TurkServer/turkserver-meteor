@@ -5,15 +5,6 @@ userNotInLobbyErr = "User not in lobby"
 
 this.Lobby = new Meteor.Collection("lobby")
 
-TurkServer.addToLobby = (userId) ->
-  # Insert or update status in lobby
-  Lobby.upsert userId,
-    $set: {status: false} # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
-
-  Meteor.users.update userId,
-    $set:
-      "turkserver.state": "lobby"
-
 Meteor.methods
   "toggleStatus" : ->
     userId = Meteor.userId()
@@ -27,16 +18,3 @@ Meteor.methods
 
     Lobby.update userId,
       $set: { status: not existing.status }
-
-if Meteor.isServer
-  # Clear lobby status on startup
-  Meteor.startup ->
-    Lobby.remove {}
-
-  # Remove disconnected users from lobby
-  # TODO make this more robust
-  UserStatus.on "sessionLogout", (userId, sessionId) ->
-    Lobby.remove userId
-
-  # TODO only publish the lobby to users who are actually in it
-  Meteor.publish "lobby", -> Lobby.find()

@@ -67,10 +67,8 @@ Package.on_use(function (api) {
     api.add_files('admin/admin.coffee', 'server');
 
     // Lobby
-    api.add_files([
-        'lobby/lobby.coffee'
-    ]);
-
+    api.add_files('lobby/lobby.coffee');
+    api.add_files('lobby/lobby_server.coffee', 'server');
     api.add_files([
         'lobby/lobby_client.html',
         'lobby/lobby_client.coffee'

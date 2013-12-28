@@ -1,3 +1,7 @@
+activeBatch = -> Batches.findOne(active: true)
+
+Template.tsAdminExperiments.activeBatch = activeBatch
+
 Template.tsAdminTreatments.treatments = -> Treatments.find()
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0
 
@@ -80,15 +84,29 @@ Template.tsAdminActiveBatches.events =
     Batches.update @_id, $set:
       active: false
 
-Template.tsAdminActiveBatches.activeBatch = -> Batches.findOne(active: true)
+Template.tsAdminActiveBatches.activeBatch = activeBatch
 
-Template.tsAdminBatchList.events =
+Template.tsAdminConfigureBatch.events =
   "click .-ts-activate-batch": (e) ->
     Batches.update @_id, $set:
       active: true
 
+Template.tsAdminConfigureBatch.selectedBatch = ->
+  Batches.findOne(Session.get("_tsSelectedBatchId"))
+
+Template.tsAdminConfigureBatch.treatmentName = ->
+  Treatments.findOne(""+@)?.name
+
+Template.tsAdminConfigureBatch.activatable = ->
+  not @active and not Batches.findOne(active: true)
+
+Template.tsAdminBatchList.events =
+  "click tbody > tr": (e) ->
+    Session.set("_tsSelectedBatchId", @_id)
+
 Template.tsAdminBatchList.batches = -> Batches.find()
 Template.tsAdminBatchList.zeroBatches = -> Batches.find().count() is 0
-Template.tsAdminBatchList.treatmentName = -> Treatments.findOne(""+@)?.name
-Template.tsAdminBatchList.activatable = ->
-  not @active and not Batches.findOne(active: true)
+
+Template.tsAdminBatchList.selectedClass = ->
+  if Session.equals("_tsSelectedBatchId", @_id) then "info" else ""
+

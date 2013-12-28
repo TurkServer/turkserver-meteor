@@ -1,8 +1,20 @@
 <template name="tsAdminExperiments">
+    {{#withif activeBatch}}
+    <div class="alert alert-info">
+        Viewing experiments for batch <b>{{name}}</b>.
+    </div>
+    {{> tsAdminActiveExperiments }}
+    {{else}}
+    <div class="alert">
+        Make a batch active to view experiments.
+    </div>
+    {{/withif}}
+</template>
+
+<template name="tsAdminActiveExperiments">
     <h3>Ongoing Experiments</h3>
 
     <h3>Completed Experiments</h3>
-
 </template>
 
 <template name="tsAdminManage">
@@ -17,7 +29,15 @@
     </div>
 
     <h3>Manage Batches</h3>
-    {{> tsAdminActiveBatches }}
+    <div class="row">
+        <div class="span6">
+        {{> tsAdminActiveBatches }}
+        </div>
+        <div class="span6">
+        {{> tsAdminConfigureBatch }}
+        </div>
+    </div>
+
     {{> tsAdminBatchList }}
 </template>
 
@@ -96,43 +116,61 @@
     {{/withif}}
 </template>
 
+<template name="tsAdminConfigureBatch">
+    <div class="well">
+    {{#withif selectedBatch}}
+        <dl class="dl-horizontal">
+            <dt><b>Batch Name</b></dt>
+            <dd>{{name}}</dd>
+            <dt>Description</dt>
+            <dd>{{desc}}</dd>
+            <dt>Treatments</dt>
+            <dd>
+                {{#each treatmentIds}}
+                <span class="label label-default">{{treatmentName}}</span>
+                {{/each}}
+            </dd>
+            <dt>Grouping</dt>
+            <dd>
+                {{#withif groupSize}}
+                Fixed group size <b>({{this}})</b>
+                {{/withif}}
+                {{#withif groupCount}}
+                Fixed number of groups <b>({{this}})</b>
+                {{/withif}}
+            </dd>
+            <dt></dt>
+            <dd>
+                {{#if activatable}}
+                <button class="btn btn-danger -ts-activate-batch">Make Active</button>
+                {{/if}}
+            </dd>
+        </dl>
+    {{else}}
+    <i>Select a batch below to view properties.</i>
+    {{/withif}}
+    </div>
+</template>
+
 <template name="tsAdminBatchList">
-    <table class="table table-striped">
+    <table class="table table-striped table-hover">
         <thead>
         <tr>
             <th>Batch</th>
-            <th>Treatments</th>
-            <th>Grouping</th>
             <th>Note</th>
             <th>Active</th>
         </tr>
         </thead>
         <tbody>
         {{#each batches}}
-        <tr>
+        <tr class="{{selectedClass}}">
             <td><b>{{name}}</b></td>
-            <td>
-                {{#each treatmentIds}}
-                <span class="label label-default">{{treatmentName this}}</span>
-                {{/each}}
-            </td>
-            <td>
-            {{#withif groupSize}}
-            Fixed group size <b>({{this}})</b>
-            {{/withif}}
-            {{#withif groupCount}}
-            Fixed number of groups <b>({{this}})</b>
-            {{/withif}}
-            </td>
             <td>{{desc}}</td>
             <td>
                 {{#if active}}
                 <span class="badge badge-inverse">
                 <i class="icon-ok icon-white"></i>
                 </span>
-                {{/if}}
-                {{#if activatable}}
-                <button class="btn btn-danger btn-mini -ts-activate-batch">Make Active</button>
                 {{/if}}
             </td>
         </tr>
