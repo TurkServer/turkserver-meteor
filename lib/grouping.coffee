@@ -12,6 +12,8 @@ groupErr = "Must have group assigned to operate on TurkServer collection"
 
 this.Grouping = new Meteor.Collection("_grouping")
 
+# TODO replace turkserver?.group below with Grouping collection queries
+
 # No allow/deny for find so we make our own checks
 modifySelector = (userId, selector, options) ->
   throw new Meteor.Error(403, userIdErr) unless userId

@@ -1,8 +1,9 @@
 activeBatch = -> Batches.findOne(active: true)
+treatments = -> Treatments.find()
 
 Template.tsAdminExperiments.activeBatch = activeBatch
 
-Template.tsAdminTreatments.treatments = -> Treatments.find()
+Template.tsAdminTreatments.treatments = treatments
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0
 
 Template.tsAdminTreatments.events =
@@ -33,7 +34,7 @@ Template.tsAdminNewTestBatch.events =
   # Don't let this form submit itself
   "submit form": (e) -> e.preventDefault()
 
-Template.tsAdminNewTestBatch.treatments = -> Treatments.find()
+Template.tsAdminNewTestBatch.treatments = treatments
 
 Template.tsAdminActiveBatches.events =
   "click .-ts-test-batch": ->
