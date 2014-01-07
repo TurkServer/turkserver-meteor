@@ -26,61 +26,7 @@ Template.tsAdminNewTreatment.events =
       name: name
     , (e) -> bootbox.alert(e.message) if e
 
-Template.tsAdminNewTestBatch.events =
-  "change input[name=groupRadios]": (e, tmpl) ->
-    # Adjust state of radio button
-    tmpl.find("input[name=lobby]").disabled = (e.target.value isnt "groupSize")
-
-  # Don't let this form submit itself
-  "submit form": (e) -> e.preventDefault()
-
-Template.tsAdminNewTestBatch.treatments = treatments
-
 Template.tsAdminActiveBatches.events =
-  "click .-ts-test-batch": ->
-    unless Treatments.find().count() > 0
-      bootbox.alert "Create some treatments first."
-      return
-
-    # bootbox.dialog can be used to render Meteor's DOMFragments
-    # If we want a title here it will need to be part of the fragment
-    $frag = $(Meteor.render Template.tsAdminNewTestBatch)
-    bootbox.dialog $frag, [{
-      "label" : "Cancel",
-      "callback": ->
-    }, {
-      "label" : "Create",
-      "class" : "btn-primary",
-      "callback": (e) ->
-        $form = $("form.ts-new-test-batch")
-        name = $form.find("input[name=name]").val()
-        treatment = Spark.getDataContext($form.find(":selected")[0])
-        lobby = $form.find("input[name=lobby]").is(":checked")
-        groupVal = parseInt($form.find("input[name=groupVal]").val())
-
-        unless name
-          bootbox.alert "Batch name cannot be empty."
-          return
-
-        unless groupVal
-          bootbox.alert "Invalid group value."
-          return
-
-        options =
-          name: name
-          treatmentIds: [ treatment._id ]
-          lobby: lobby
-          desc: "Test batch."
-          active: true
-
-        options[$form.find("input[name=groupRadios]:checked").val()] = groupVal
-
-        Batches.insert(options)
-    }]
-
-  "click .-ts-new-batch": ->
-    # TODO decide what we are doing here
-    bootbox.alert "Not implemented yet."
   "click .-ts-retire-batch": ->
     Batches.update @_id, $set:
       active: false
@@ -89,14 +35,54 @@ Template.tsAdminActiveBatches.activeBatch = activeBatch
 
 Template.tsAdminConfigureBatch.events =
   "click .-ts-activate-batch": (e) ->
+    unless @treatmentIds?.length > 0
+      bootbox.alert "Select at least one treatment to activate this batch."
+      return
     Batches.update @_id, $set:
       active: true
 
 Template.tsAdminConfigureBatch.selectedBatch = ->
   Batches.findOne(Session.get("_tsSelectedBatchId"))
 
-Template.tsAdminConfigureBatch.treatmentName = ->
+Template.tsAdminBatchEditDesc.rendered = ->
+  settings =
+    success: (response, newValue) =>
+      Batches.update @data._id,
+        $set: { desc: newValue }
+  $(@find('div.editable:not(.editable-click)')).editable('destroy').editable(settings)
+
+Template.tsAdminBatchEditTreatments.events =
+  "click .-ts-remove-batch-treatment": (e, tmpl) ->
+    Batches.update tmpl.data._id,
+      $pull: { treatmentIds: @+"" }
+  "click .-ts-add-batch-treatment": (e, tmpl) ->
+    e.preventDefault()
+    treatment = Spark.getDataContext(tmpl.find(":selected"))
+    return unless treatment._id
+    Batches.update @_id,
+      $addToSet: { treatmentIds: treatment._id }
+
+Template.tsAdminBatchEditTreatments.treatments = treatments
+Template.tsAdminBatchEditTreatments.treatmentName = ->
   Treatments.findOne(""+@)?.name
+
+Template.tsAdminBatchEditGrouping.events =
+  "change select": (e, tmpl) ->
+    selected = tmpl.find(":selected").value
+    Batches.update @_id,
+      $set: grouping: selected
+  "change input[name=groupVal]": (e) ->
+    value = parseInt e.target.value
+    return unless value
+    Batches.update @_id,
+      $set: groupVal: value
+  "change input[name=lobby]": (e) ->
+    Batches.update @_id,
+      $set: lobby: e.target.checked
+
+Template.tsAdminBatchEditGrouping.fixedGroupSize = -> @grouping is "groupSize"
+Template.tsAdminBatchEditGrouping.fixedGroupCount = -> @grouping is "groupCount"
+Template.tsAdminBatchEditGrouping.lobbyEnabled = -> if @lobby then "with lobby" else "no lobby"
 
 Template.tsAdminConfigureBatch.activatable = ->
   not @active and not Batches.findOne(active: true)
@@ -111,3 +97,20 @@ Template.tsAdminBatchList.zeroBatches = -> Batches.find().count() is 0
 Template.tsAdminBatchList.selectedClass = ->
   if Session.equals("_tsSelectedBatchId", @_id) then "info" else ""
 
+Template.tsAdminAddBatch.events =
+  "submit form": (e, tmpl) ->
+    e.preventDefault()
+
+    el = tmpl.find("input")
+    name = el.value
+    return if name is ""
+
+    el.value = ""
+
+    # Default batch settings
+    Batches.insert
+      name: name
+      grouping: "groupSize"
+      groupVal: 1
+      lobby: true
+    , (e) -> bootbox.alert(e.message) if e

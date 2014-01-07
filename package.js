@@ -27,6 +27,7 @@ Package.on_use(function (api) {
 
     // Non-core packages
     api.use('bootboxjs');
+    api.use('x-editable-bootstrap');
     api.use('collection-hooks');
     api.use('user-status', 'server');
     api.use('iron-router', { weak: true }); // We like Iron Router but no need to force it

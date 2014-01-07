@@ -32,13 +32,14 @@
     <div class="row">
         <div class="span6">
         {{> tsAdminActiveBatches }}
+
+        {{> tsAdminBatchList }}
         </div>
         <div class="span6">
         {{> tsAdminConfigureBatch }}
         </div>
     </div>
 
-    {{> tsAdminBatchList }}
 </template>
 
 <template name="tsAdminTreatments">
@@ -67,37 +68,10 @@
 
 <template name="tsAdminNewTreatment">
     <form class="form-inline">
+        <div class="input-append">
         <input type="text" name="name" class="input-large" placeholder="New treatment name...">
         <button type="submit" class="btn btn-primary">Add treatment</button>
-    </form>
-</template>
-
-<template name="tsAdminNewTestBatch">
-    <form class="ts-new-test-batch">
-        <fieldset>
-            <legend>Create New Test Batch</legend>
-            <label>Batch Name:</label>
-            <input type="text" name="name" placeholder="Name of this batch…">
-            <label>Choose treatment:</label>
-            <select>
-                {{#each treatments}}
-                <option>{{name}}</option>
-                {{/each}}
-            </select>
-            <label class="radio">
-                <input type="radio" name="groupRadios" value="groupSize" checked>
-                Fixed group size
-            </label>
-            <label class="checkbox">
-                <input type="checkbox" name="lobby">Use lobby
-            </label>
-            <label class="radio">
-                <input type="radio" name="groupRadios" value="groupCount">
-                Fixed number of groups
-            </label>
-            <label>Grouping Value:</label>
-            <input type="number" min="1" step="1" value="1" pattern="\d+" name="groupVal">
-        </fieldset>
+        </div>
     </form>
 </template>
 
@@ -109,9 +83,7 @@
     </div>
     {{else}}
     <div class="alert">
-        No batch of experiments is currently active.
-        <button class="btn btn-primary -ts-new-batch">Create Batch</button>
-        <button class="btn btn-warning -ts-test-batch">Create Test Batch</button>
+        No batch of experiments is currently active. Create one below or activate an existing batch.
     </div>
     {{/withif}}
 </template>
@@ -119,37 +91,72 @@
 <template name="tsAdminConfigureBatch">
     <div class="well">
     {{#withif selectedBatch}}
-        <dl class="dl-horizontal">
+        <dl>
             <dt><b>Batch Name</b></dt>
-            <dd>{{name}}</dd>
+            <dd><h4>{{name}}</h4></dd>
             <dt>Description</dt>
-            <dd>{{desc}}</dd>
+            <dd>{{> tsAdminBatchEditDesc }}</dd>
             <dt>Treatments</dt>
-            <dd>
-                {{#each treatmentIds}}
-                <span class="label label-default">{{treatmentName}}</span>
-                {{/each}}
-            </dd>
+            <dd>{{> tsAdminBatchEditTreatments}}</dd>
             <dt>Grouping</dt>
-            <dd>
-                {{#withif groupSize}}
-                Fixed group size <b>({{this}})</b>
-                {{/withif}}
-                {{#withif groupCount}}
-                Fixed number of groups <b>({{this}})</b>
-                {{/withif}}
-            </dd>
-            <dt></dt>
-            <dd>
-                {{#if activatable}}
-                <button class="btn btn-danger -ts-activate-batch">Make Active</button>
-                {{/if}}
+            <dd>{{> tsAdminBatchEditGrouping}}
             </dd>
         </dl>
+
+        {{#if activatable}}
+        <button class="btn btn-danger -ts-activate-batch">Make Active</button>
+        {{/if}}
+
     {{else}}
     <i>Select a batch below to view properties.</i>
     {{/withif}}
     </div>
+</template>
+
+<template name="tsAdminBatchEditDesc">
+    <p>
+        <div class="editable" data-type="text" data-original-title="Enter Description" data-inputclass="input-xlarge">
+            {{desc}}
+        </div>
+    </p>
+</template>
+
+<template name="tsAdminBatchEditTreatments">
+    <p>
+    {{#each treatmentIds}}
+        <span class="label label-default">{{treatmentName}}
+            <i class="icon-remove -ts-remove-batch-treatment"></i>
+        </span>
+    {{/each}}
+    </p>
+
+    <div class="input-append">
+        <select class="input-large">
+            <option value="" disabled selected>Add treatment</option>
+            {{#each treatments}}
+            <option>{{name}}</option>
+            {{/each}}
+        </select>
+        <button class="btn btn-primary -ts-add-batch-treatment"><i class="icon-white icon-plus"></i></button>
+    </div>
+</template>
+
+<template name="tsAdminBatchEditGrouping">
+    <h5>
+        {{#if fixedGroupSize}}Fixed group size: {{/if}}
+        {{#if fixedGroupCount}}Fixed number of groups: {{/if}}
+        <b class="text-success">{{groupVal}}</b>
+        {{#if fixedGroupSize}}(<i>{{lobbyEnabled}}</i>){{/if}}
+    </h5>
+
+    <select>
+        <option value="groupSize" {{#if fixedGroupSize}}selected{{/if}}>Fixed groups of size:</option>
+        <option value="groupCount" {{#if fixedGroupCount}}selected{{/if}}>Fixed number of groups:</option>
+    </select>
+    <input class="input-mini" type="number" min="1" step="1" value="{{groupVal}}" pattern="\d+" name="groupVal">
+    <label class="checkbox">
+        <input type="checkbox" name="lobby" {{#if lobby}}checked{{/if}} {{#if fixedGroupCount}}disabled{{/if}}>Use lobby
+    </label>
 </template>
 
 <template name="tsAdminBatchList">
@@ -182,6 +189,20 @@
             </td>
         </tr>
         {{/if}}
+        {{> tsAdminAddBatch}}
         </tbody>
     </table>
+</template>
+
+<template name="tsAdminAddBatch">
+    <tr>
+        <td colspan="3">
+            <form class="form-inline">
+            <div class="input-append">
+                <input type="text" placeholder="New batch...">
+                <button class="btn btn-primary -ts-new-batch" type="submit"><i class="icon-white icon-plus"></i></button>
+            </div>
+            </form>
+        </td>
+    </tr>
 </template>
