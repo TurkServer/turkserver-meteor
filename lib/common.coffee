@@ -1,5 +1,5 @@
 # Create a global object for storing things
-@TurkServer = @TurkServer || {}
+TurkServer = TurkServer || {}
 
 @Batches = new Meteor.Collection("ts.batches")
 @Treatments = new Meteor.Collection("ts.treatments")

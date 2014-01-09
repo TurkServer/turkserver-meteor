@@ -85,7 +85,7 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     assignmentId: assignmentId
   test.equal(record.workerId, workerId2, "workerId not replaced")
   test.isNull(record.experimentId)
-  test.isNull(record.inactivePerecent)
+  test.isNull(record.inactivePercent)
 
 Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
   Assignments.insert
@@ -126,3 +126,4 @@ Tinytest.add "auth - too many total", withCleanup (test) ->
     assignmentId : assignmentId2
     workerId: workerId
   , (e) -> e.error is 403 and e.reason is "too many hits"
+

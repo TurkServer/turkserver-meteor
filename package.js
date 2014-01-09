@@ -76,6 +76,7 @@ Package.on_use(function (api) {
         'lobby/lobby_client.coffee'
     ], 'client');
 
+    api.export(['TurkServer']);
 });
 
 Package.on_test(function (api) {
@@ -97,6 +98,7 @@ Package.on_test(function (api) {
     api.add_files("tests/insecure_login.js");
 
     api.add_files('tests/browser_tests.coffee', 'client');
-    api.add_files('tests/authentication_tests.coffee', 'server');
+    api.add_files('tests/auth_tests.coffee', 'server');
+    api.add_files('tests/hook_tests.coffee');
     api.add_files('tests/grouping_tests.coffee');
 });

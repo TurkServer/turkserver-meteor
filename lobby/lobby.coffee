@@ -1,8 +1,6 @@
 userIdError = "No userId yet"
 userNotInLobbyErr = "User not in lobby"
 
-@TurkServer = @TurkServer || {}
-
 this.Lobby = new Meteor.Collection("lobby")
 
 Meteor.methods

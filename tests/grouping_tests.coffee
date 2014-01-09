@@ -5,6 +5,10 @@ username = "fooser"
 basicInsertCollection = new Meteor.Collection("basicInsert")
 twoGroupCollection = new Meteor.Collection("twoGroup")
 
+###
+  Set up server and client hooks
+###
+
 if Meteor.isServer
   groupingCollections = {}
 
@@ -26,14 +30,19 @@ if Meteor.isServer
     TurkServer.registerCollection(collection)
 
     # Enable direct find which removes the added _groupId after the find hook
-    # Also triggers the direct find for the remove hook
+    # Also triggers the direct find for the update/remove hook
     collection.before.find (userId, selector, options) ->
       if selector._direct
         delete selector._direct
         delete selector._groupId # This is what I added before
+      return
 
 if Meteor.isClient
   hookCollection = (collection) -> TurkServer.registerCollection(collection)
+
+###
+  Hook collections and run tests
+###
 
 hookCollection basicInsertCollection
 hookCollection twoGroupCollection
@@ -75,6 +84,8 @@ if Meteor.isServer
     return cursors
 
   Meteor.methods
+    serverInsert: (name, doc) ->
+      return groupingCollections[name].insert(doc)
     serverUpdate: (name, selector, mutator) ->
       return groupingCollections[name].update(selector, mutator)
     serverRemove: (name, selector) ->
@@ -88,9 +99,11 @@ if Meteor.isServer
     printMyCollection: (name) ->
       console.log groupingCollections[name].find().fetch()
 
+  Tinytest.add "grouping - server - foo", ->
+
 if Meteor.isClient
   # Ensure we are logged in before running these tests
-  Tinytest.addAsync "grouping - verify login", (test, next) ->
+  Tinytest.addAsync "grouping - collections - verify login", (test, next) ->
     InsecureLogin.ready next
 
   ###
@@ -98,25 +111,32 @@ if Meteor.isClient
   ###
 
   # Ensure that the group id has been recorded before subscribing
-  Tinytest.addAsync "grouping - received group id", (test, next) ->
+  Tinytest.addAsync "grouping - collections - received group id", (test, next) ->
     Deps.autorun (c) ->
       record = Meteor.user()
       if record?.turkserver?.group
         c.stop()
         next()
 
-  Tinytest.addAsync "grouping - test subscriptions ready", (test, next) ->
+  Tinytest.addAsync "grouping - collections - test subscriptions ready", (test, next) ->
     handle = Meteor.subscribe("groupingTests")
     Deps.autorun (c) ->
       if handle.ready()
         c.stop()
         next()
 
-  Tinytest.addAsync "grouping - local empty find", (test, next) ->
+  Tinytest.addAsync "grouping - collections - local empty find", (test, next) ->
     test.equal basicInsertCollection.find().count(), 0
+    test.equal basicInsertCollection.find({}).count(), 0
     next()
 
-  testAsyncMulti "grouping - basic insert", [
+  Tinytest.addAsync "grouping - collections - remote empty find", (test, next) ->
+    Meteor.call "getMyCollection", "basicInsert", {a: 1}, (err, res) ->
+      test.isFalse err
+      test.equal res.length, 0
+      next()
+
+  testAsyncMulti "grouping - collections - basic insert", [
     (test, expect) ->
       id = basicInsertCollection.insert { a: 1 }, expect (err, res) ->
         test.isFalse err, JSON.stringify(err)
@@ -126,18 +146,24 @@ if Meteor.isClient
       test.equal basicInsertCollection.findOne(a: 1)._groupId, myGroup
   ]
 
-  testAsyncMulti "grouping - find from two groups", [ (test, expect) ->
+  testAsyncMulti "grouping - collections - find from two groups", [ (test, expect) ->
     test.equal twoGroupCollection.find().count(), 1
     Meteor.call "getCollection", "twoGroup", expect (err, res) ->
       test.isFalse err
       test.equal res.length, 2
   ]
 
-  testAsyncMulti "grouping - insert into two groups", [
+  testAsyncMulti "grouping - collections - insert into two groups", [
     (test, expect) ->
       twoGroupCollection.insert {a: 2}, expect (err) ->
         test.isFalse err, JSON.stringify(err)
         test.equal twoGroupCollection.find().count(), 2
+      ###
+        twoGroup now contains
+        { _groupId: "myGroup", a: 1 }
+        { _groupId: "myGroup", a: 2 }
+        { _groupId: "otherGroup", a: 1 }
+      ###
   , (test, expect) ->
       Meteor.call "getMyCollection", "twoGroup", expect (err, res) ->
         test.isFalse err
@@ -148,12 +174,36 @@ if Meteor.isClient
         test.equal res.length, 3
   ]
 
-  testAsyncMulti "grouping - server update identical keys across groups", [
+  testAsyncMulti "grouping - collections - server insert for client", [
+    (test, expect) ->
+      Meteor.call "serverInsert", "twoGroup", {a: 3}, expect (err, res) ->
+        test.isFalse err
+      ###
+        twoGroup now contains
+        { _groupId: "myGroup", a: 1 }
+        { _groupId: "myGroup", a: 2 }
+        { _groupId: "myGroup", a: 3 }
+        { _groupId: "otherGroup", a: 1 }
+      ###
+  , (test, expect) ->
+      Meteor.call "getMyCollection", "twoGroup", {}, expect (err, res) ->
+        test.isFalse err
+        test.equal res.length, 3
+  ]
+
+  testAsyncMulti "grouping - collections - server update identical keys across groups", [
     (test, expect) ->
       Meteor.call "serverUpdate", "twoGroup",
         {a: 1},
         $set: { b: 1 }, expect (err, res) ->
           test.isFalse err
+      ###
+        twoGroup now contains
+        { _groupId: "myGroup", a: 1, b: 1 }
+        { _groupId: "myGroup", a: 2 }
+        { _groupId: "myGroup", a: 3 }
+        { _groupId: "otherGroup", a: 1 }
+      ###
   , (test, expect) -> # Make sure that the other group's record didn't get updated
       Meteor.call "getCollection", "twoGroup", expect (err, res) ->
         test.isFalse err
@@ -164,7 +214,7 @@ if Meteor.isClient
             test.isFalse doc.b
   ]
 
-  testAsyncMulti "grouping - server remove identical keys across groups", [
+  testAsyncMulti "grouping - collections - server remove identical keys across groups", [
     (test, expect) ->
       Meteor.call "serverRemove", "twoGroup",
         {a: 1}, expect (err, res) ->
@@ -175,4 +225,3 @@ if Meteor.isClient
         test.equal res.length, 1
         test.equal res[0].a, 1
   ]
-
