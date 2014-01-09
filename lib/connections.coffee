@@ -49,12 +49,51 @@ TurkServer.handleConnection = (doc) ->
   activeBatch = Batches.findOne(active: true)
   throw new Meteor.Error(403, "No active batch configured on server") unless activeBatch?
 
-  if activeBatch.lobby
+  if activeBatch.grouping is "groupSize" and activeBatch.lobby
     TurkServer.addToLobby(doc.userId)
+  else if activeBatch.grouping is "groupCount"
+    TurkServer.assignUserRoundRobin(doc.userId)
   else
-    TurkServer.assignUser(doc.userId)
+    TurkServer.assignUserSequential(doc.userId)
 
-TurkServer.assignUser = (userId) ->
+# Assignment from lobby
+TurkServer.assignAllUsers = (userIds) ->
+  newId = Experiments.insert(startTime: Date.now())
+
+  _.each userIds, (userId) ->
+    TurkServer.addUserToGroup(userId, newId)
+    Meteor.users.update userId,
+      $set: { "turkserver.state": "experiment" }
+
+# Assignment for fixed group count
+TurkServer.assignUserRoundRobin = (userId) ->
+  exp = _.min Experiments.find(assignable: true).fetch(), (ex) ->
+    Grouping.find(groupId: ex._id).count()
+
+  TurkServer.addUserToGroup(userId, exp._id)
+
+  Meteor.users.update userId,
+    $set: { "turkserver.state": "experiment" }
+
+# Assignment for no lobby fixed group size
+TurkServer.assignUserSequential = (userId) ->
   activeBatch = Batches.findOne(active: true)
+
+  assignedToExisting = false
+  Experiments.find(assignable: true).forEach (exp) ->
+    return if assignedToExisting # Break loop if already assigned
+    if Grouping.find(groupId: exp._id).count() < activeBatch.groupVal
+      TurkServer.addUserToGroup(userId, exp._id)
+      assignedToExisting = true
+
+  unless assignedToExisting # Create a new experiment
+    newId = Experiments.insert
+      startTime: Date.now()
+      assignable: true
+
+    TurkServer.addUserToGroup(userId, newId)
+
+  Meteor.users.update userId,
+    $set: { "turkserver.state": "experiment" }
 
 

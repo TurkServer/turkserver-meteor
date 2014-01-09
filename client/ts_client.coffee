@@ -75,7 +75,7 @@ Meteor.startup ->
     # TODO we can make sure these test logins maintain parameters as well
     Meteor.defer testLogin, 500
 
-# TODO check that this works properly
+# TODO perhaps make a better version of this reactivity
 Deps.autorun ->
   userId = Meteor.userId()
   return unless userId
@@ -90,8 +90,14 @@ Deps.autorun ->
   Session.set("turkserver.state", turkserver.state)
 
 # Reactive variables for state
+TurkServer.inQuiz = ->
+  Session.equals("turkserver.state", "quiz")
+
 TurkServer.inLobby = ->
   Session.equals("turkserver.state", "lobby")
+
+TurkServer.inExperiment = ->
+  Session.equals("turkserver.state", "experiment")
 
 # Paths for lobby
 Package['iron-router']?.Router.map ->

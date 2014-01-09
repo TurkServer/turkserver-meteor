@@ -1,3 +1,5 @@
+Meteor.publish "lobby", -> Lobby.find()
+
 TurkServer.addToLobby = (userId) ->
   # Insert or update status in lobby
   Lobby.upsert userId,
@@ -16,8 +18,17 @@ Meteor.startup ->
 UserStatus.on "sessionLogout", (doc) ->
   Lobby.remove doc.userId
 
-# TODO only publish the lobby to users who are actually in it
-Meteor.publish "lobby", -> Lobby.find()
+# Add people in lobby to an experiment
+Deps.autorun ->
+  activeBatch = Batches.findOne(active: true)
+  return unless activeBatch? and activeBatch.grouping is "groupSize"
+
+  users = Lobby.find({ status: true }, fields: {_id: 1}).fetch()
+  return if users.length < activeBatch.groupVal
+
+  userIds = _.pluck(users, "_id")
+  Lobby.remove {_id : $in: userIds }
+  TurkServer.assignAllUsers userIds
 
 # Reactive computation for enabling/disabling lobby
 Deps.autorun ->
