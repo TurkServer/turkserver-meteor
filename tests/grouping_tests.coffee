@@ -82,7 +82,7 @@ if Meteor.isServer
     getCollection: (name, selector) ->
       return groupingCollections[name].find(_.extend(selector || {}, {_direct: true})).fetch()
     getMyCollection: (name, selector) ->
-      return groupingCollections[name].find(selector || {}).fetch()
+      return groupingCollections[name].find(selector).fetch()
     printCollection: (name) ->
       console.log groupingCollections[name].find(_direct: true).fetch()
     printMyCollection: (name) ->

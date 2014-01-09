@@ -19,7 +19,10 @@ modifySelector = (userId, selector, options) ->
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
-  selector._groupId = groupId
+  unless @args[0]
+    @args[0] = { _groupId : groupId }
+  else unless _.isString @args[0] # TODO may allow arbitrary finds
+    selector._groupId = groupId
   return true
 
 removeSelector = (userId, doc) ->
@@ -41,6 +44,7 @@ TurkServer.registerCollection = (collection) ->
     doc._groupId = groupId
     return true
 
+  # TODO change update and remove as they both use find in collection hooks
   collection.before.update modifySelector
   collection.before.remove removeSelector
 

@@ -9,7 +9,10 @@ modifySelector = (userId, selector, options) ->
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
-  selector._groupId = groupId
+  unless @args[0]
+    @args[0] = { _groupId : groupId }
+  else unless _.isString @args[0]
+    selector._groupId = groupId
   return true
 
 removeSelector = (userId, doc) ->
