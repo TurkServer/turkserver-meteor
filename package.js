@@ -48,6 +48,7 @@ Package.on_use(function (api) {
 
     // Client
     api.add_files([
+        'client/grouping_client.coffee',
         'client/disconnection.coffee',
         'client/helpers.coffee',
         'client/ts_client.styl',
