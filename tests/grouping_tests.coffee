@@ -4,12 +4,9 @@ username = "fooser"
 
 if Meteor.isServer
   # Add a group to anyone who logs in
-  Meteor.users.find("profile.online": true).observeChanges
+  Meteor.users.find("status.online": true).observeChanges
     added: (id) ->
-      Meteor.users.update id,
-        $set: {
-          "turkserver.group": myGroup
-        }
+      TurkServer.addUserToGroup(id, myGroup)
 
   # Set up allow/deny rules for test collections
   groupingCollections = {}
@@ -229,14 +226,6 @@ if Meteor.isClient
     ]
 
   # Ensure we are logged in before running these tests
-  # TODO can we provide a better way to ensure this login?
-
-  if Meteor.userId()
-    Meteor._debug "running grouping tests"
-    runTests()
-  else
-    Meteor._debug "logging in to run grouping tests"
-    Tinytest.addAsync "grouping - dummy login", (test, next) ->
-      Meteor.insecureUserLogin(username, next)
+  InsecureLogin.ready ->
     runTests()
 
