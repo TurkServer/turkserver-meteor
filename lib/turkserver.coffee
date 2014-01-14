@@ -1,16 +1,5 @@
 # Server-side code
 
-mturk = Npm.require('mturk')
-
-TurkServer.settings = {
-  experiment : {
-    limit: {
-      simultaneous: 1
-      set: 1
-    }
-  }
-}
-
 isAdmin = (userId) ->
   Meteor.users.findOne(userId).admin is true
 

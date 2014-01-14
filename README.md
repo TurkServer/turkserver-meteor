@@ -18,8 +18,8 @@ Put a structure like the following in `Meteor.settings` of your app.
         "acceptUnknownHits": true
     },
     "mturk": {
-        "accessKey": "Your_AWS_Access_Key",
-        "secretKey": "Your_AWS_Secret_Key"
+        "accessKeyId": "Your_AWS_Access_Key",
+        "secretAccessKey": "Your_AWS_Secret_Key"
     }
 }
 ```

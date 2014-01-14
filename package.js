@@ -3,7 +3,8 @@ Package.describe({
 });
 
 Npm.depends({
-    mturk: "0.4.1"
+    mturk: "0.4.1",
+    deepmerge: "0.2.7" // For merging config parameters
 });
 
 Package.on_use(function (api) {
@@ -22,6 +23,8 @@ Package.on_use(function (api) {
         'accounts-password', // for the admin user
         'deps',
         'stylus',
+        'jquery',
+        'underscore',
         'coffeescript'
     ]);
 
@@ -39,7 +42,9 @@ Package.on_use(function (api) {
 
     // Server files
     api.add_files([
+        'lib/config.coffee',
         'lib/turkserver.coffee',
+        'lib/mturk.coffee',
         'lib/grouping.coffee',
         'lib/assigners.coffee',
         'lib/connections.coffee',

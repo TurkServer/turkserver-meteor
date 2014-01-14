@@ -37,13 +37,13 @@ TurkServer.authenticateWorker = (loginRequest) ->
         workerId: loginRequest.workerId,
         inactiveTime: { $exists: false }
       }).count() >=
-    TurkServer.settings.experiment.limit.simultaneous
+    TurkServer.config.experiment.limit.simultaneous
       throw new Meteor.Error(403, "too many simultaneous logins")
 
     if Assignments.find({
         workerId: loginRequest.workerId
       }).count() >=
-    TurkServer.settings.experiment.limit.set
+    TurkServer.config.experiment.limit.set
       throw new Meteor.Error(403, "too many hits")
 
   # Set this worker as assigned to the HIT
