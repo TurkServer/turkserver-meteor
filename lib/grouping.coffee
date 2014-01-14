@@ -15,24 +15,41 @@ TurkServer.groupingHooks = {}
 
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
-  throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  # for find(id) we should not touch this
-  return true if typeof selector is "string"
+  # Don't scope for direct operations
+  if selector?._direct
+    delete selector._direct
+    return true
 
-  groupId = Grouping.findOne(userId: userId).groupId
-  throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+  # for find(id) we should not touch this
+  # TODO may allow arbitrary finds
+  return true if _.isString(selector)
+
+  # Check for global hook
+  groupId = TurkServer._initGroupId
+  unless groupId
+    throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
+    groupId = Grouping.findOne(userId: userId).groupId
+    throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
   unless @args[0]
     @args[0] = { _groupId : groupId }
-  else unless _.isString @args[0] # TODO may allow arbitrary finds
+  else
     selector._groupId = groupId
   return true
 
 insertHook = (userId, doc) ->
-  throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  groupId = Grouping.findOne(userId: userId).groupId
-  throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+  # Don't add group for direct inserts
+  if doc._direct
+    delete doc._direct
+    return true
+
+  groupId = TurkServer._initGroupId
+  unless groupId
+    throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
+    groupId = Grouping.findOne(userId: userId).groupId
+    throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+
   doc._groupId = groupId
   return true
 

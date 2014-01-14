@@ -1,11 +1,13 @@
 turkserver-meteor
 =================
 
-Implementation of the [TurkServer](https://github.com/HarvardEconCS/TurkServer) functionality as a plugin for the mind-blowing [Meteor](http://www.meteor.com/) web app framework, allowing any Meteor app to be run on MTurk. The point? Online experiments just became 10x easier to create.
+Implementation of the [TurkServer](https://github.com/HarvardEconCS/TurkServer) functionality as a plugin for the mind-blowing [Meteor](http://www.meteor.com/) web app framework, allowing Meteor apps to be easily modified for MTurk experiments. Using this, will make your online experiments much easier to create and manage.
 
 ## Usage
 
 TBD when development is closer to completion.
+
+turkserver-meteor is a [smart package](https://atmosphere.meteor.com/) for your Meteor app, that is designed to sit on top of the main interface for your experiment and manage it.
 
 ## Settings
 

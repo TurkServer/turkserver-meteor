@@ -18,24 +18,8 @@ if Meteor.isServer
   hookCollection = (collection) ->
     collection._insecure = true
 
-    # Enable direct insert - comes before the other insert hook modifies groupId
-    collection.before.insert (userId, doc) ->
-      if doc._direct
-        delete doc._direct
-        @_super.call(@context, doc)
-        return false
-      return
-
     # Attach the turkserver hooks to the collection
     TurkServer.registerCollection(collection)
-
-    # Enable direct find which removes the added _groupId after the find hook
-    # Also triggers the direct find for the update/remove hook
-    collection.before.find (userId, selector, options) ->
-      if selector._direct
-        delete selector._direct
-        delete selector._groupId # This is what I added before
-      return
 
 if Meteor.isClient
   hookCollection = (collection) -> TurkServer.registerCollection(collection)
@@ -99,7 +83,10 @@ if Meteor.isServer
     printMyCollection: (name) ->
       console.log groupingCollections[name].find().fetch()
 
-  Tinytest.add "grouping - server - foo", ->
+  Tinytest.add "grouping - collections - disallow arbitrary insert", (test) ->
+    test.throws ->
+      basicInsertCollection.insert {foo: "bar" }
+    , (e) -> e.error is 403 and e.reason is ErrMsg.userIdErr
 
 if Meteor.isClient
   # Ensure we are logged in before running these tests

@@ -46,6 +46,7 @@ Package.on_use(function (api) {
         'lib/turkserver.coffee',
         'lib/mturk.coffee',
         'lib/grouping.coffee',
+        'lib/experiments.coffee',
         'lib/logging.coffee',
         'lib/assigners.coffee',
         'lib/connections.coffee',
@@ -108,5 +109,6 @@ Package.on_test(function (api) {
     api.add_files('tests/auth_tests.coffee', 'server');
     api.add_files('tests/hook_tests.coffee');
     api.add_files('tests/grouping_tests.coffee');
+    api.add_files('tests/experiment_tests.coffee');
     api.add_files('tests/logging_tests.coffee');
 });
