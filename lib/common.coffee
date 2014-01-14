@@ -1,4 +1,5 @@
 # Create a global object for storing things
+# This is exported so it doesn't need @
 TurkServer = TurkServer || {}
 
 @Batches = new Meteor.Collection("ts.batches")
