@@ -8,6 +8,7 @@
     "packages": {
         "bootboxjs": {},
         "x-editable-bootstrap": {},
+        "iron-router": {},
         "collection-hooks": {
             "path": "../meteor-collection-hooks"
         },
