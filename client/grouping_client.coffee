@@ -7,13 +7,13 @@ TurkServer.groupingHooks = {}
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  groupId = Meteor.user()?.turkserver?.group
+  groupId = TSConfig.findOne("groupId")?.value
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
   # No need to add selectors if server side filtering works properly
 
 insertHook = (userId, doc) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  groupId = Meteor.user()?.turkserver?.group
+  groupId = TSConfig.findOne("groupId")?.value
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
   doc._groupId = groupId
   return true

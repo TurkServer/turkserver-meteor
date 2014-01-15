@@ -1,16 +1,24 @@
-# TODO get this setting from somewhere
-groupSize = 2
+@Lobby = new Meteor.Collection("ts.lobby")
 
 # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
 Deps.autorun ->
   if TurkServer.inLobby()
     Meteor.subscribe("lobby")
-    Package['iron-router']?.Router.go("/lobby")
+    Router.go("/lobby")
+
+Meteor.methods
+  "toggleStatus" : ->
+    userId = Meteor.userId()
+    existing = Lobby.findOne(userId) if userId
+    return unless userId and existing
+
+    Lobby.update userId,
+      $set: { status: not existing.status }
 
 Template.tsLobby.lobbyInfo = -> Lobby.find()
 
 Template.tsLobby.readyEnabled = ->
-  return Lobby.find().count() >= groupSize and @_id is Meteor.userId()
+  return Lobby.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
 
 Template.tsLobby.events =
   "click a.changeStatus": (ev) ->

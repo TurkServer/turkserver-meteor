@@ -11,6 +11,20 @@
 
 Grouping._ensureIndex {userId: 1}, { unique: 1 }
 
+# Publish a user's group to the config collection
+Meteor.publish null, ->
+  return unless @userId
+  sub = this
+  subHandle = Grouping.find({userId: @userId}, { fields: {groupId: 1} }).observeChanges
+    added: (id, fields) ->
+      sub.added "ts.config", "groupId", { value: fields.groupId }
+    changed: (id, fields) ->
+      sub.changed "ts.config", "groupId", { value: fields.groupId }
+    removed: (id) ->
+      sub.removed "ts.config", "groupId"
+  sub.ready()
+  sub.onStop -> subHandle.stop()
+
 TurkServer.groupingHooks = {}
 
 # No allow/deny for find so we make our own checks
@@ -75,12 +89,8 @@ TurkServer.registerCollection = (collection) ->
 
 TurkServer.addUserToGroup = (userId, groupId) ->
   # TODO check for existing group
-
   Grouping.upsert {userId: userId},
-    $set: groupId: groupId
-
-  Meteor.users.update userId,
-    $set: { "turkserver.group": groupId }
+    $set: {groupId: groupId}
 
 
 

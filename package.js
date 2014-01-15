@@ -77,7 +77,6 @@ Package.on_use(function (api) {
     api.add_files('admin/admin.coffee', 'server');
 
     // Lobby
-    api.add_files('lobby/lobby.coffee');
     api.add_files('lobby/lobby_server.coffee', 'server');
     api.add_files([
         'lobby/lobby_client.html',
@@ -106,6 +105,7 @@ Package.on_test(function (api) {
     api.add_files("tests/insecure_login.js");
 
     api.add_files('tests/browser_tests.coffee', 'client');
+    api.add_files('tests/lobby_tests.coffee');
     api.add_files('tests/auth_tests.coffee', 'server');
     api.add_files('tests/hook_tests.coffee');
     api.add_files('tests/grouping_tests.coffee');

@@ -100,8 +100,8 @@ if Meteor.isClient
   # Ensure that the group id has been recorded before subscribing
   Tinytest.addAsync "grouping - collections - received group id", (test, next) ->
     Deps.autorun (c) ->
-      record = Meteor.user()
-      if record?.turkserver?.group
+      groupId = TSConfig.findOne("groupId")
+      if groupId?.value
         c.stop()
         next()
 
