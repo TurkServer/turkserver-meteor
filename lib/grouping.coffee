@@ -11,11 +11,12 @@
 
 Grouping._ensureIndex {userId: 1}, { unique: 1 }
 
-# Publish a user's group to the config collection
+# Publish a user's group to the config collection - much better than keeping it in the user.
 Meteor.publish null, ->
   return unless @userId
+  userId = @userId
   sub = this
-  subHandle = Grouping.find({userId: @userId}, { fields: {groupId: 1} }).observeChanges
+  subHandle = Grouping.find({userId: userId}, { fields: {groupId: 1} }).observeChanges
     added: (id, fields) ->
       sub.added "ts.config", "groupId", { value: fields.groupId }
     changed: (id, fields) ->
@@ -25,7 +26,45 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
+# Sync grouping to turkserver.group, just for convenience when searching through users
+Meteor.startup ->
+  Grouping.find().observeChanges
+    added: (id, fields) ->
+      Meteor.users.upsert(fields.userId, $set: {"turkserver.group": fields.groupId} )
+    changed: (id, fields) ->
+      Meteor.users.upsert(fields.userId, $set: {"turkserver.group": fields.groupId} )
+    removed: (id) ->
+      Meteor.users.upsert(fields.userId, $unset: {"turkserver.group": null} )
+
 TurkServer.groupingHooks = {}
+
+# Special hook for Meteor.users to scope for each group
+userFindHook = (userId, selector, options) ->
+  # Do the usual find for no user or single selector
+  return true if !userId or _.isString(selector) or (selector? and "_id" of selector)
+
+  # TODO add the global hooks here if we need them
+  user = Meteor.users.findOne(userId)
+  groupId = Grouping.findOne(userId: userId)?.groupId
+
+  # If user is admin and not in a group, proceed as normal
+  return true if user.admin and !groupId
+  # Normal users need to be in a group
+  throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+
+  # If user is in a group, scope the find to the group
+  unless @args[0]
+    @args[0] = { "turkserver.group" : groupId }
+  else
+    selector["turkserver.group"] = groupId
+  return true
+
+TurkServer.groupingHooks.userFindHook = userFindHook
+
+# Attach the find hooks to Meteor.users
+Meteor.startup ->
+  Meteor.users.before.find userFindHook
+  Meteor.users.before.findOne userFindHook
 
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
@@ -36,13 +75,13 @@ findHook = (userId, selector, options) ->
 
   # for find(id) we should not touch this
   # TODO may allow arbitrary finds
-  return true if _.isString(selector)
+  return true if _.isString(selector) or (selector? and "_id" of selector)
 
   # Check for global hook
   groupId = TurkServer._initGroupId
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId: userId).groupId
+    groupId = Grouping.findOne(userId: userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
@@ -61,7 +100,7 @@ insertHook = (userId, doc) ->
   groupId = TurkServer._initGroupId
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId: userId).groupId
+    groupId = Grouping.findOne(userId: userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   doc._groupId = groupId
@@ -92,5 +131,5 @@ TurkServer.addUserToGroup = (userId, groupId) ->
   Grouping.upsert {userId: userId},
     $set: {groupId: groupId}
 
-
-
+  # Record user in experiment
+  Experiments.update { _id: groupId }, { $addToSet: { users: userId } }

@@ -3,6 +3,16 @@ treatments = -> Treatments.find()
 
 Template.tsAdminExperiments.activeBatch = activeBatch
 
+Template.tsAdminActiveExperiments.events =
+  "click .-ts-watch-experiment": ->
+    bootbox.prompt "Enter route for the experiment task", (result) ->
+      console.log "Joining group not implemented yet."
+
+Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
+Template.tsAdminActiveExperiments.renderTime = (timestamp) -> new Date(timestamp).toTimeString()
+Template.tsAdminActiveExperiments.numUsers = -> @users?.length
+Template.tsAdminActiveExperiments.zeroExperiments = -> Experiments.find().count() is 0
+
 Template.tsAdminTreatments.treatments = treatments
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0
 

@@ -14,6 +14,29 @@
 <template name="tsAdminActiveExperiments">
     <h3>Ongoing Experiments</h3>
 
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Start Time</th>
+            <th>Users</th>
+            <th></th>
+        </tr>
+        </thead>
+        {{#each experiments}}
+        <tr>
+            <td>{{renderTime startTime}}</td>
+            <td><b>{{numUsers}}</b></td>
+            <td><button class="btn btn-danger -ts-watch-experiment">Watch Experiment
+            </button></td>
+        </tr>
+        {{/each}}
+        {{#if zeroExperiments}}
+        <tr>
+            <td colspan="3"><i>No running experiments.</i></td>
+        </tr>
+        {{/if}}
+    </table>
+
     <h3>Completed Experiments</h3>
 </template>
 
