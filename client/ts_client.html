@@ -6,6 +6,14 @@
     </form>
 </template>
 
+<template name="tsUserAccessDenied">
+    <div class="alert alert-danger">
+        There was a problem authenticating with the server. Please reload the HIT from your dashboard.
+    </div>
+</template>
+
 <template name="tsContainer">
+    <div class="container">
     {{yield}}
+    </div>
 </template>

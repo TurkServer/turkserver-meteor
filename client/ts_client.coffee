@@ -28,8 +28,3 @@ TurkServer.inExperiment = ->
 TurkServer.group = ->
   TSConfig.findOne("groupId")?.value
 
-# Paths for lobby
-Router.map ->
-  @route "lobby",
-    template: "tsLobby",
-    layoutTemplate: "tsContainer"

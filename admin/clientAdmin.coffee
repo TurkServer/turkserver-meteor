@@ -1,11 +1,13 @@
-Package['iron-router']?.Router.map ->
+Router.map ->
   @route "turkserver/:page?",
     layoutTemplate: "tsAdminLayout"
     before: ->
       unless Meteor.user()
+        @setLayout("tsContainer")
         @render("tsAdminLogin")
         @stop()
       else unless Meteor.user().admin
+        @setLayout("tsContainer")
         @render("tsAdminDenied")
         @stop()
     action: ->

@@ -1,5 +1,18 @@
 @Lobby = new Meteor.Collection("ts.lobby")
 
+# Paths for lobby
+Router.map ->
+  @route "lobby",
+    template: "tsLobby",
+    layoutTemplate: "tsContainer"
+    before: ->
+      # Don't show lobby to unauthenticated users
+      unless Meteor.user()
+        console.log @setLayout
+        @setLayout("tsContainer")
+        @render("tsUserAccessDenied")
+        @stop()
+
 # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
 Deps.autorun ->
   if TurkServer.inLobby()
