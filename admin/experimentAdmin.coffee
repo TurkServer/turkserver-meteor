@@ -9,7 +9,6 @@ Template.tsAdminActiveExperiments.events =
       console.log "Joining group not implemented yet."
 
 Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
-Template.tsAdminActiveExperiments.renderTime = (timestamp) -> new Date(timestamp).toTimeString()
 Template.tsAdminActiveExperiments.treatmentName = -> Treatments.findOne(@treatment)?.name
 Template.tsAdminActiveExperiments.numUsers = -> @users?.length
 Template.tsAdminActiveExperiments.zeroExperiments = -> Experiments.find().count() is 0
@@ -64,8 +63,8 @@ Template.tsAdminBatchEditDesc.rendered = ->
 
 Template.tsAdminBatchEditTreatments.events =
   "click .-ts-remove-batch-treatment": (e, tmpl) ->
-    Batches.update tmpl.data._id,
-      $pull: { treatmentIds: @+"" }
+    Batches.update Session.get("_tsSelectedBatchId"),
+      $pull: { treatmentIds: @_id }
   "click .-ts-add-batch-treatment": (e, tmpl) ->
     e.preventDefault()
     treatment = Spark.getDataContext(tmpl.find(":selected"))

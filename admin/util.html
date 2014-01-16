@@ -1,0 +1,24 @@
+<template name="tsUserPill">
+    <span class="label {{labelClass}}">{{identifier}}</span>
+</template>
+
+<template name="tsUserPillPopover">
+    <dl>
+        <dt>Username:</dt>
+        <dd>{{#withif username}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
+        <dt>WorkerId:</dt>
+        <dd>{{#withif workerId}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
+        <dt>Last login:</dt>
+        <dd>{{_tsRenderTime status.lastLogin}}</dd>
+    </dl>
+</template>
+
+<template name="tsTreatmentPill">
+    <span class="badge badge-inverse">{{name}}</span>
+</template>
+
+<template name="tsTreatmentDeletePill">
+    <span class="badge badge-inverse">{{name}}
+        <i class="icon-remove icon-white -ts-remove-batch-treatment"></i>
+    </span>
+</template>

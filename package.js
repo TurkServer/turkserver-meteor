@@ -66,6 +66,8 @@ Package.on_use(function (api) {
 
     // Admin
     api.add_files([
+        'admin/util.html',
+        'admin/util.coffee',
         'admin/clientAdmin.html',
         'admin/clientAdmin.coffee',
         'admin/experimentAdmin.html',

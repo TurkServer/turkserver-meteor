@@ -39,6 +39,14 @@ Template.tsAdminLogin.events =
     Meteor.loginWithPassword "admin", password, (err) ->
       bootbox.alert("Unable to login: " + err.reason) if err?
 
+Template.tsAdminOverview.onlineUserCount = -> Meteor.users.find(
+    admin: {$exists: false}
+    "status.online": true
+  ).count()
+
+Template.tsAdminOverview.lobbyUserCount = -> Lobby.find().count()
+Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
+
 # All non-admin users who are online
 Template.tsAdminUsers.users = ->
   Meteor.users.find

@@ -15,7 +15,7 @@
         <tbody>
         {{#each lobbyUsers}}
         <tr>
-            <td>{{_id}}</td>
+            <td>{{> tsUserPill _tsLookupUser }}</td>
             <td>
                 <strong>
                     {{#if status}}

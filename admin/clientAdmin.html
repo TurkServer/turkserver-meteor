@@ -74,7 +74,18 @@
 </template>
 
 <template name="tsAdminOverview">
-    <h3>TurkServer Console</h3>
+    <h3>TurkServer Overview</h3>
+
+    <div class="well">
+        <dl class="dl-horizontal">
+            <dt>Connected Users:</dt>
+            <dd>{{onlineUserCount}}</dd>
+            <dt>Users in Lobby:</dt>
+            <dd>{{lobbyUserCount}}</dd>
+            <dt>Active Experiments:</dt>
+            <dd>{{activeExperiments}}</dd>
+        </dl>
+    </div>
 </template>
 
 <template name="tsAdminHits">
@@ -88,15 +99,13 @@
         <thead>
         <tr>
             <th>User</th>
-            <th>WorkerId</th>
             <th>Status</th>
         </tr>
         </thead>
         <tbody>
         {{#each users}}
         <tr>
-            <td>{{_id}}</td>
-            <td>{{workerId}}</td>
+            <td>{{> tsUserPill}}</td>
             <td><strong>{{turkserver.state}}</strong></td>
         </tr>
         {{/each}}
