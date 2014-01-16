@@ -10,6 +10,7 @@ Template.tsAdminActiveExperiments.events =
 
 Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
 Template.tsAdminActiveExperiments.renderTime = (timestamp) -> new Date(timestamp).toTimeString()
+Template.tsAdminActiveExperiments.treatmentName = -> Treatments.findOne(@treatment)?.name
 Template.tsAdminActiveExperiments.numUsers = -> @users?.length
 Template.tsAdminActiveExperiments.zeroExperiments = -> Experiments.find().count() is 0
 

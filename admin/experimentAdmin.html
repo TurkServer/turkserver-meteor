@@ -18,6 +18,7 @@
         <thead>
         <tr>
             <th>Start Time</th>
+            <th>Treatment</th>
             <th>Users</th>
             <th></th>
         </tr>
@@ -25,6 +26,7 @@
         {{#each experiments}}
         <tr>
             <td>{{renderTime startTime}}</td>
+            <td><span class="label label-default">{{treatmentName}}</span></td>
             <td><b>{{numUsers}}</b></td>
             <td><button class="btn btn-danger -ts-watch-experiment">Watch Experiment
             </button></td>
@@ -32,7 +34,7 @@
         {{/each}}
         {{#if zeroExperiments}}
         <tr>
-            <td colspan="3"><i>No running experiments.</i></td>
+            <td colspan="4"><i>No running experiments.</i></td>
         </tr>
         {{/if}}
     </table>

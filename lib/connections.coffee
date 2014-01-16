@@ -60,8 +60,12 @@ TurkServer.handleConnection = (doc) ->
 
 # Assignment from lobby
 TurkServer.assignAllUsers = (userIds) ->
-  newId = Experiments.insert(startTime: Date.now())
-  TurkServer.setupExperiment(newId, undefined)
+  # TODO don't just assign a random treatment
+  treatmentId = _.sample Batches.findOne(active: true).treatmentIds
+  newId = Experiments.insert
+    startTime: Date.now()
+    treatment: treatmentId
+  TurkServer.setupExperiment(newId, Treatments.findOne(treatmentId).name)
 
   _.each userIds, (userId) ->
     TurkServer.addUserToGroup(userId, newId)
