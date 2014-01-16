@@ -56,9 +56,12 @@ TurkServer.handleConnection = (doc) ->
   else
     TurkServer.assignUserSequential(doc.userId)
 
+# TODO fix up the stuff below to assign treatments properly
+
 # Assignment from lobby
 TurkServer.assignAllUsers = (userIds) ->
   newId = Experiments.insert(startTime: Date.now())
+  TurkServer.setupExperiment(newId, undefined)
 
   _.each userIds, (userId) ->
     TurkServer.addUserToGroup(userId, newId)
@@ -90,6 +93,7 @@ TurkServer.assignUserSequential = (userId) ->
     newId = Experiments.insert
       startTime: Date.now()
       assignable: true
+    TurkServer.setupExperiment(newId, undefined)
 
     TurkServer.addUserToGroup(userId, newId)
 

@@ -25,6 +25,9 @@ TurkServer.inLobby = ->
 TurkServer.inExperiment = ->
   Session.equals("turkserver.state", "experiment")
 
+TurkServer.group = ->
+  TSConfig.findOne("groupId")?.value
+
 # Paths for lobby
 Router.map ->
   @route "lobby",
