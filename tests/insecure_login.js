@@ -26,7 +26,11 @@ if (Meteor.isClient) {
   Accounts.callLoginMethod({
     methodArguments: [{username: "test"}],
     userCallback: function (err) {
-      if (err) throw err;
+      if (err) {
+        console.log("Login error:");
+        console.log(err);
+        throw err;
+      }
       console.info("Insecure login successful!");
       InsecureLogin.run();
     }

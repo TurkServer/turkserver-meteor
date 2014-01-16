@@ -46,7 +46,7 @@ Template.tsAdminOverview.onlineUserCount = -> Meteor.users.find(
     "status.online": true
   ).count()
 
-Template.tsAdminOverview.lobbyUserCount = -> Lobby.find().count()
+Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
 Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
 
 # All non-admin users who are online

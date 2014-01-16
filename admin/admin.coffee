@@ -19,7 +19,7 @@ Meteor.publish "tsAdmin", ->
     Grouping.find(),
     Assignments.find(),
     Workers.find(),
-    Lobby.find()
+    LobbyStatus.find()
   ]
 
 # Publish admin role for users that have it

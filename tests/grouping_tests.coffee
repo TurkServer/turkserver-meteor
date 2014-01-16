@@ -32,10 +32,6 @@ hookCollection basicInsertCollection
 hookCollection twoGroupCollection
 
 if Meteor.isServer
-  # Add a group to anyone who logs in
-  Meteor.users.find("status.online": true).observeChanges
-    added: (id) ->
-      TurkServer.addUserToGroup(id, myGroup)
 
   # We create the collections in the publisher (instead of using a method or
   # something) because if we made them with a method, we'd need to follow the
@@ -68,6 +64,11 @@ if Meteor.isServer
     return cursors
 
   Meteor.methods
+    joinGroup: ->
+      userId = Meteor.userId()
+      throw new Error(403, "Not logged in") unless userId
+      TurkServer.Groups.clearUserGroup userId
+      TurkServer.Groups.setUserGroup(userId, myGroup)
     serverInsert: (name, doc) ->
       return groupingCollections[name].insert(doc)
     serverUpdate: (name, selector, mutator) ->
@@ -89,13 +90,18 @@ if Meteor.isServer
     , (e) -> e.error is 403 and e.reason is ErrMsg.userIdErr
 
 if Meteor.isClient
+  ###
+    These tests need to all async so they are in the right order
+  ###
+
   # Ensure we are logged in before running these tests
   Tinytest.addAsync "grouping - collections - verify login", (test, next) ->
     InsecureLogin.ready next
 
-  ###
-    These tests need to all async so they are in the right order
-  ###
+  Tinytest.addAsync "grouping - collections - join group", (test, next) ->
+    Meteor.call "joinGroup", (err, res) ->
+      test.isFalse err
+      next()
 
   # Ensure that the group id has been recorded before subscribing
   Tinytest.addAsync "grouping - collections - received group id", (test, next) ->

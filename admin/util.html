@@ -11,6 +11,12 @@
         <dt>Last login:</dt>
         <dd>{{_tsRenderTime status.lastLogin}}</dd>
     </dl>
+
+    {{#if status.online}}
+    <b class="text-success">Connected</b>
+    {{else}}
+    <b class="text-error">Disconnected</b>
+    {{/if}}
 </template>
 
 <template name="tsTreatmentPill">

@@ -2,21 +2,36 @@
   SERVER METHODS
   Hook in group id to all operations, including find
 
-  Current limitations:
-  - Collection must be restricted, or we assign a validator here
-
+  Grouping contains _id: userId and groupId: groupId
 ###
 
 @Grouping = new Meteor.Collection("ts.grouping")
 
-Grouping._ensureIndex {userId: 1}, { unique: 1 }
+class TurkServer.Groups
+  @setUserGroup = (userId, groupId) ->
+    check(userId, String)
+    if Grouping.findOne(userId)
+      throw new Meteor.Error(403, "User is already in a group")
+
+    Grouping.upsert userId,
+      $set: {groupId: groupId}
+
+    # Record user in experiment
+    Experiments.update { _id: groupId }, { $addToSet: { users: userId } }
+
+  @getUserGroup = (userId) ->
+    check(userId, String)
+    Grouping.findOne(userId)?.groupId
+
+  @clearUserGroup = (userId) ->
+    check(userId, String)
+    Grouping.remove(userId)
 
 # Publish a user's group to the config collection - much better than keeping it in the user.
 Meteor.publish null, ->
   return unless @userId
-  userId = @userId
   sub = this
-  subHandle = Grouping.find({userId: userId}, { fields: {groupId: 1} }).observeChanges
+  subHandle = Grouping.find(@userId, { fields: {groupId: 1} }).observeChanges
     added: (id, fields) ->
       sub.added "ts.config", "groupId", { value: fields.groupId }
     changed: (id, fields) ->
@@ -26,15 +41,15 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
-# Sync grouping to turkserver.group, just for convenience when searching through users
+# Sync grouping to turkserver.group, needed for hooking Meteor.users
 Meteor.startup ->
   Grouping.find().observeChanges
     added: (id, fields) ->
-      Meteor.users.upsert(fields.userId, $set: {"turkserver.group": fields.groupId} )
+      Meteor.users.upsert(id, $set: {"turkserver.group": fields.groupId} )
     changed: (id, fields) ->
-      Meteor.users.upsert(fields.userId, $set: {"turkserver.group": fields.groupId} )
+      Meteor.users.upsert(id, $set: {"turkserver.group": fields.groupId} )
     removed: (id) ->
-      Meteor.users.upsert(fields.userId, $unset: {"turkserver.group": null} )
+      Meteor.users.upsert(id, $unset: {"turkserver.group": null} )
 
 TurkServer.groupingHooks = {}
 
@@ -45,7 +60,7 @@ userFindHook = (userId, selector, options) ->
 
   # TODO add the global hooks here if we need them
   user = Meteor.users.findOne(userId)
-  groupId = Grouping.findOne(userId: userId)?.groupId
+  groupId = Grouping.findOne(userId)?.groupId
 
   # If user is admin and not in a group, proceed as normal
   return true if user.admin and !groupId
@@ -81,7 +96,7 @@ findHook = (userId, selector, options) ->
   groupId = TurkServer._initGroupId
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId: userId)?.groupId
+    groupId = Grouping.findOne(userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   # if object (or empty) selector, just filter by group
@@ -100,7 +115,7 @@ insertHook = (userId, doc) ->
   groupId = TurkServer._initGroupId
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId: userId)?.groupId
+    groupId = Grouping.findOne(userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   doc._groupId = groupId
@@ -125,11 +140,3 @@ TurkServer.registerCollection = (collection) ->
   # TODO figure out how compound indices work on Mongo and if we should do something smarter
   collection._ensureIndex
     _groupId: 1
-
-TurkServer.addUserToGroup = (userId, groupId) ->
-  # TODO check for existing group
-  Grouping.upsert {userId: userId},
-    $set: {groupId: groupId}
-
-  # Record user in experiment
-  Experiments.update { _id: groupId }, { $addToSet: { users: userId } }

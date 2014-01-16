@@ -8,15 +8,18 @@ TurkServer.initialize = (handler) ->
 # Used in grouping.coffee
 TurkServer._initGroupId = undefined
 
-TurkServer.setupExperiment = (groupId, treatment) ->
-  context =
-    group: groupId
-    treatment: treatment
+class TurkServer.Experiment
+  @setup: (groupId, treatment) ->
+    context =
+      group: groupId
+      treatment: treatment
 
-  TurkServer._initGroupId = groupId
+    TurkServer._initGroupId = groupId
 
-  try
+    # Catch any errors so that we can unset the groupId
+    try
     # TODO address potential problems if one of these handlers yield
-    _.each init_queue, (handler) -> handler.call(context)
-  finally
-    TurkServer._initGroupId = undefined
+      _.each init_queue, (handler) -> handler.call(context)
+    finally
+      TurkServer._initGroupId = undefined
+

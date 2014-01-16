@@ -81,3 +81,14 @@ Meteor.startup ->
   else
     # TODO we can make sure these test logins maintain parameters as well
     Meteor.defer testLogin, 500
+
+# TODO Testing disconnect and reconnect, remove later
+TurkServer.testingLogin = ->
+  if Meteor.user()
+    console.log "Already logged in."
+    return
+  unless Session.get("_loginParams")
+    console.log "No parameters saved."
+    return
+  mturkLogin(Session.get("_loginParams"))
+

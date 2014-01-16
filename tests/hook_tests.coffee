@@ -9,7 +9,8 @@ if Meteor.isServer
   catch
     userId = Meteor.users.findOne(username: testUsername)._id
 
-  TurkServer.addUserToGroup userId, testGroupId
+  TurkServer.Groups.clearUserGroup userId
+  TurkServer.Groups.setUserGroup userId, testGroupId
 
   Tinytest.add "grouping - hooks - find with no args", (test) ->
     ctx =

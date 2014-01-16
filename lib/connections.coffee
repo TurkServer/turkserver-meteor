@@ -11,6 +11,9 @@ UserStatus.on "sessionLogin", (doc) ->
   }
 
 UserStatus.on "sessionLogout", (doc) ->
+  # Remove disconnected users from lobby, if they are there
+  TurkServer.Lobby.removeUser(doc.userId)
+
   # TODO record disconnection
 
 Meteor.methods
@@ -41,7 +44,7 @@ TurkServer.handleConnection = (doc) ->
   # TODO Does the worker need to take quiz/tutorial?
 
   # Is worker in part of an active group (experiment)?
-  if Grouping.findOne(userId: doc.userId)
+  if TurkServer.Groups.getUserGroup(doc.userId)
     # TODO record reconnection
     return
 
@@ -50,7 +53,7 @@ TurkServer.handleConnection = (doc) ->
   throw new Meteor.Error(403, "No active batch configured on server") unless activeBatch?
 
   if activeBatch.grouping is "groupSize" and activeBatch.lobby
-    TurkServer.addToLobby(doc.userId)
+    TurkServer.Lobby.addUser(doc.userId)
   else if activeBatch.grouping is "groupCount"
     TurkServer.assignUserRoundRobin(doc.userId)
   else
@@ -65,10 +68,10 @@ TurkServer.assignAllUsers = (userIds) ->
   newId = Experiments.insert
     startTime: Date.now()
     treatment: treatmentId
-  TurkServer.setupExperiment(newId, Treatments.findOne(treatmentId).name)
+  TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
 
   _.each userIds, (userId) ->
-    TurkServer.addUserToGroup(userId, newId)
+    TurkServer.Groups.setUserGroup(userId, newId)
     Meteor.users.update userId,
       $set: { "turkserver.state": "experiment" }
 
@@ -77,7 +80,7 @@ TurkServer.assignUserRoundRobin = (userId) ->
   exp = _.min Experiments.find(assignable: true).fetch(), (ex) ->
     Grouping.find(groupId: ex._id).count()
 
-  TurkServer.addUserToGroup(userId, exp._id)
+  TurkServer.Groups.setUserGroup(userId, exp._id)
 
   Meteor.users.update userId,
     $set: { "turkserver.state": "experiment" }
@@ -90,16 +93,16 @@ TurkServer.assignUserSequential = (userId) ->
   Experiments.find(assignable: true).forEach (exp) ->
     return if assignedToExisting # Break loop if already assigned
     if Grouping.find(groupId: exp._id).count() < activeBatch.groupVal
-      TurkServer.addUserToGroup(userId, exp._id)
+      TurkServer.Groups.setUserGroup(userId, exp._id)
       assignedToExisting = true
 
   unless assignedToExisting # Create a new experiment
     newId = Experiments.insert
       startTime: Date.now()
       assignable: true
-    TurkServer.setupExperiment(newId, undefined)
+    TurkServer.Experiment.setup(newId, undefined)
 
-    TurkServer.addUserToGroup(userId, newId)
+    TurkServer.Groups.setUserGroup(userId, newId)
 
   Meteor.users.update userId,
     $set: { "turkserver.state": "experiment" }

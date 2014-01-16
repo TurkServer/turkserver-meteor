@@ -23,7 +23,7 @@ if Meteor.isServer
     treatment = undefined
     group = undefined
 
-    TurkServer.setupExperiment("fooGroup", "fooTreatment")
+    TurkServer.Experiment.setup("fooGroup", "fooTreatment")
     test.ok()
 
   Tinytest.add "experiment - init - context", (test) ->

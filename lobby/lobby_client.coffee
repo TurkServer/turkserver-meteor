@@ -1,4 +1,4 @@
-@Lobby = new Meteor.Collection("ts.lobby")
+@LobbyStatus = new Meteor.Collection("ts.lobby")
 
 # Paths for lobby
 Router.map ->
@@ -15,6 +15,7 @@ Router.map ->
 
 # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
 Deps.autorun ->
+  return if Package?.tinytest # Don't change routes when being tested
   if TurkServer.inLobby()
     Meteor.subscribe("lobby")
     Router.go("/lobby")
@@ -22,16 +23,16 @@ Deps.autorun ->
 Meteor.methods
   "toggleStatus" : ->
     userId = Meteor.userId()
-    existing = Lobby.findOne(userId) if userId
+    existing = LobbyStatus.findOne(userId) if userId
     return unless userId and existing
 
-    Lobby.update userId,
+    LobbyStatus.update userId,
       $set: { status: not existing.status }
 
-Template.tsLobby.lobbyInfo = -> Lobby.find()
+Template.tsLobby.lobbyInfo = -> LobbyStatus.find()
 
 Template.tsLobby.readyEnabled = ->
-  return Lobby.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
+  return LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
 
 Template.tsLobby.events =
   "click a.changeStatus": (ev) ->

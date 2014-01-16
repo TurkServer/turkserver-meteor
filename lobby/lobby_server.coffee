@@ -1,9 +1,45 @@
-@Lobby = new Meteor.Collection("ts.lobby")
+@LobbyStatus = new Meteor.Collection("ts.lobby")
+
+class TurkServer.Lobby
+  @addUser: (userId) ->
+    # Insert or update status in lobby
+    LobbyStatus.upsert userId,
+      # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
+      $set: {status: false}
+
+    Meteor.users.update userId,
+      $set:
+        "turkserver.state": "lobby"
+
+  @toggleStatus: (userId) ->
+    existing = LobbyStatus.findOne(userId)
+    throw new Meteor.error(403, ErrMsg.userNotInLobbyErr) unless existing
+    LobbyStatus.update userId,
+      $set: { status: not existing.status }
+
+  @removeUser: (userId) ->
+    LobbyStatus.remove userId
+
+  # Check for adding people in lobby to an experiment
+  @checkState = ->
+    activeBatch = Batches.findOne
+      active: true
+      grouping: "groupSize"
+      lobby: true
+      groupVal: {$exists: 1}
+    return unless activeBatch?
+
+    users = LobbyStatus.find({ status: true }).fetch()
+    return if users.length < activeBatch.groupVal
+
+    userIds = _.pluck(users, "_id")
+    LobbyStatus.remove {_id : $in: userIds }
+    TurkServer.assignAllUsers userIds
 
 # Publish lobby contents
-Meteor.publish "lobby", -> Lobby.find()
+Meteor.publish "lobby", -> LobbyStatus.find()
 
-# Publish lobby groupsize information for active batches with lobby and grouping
+# Publish lobby config information for active batches with lobby and grouping
 Meteor.publish null, ->
   sub = this
   subHandle = Batches.find({
@@ -24,55 +60,19 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
-TurkServer.addToLobby = (userId) ->
-  # Insert or update status in lobby
-  Lobby.upsert userId,
-    $set: {status: false} # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
-
-  Meteor.users.update userId,
-    $set:
-      "turkserver.state": "lobby"
-
 # Check for lobby state
 Meteor.methods
   "toggleStatus" : ->
     userId = Meteor.userId()
-    existing = Lobby.findOne(userId) if userId
-
     throw new Meteor.error(403, ErrMsg.userIdErr) unless userId
-    throw new Meteor.error(403, ErrMsg.userNotInLobbyErr) unless existing
 
-    Lobby.update userId,
-      $set: { status: not existing.status }
-
+    TurkServer.Lobby.toggleStatus(userId)
     @unblock()
-    checkLobbyState()
+
+    TurkServer.Lobby.checkState()
 
 # Clear lobby status on startup
 Meteor.startup ->
-  Lobby.remove {}
-
-# Remove disconnected users from lobby
-# TODO make this more robust
-UserStatus.on "sessionLogout", (doc) ->
-  Lobby.remove doc.userId
-
-# Check for adding people in lobby to an experiment
-checkLobbyState = ->
-  # Depend on active batch having lobby
-  activeBatch = Batches.findOne
-    active: true
-    grouping: "groupSize"
-    lobby: true
-    groupVal: {$exists: 1}
-  return unless activeBatch?
-
-  # Depend on lobby contents
-  users = Lobby.find({ status: true }).fetch()
-  return if users.length < activeBatch.groupVal
-
-  userIds = _.pluck(users, "_id")
-  Lobby.remove {_id : $in: userIds }
-  TurkServer.assignAllUsers userIds
+  LobbyStatus.remove {}
 
 # TODO Reactively enabling/disabling lobby - if Lobby was disabled, kick people out
