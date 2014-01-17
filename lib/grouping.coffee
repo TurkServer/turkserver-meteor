@@ -77,6 +77,7 @@ userFindHook = (userId, selector, options) ->
   else
     selector["turkserver.group"] = groupId
     selector.admin = {$exists: false}
+
   return true
 
 TurkServer.groupingHooks.userFindHook = userFindHook
@@ -129,7 +130,23 @@ insertHook = (userId, doc) ->
 TurkServer.groupingHooks.findHook = findHook
 TurkServer.groupingHooks.insertHook = insertHook
 
+alwaysTrue = -> true
+
 TurkServer.registerCollection = (collection) ->
+  # Because of below, need to create an allow validator if there isn't one already
+  if collection._isInsecure
+    collection.allow
+      insert: alwaysTrue
+      update: alwaysTrue
+      remove: alwaysTrue
+
+  # Idiot-proof the collection against admin users
+  # TurkServer.isAdmin defined in turkserver.coffee
+  collection.deny
+    insert: TurkServer.isAdminRule
+    update: TurkServer.isAdminRule
+    remove: TurkServer.isAdminRule
+
   collection.before.find findHook
   collection.before.findOne findHook
 

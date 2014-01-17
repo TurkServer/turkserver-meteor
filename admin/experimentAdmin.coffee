@@ -6,10 +6,14 @@ Template.tsAdminExperiments.activeBatch = activeBatch
 Template.tsAdminActiveExperiments.events =
   "click .-ts-watch-experiment": ->
     groupId = @_id
-    bootbox.prompt "Enter route for the experiment task", (result) ->
-      Meteor.call "ts-admin-join-group", groupId, (err, res) ->
-        return if err
-        Router.go(result)
+    currentRoute = Router.current()
+    # Go to new route to avoid triggering leaving group
+    Router.go TSConfig.findOne("watchRoute").value
+
+    Meteor.call "ts-admin-join-group", groupId, (err, res) ->
+      return unless err
+      Router.go(currentRoute)
+      bootbox.alert(err.reason)
 
 Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
 Template.tsAdminActiveExperiments.treatmentName = -> Treatments.findOne(@treatment)?.name

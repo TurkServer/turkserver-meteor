@@ -79,8 +79,8 @@ Meteor.startup ->
     Meteor._debug "Logging in with previous user data"
     mturkLogin(loginParams)
   else
-    # TODO we can make sure these test logins maintain parameters as well
-    Meteor.defer testLogin, 500
+    # Give enough time to load before attempting login
+    Meteor.defer testLogin, 1000
 
 # TODO Testing disconnect and reconnect, remove later
 TurkServer.testingLogin = ->

@@ -1,6 +1,20 @@
 testUsername = "hooks_foo"
 testGroupId = "hooks_bar"
 
+if Meteor.isClient
+  # Tests for client-side hooks - don't require a login
+  Tinytest.add "grouping - hooks - admin removed on client finds", (test) ->
+    ctx =
+      args: []
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.length ctx.args, 0
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should replace undefined with { _groupId: ... }
+    test.equal ctx.args[0].admin.$exists, false
+
 if Meteor.isServer
   userId = null
   try
@@ -102,7 +116,6 @@ if Meteor.isServer
     # Should have nothing changed
     test.equal ctx.args[0].foo, "bar"
     test.isFalse ctx.args[0]["turkserver.group"]
-    test.equal ctx.args[0].admin.$exists, false
 
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should modify the selector

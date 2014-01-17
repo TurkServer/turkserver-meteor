@@ -28,6 +28,23 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
+# Publish treatment for admin
+# TODO this won't update properly if experiment treatment changes
+Meteor.publish null, ->
+  return unless Meteor.users.findOne(@userId)?.admin
+  sub = this
+  subHandle = Grouping.find(@userId).observeChanges
+    added: (id, fields) ->
+      treatmentId = Experiments.findOne(fields.groupId).treatment
+      sub.added "ts.config", "treatment", { value: Treatments.findOne(treatmentId).name }
+    changed: (id, fields) ->
+      treatmentId = Experiments.findOne(fields.groupId).treatment
+      sub.changed "ts.config", "treatment", { value: Treatments.findOne(treatmentId).name }
+    removed: (id) ->
+      sub.removed "ts.config", "treatment"
+  sub.ready()
+  sub.onStop -> subHandle.stop()
+
 class TurkServer.Experiment
   @setup: (groupId, treatment) ->
     context =

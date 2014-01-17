@@ -12,11 +12,10 @@ Router.map ->
         @setLayout("tsContainer")
         @render("tsAdminDenied")
         @stop()
-      # If admin but in a group, make button to leave group
+      # If admin but in a group, leave the group
       else if TurkServer.group()
-        @setLayout("tsContainer")
-        @render("tsAdminLeaveGroup")
-        @stop()
+        Meteor.call "ts-admin-leave-group", (err, res) ->
+          bootbox.alert(err.reason) if err
     action: ->
       switch @params?.page
         when "hits" then @render("tsAdminHits")
@@ -32,14 +31,17 @@ Template.turkserverPulldown.events =
     e.preventDefault()
     $("#ts-content").slideToggle()
 
-# Subscribe to admin data if we are an admin users
-adminSubscription = null
+# Subscribe to admin data if we are an admin user.
+# On rerun, subscription is automatically stopped
 Deps.autorun ->
-  if Meteor.user()?.admin
-    adminSubscription = Meteor.subscribe("tsAdmin")
-  else
-    adminSubscription?.stop()
-    adminSubscription = null
+  Meteor.subscribe("tsAdmin") if Meteor.user()?.admin
+
+# Resubscribe when group changes
+# Separate this one from the above to avoid re-runs for just a group change
+Deps.autorun ->
+  return unless Meteor.user()?.admin
+  # must pass in different args to actually effect it
+  Meteor.subscribe("tsAdminUsers", TurkServer.group())
 
 Template.tsAdminLogin.events =
   "submit form": (e, tp) ->
@@ -48,16 +50,12 @@ Template.tsAdminLogin.events =
     Meteor.loginWithPassword "admin", password, (err) ->
       bootbox.alert("Unable to login: " + err.reason) if err?
 
-Template.tsAdminOverview.onlineUserCount = -> Meteor.users.find(
-    admin: {$exists: false}
-    "status.online": true
-  ).count()
+onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
+
+Template.tsAdminOverview.onlineUserCount = -> onlineUsers().count()
 
 Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
 Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
 
 # All non-admin users who are online
-Template.tsAdminUsers.users = ->
-  Meteor.users.find
-    admin: {$exists: false}
-    "status.online": true
+Template.tsAdminUsers.users = onlineUsers

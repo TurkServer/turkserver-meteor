@@ -1,7 +1,6 @@
 # Server-side code
 
-isAdmin = (userId) ->
-  Meteor.users.findOne(userId).admin is true
+TurkServer.isAdminRule = (userId) -> Meteor.users.findOne(userId).admin is true
 
 ###
   Batches
@@ -10,16 +9,16 @@ isAdmin = (userId) ->
 ###
 
 Batches.allow
-  insert: isAdmin
-  update: isAdmin
-  remove: isAdmin
+  insert: TurkServer.isAdminRule
+  update: TurkServer.isAdminRule
+  remove: TurkServer.isAdminRule
 
 Treatments._ensureIndex {name: 1}, {unique: 1}
 
 Treatments.allow
-  insert: isAdmin
-  update: isAdmin
-  remove: isAdmin
+  insert: TurkServer.isAdminRule
+  update: TurkServer.isAdminRule
+  remove: TurkServer.isAdminRule
 
 ###
   Workers
@@ -39,7 +38,7 @@ Assignments._ensureIndex
 Assignments._ensureIndex
   workerId: 1
 
-# Publish turkserver user fields
+# Publish turkserver user fields to a user
 Meteor.publish null, ->
   return null unless @userId
 

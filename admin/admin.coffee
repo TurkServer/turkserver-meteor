@@ -5,25 +5,31 @@ Meteor.publish "tsAdmin", ->
 
   # Publish all admin data
   return [
-    Meteor.users.find(
-      {},
-      # {"status.online": true},
-      fields:
-        status: 1
-        turkserver: 1
-        workerId: 1
-    ),
     Batches.find(),
     Treatments.find(),
     Experiments.find(),
-    Grouping.find(),
+    # Grouping.find(),
     Assignments.find(),
     Workers.find(),
     LobbyStatus.find()
   ]
 
+# Admin users - needs to update if group updates
+Meteor.publish "tsAdminUsers", (groupId) ->
+  return unless @userId and Meteor.users.findOne(@userId).admin
+
+  return Meteor.users.find {},
+    # {"status.online": true},
+    fields:
+      status: 1
+      turkserver: 1
+      workerId: 1
+
 # Publish admin role for users that have it
-Meteor.publish null, -> Meteor.users.find({_id: @userId, admin: true})
+Meteor.publish null, ->
+  return unless @userId
+  return Meteor.users.find @userId,
+    fields: {admin: 1}
 
 Meteor.methods
   "ts-admin-join-group": (groupId) ->

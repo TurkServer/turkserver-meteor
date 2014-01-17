@@ -33,8 +33,10 @@
                 {{> tsUserPill _tsLookupUser}}
                 {{/each}}
             </td>
-            <td><button class="btn btn-danger -ts-watch-experiment">Watch Experiment
-            </button></td>
+            <td>
+                <button class="btn btn-small btn-primary -ts-watch-experiment">Watch</button>
+                <button class="btn btn-small btn-danger -ts-stop-experiment">Stop</button>
+            </td>
         </tr>
         {{/each}}
         {{#if zeroExperiments}}
