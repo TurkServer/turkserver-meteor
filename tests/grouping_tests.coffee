@@ -77,11 +77,6 @@ if Meteor.isServer
     treatment: treatmentId
 
   Meteor.methods
-    joinGroup: ->
-      userId = Meteor.userId()
-      throw new Error(403, "Not logged in") unless userId
-      TurkServer.Groups.clearUserGroup userId
-      TurkServer.Groups.setUserGroup(userId, myGroup)
     serverInsert: (name, doc) ->
       return groupingCollections[name].insert(doc)
     serverUpdate: (name, selector, mutator) ->
@@ -112,7 +107,7 @@ if Meteor.isClient
     InsecureLogin.ready next
 
   Tinytest.addAsync "grouping - collections - join group", (test, next) ->
-    Meteor.call "joinGroup", (err, res) ->
+    Meteor.call "joinGroup", myGroup, (err, res) ->
       test.isFalse err
       next()
 

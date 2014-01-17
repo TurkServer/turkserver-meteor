@@ -2,8 +2,17 @@ testUsername = "hooks_foo"
 testGroupId = "hooks_bar"
 
 if Meteor.isClient
-  # Tests for client-side hooks - don't require a login
-  Tinytest.add "grouping - hooks - admin removed on client finds", (test) ->
+  # XXX All async here to ensure ordering
+
+  Tinytest.addAsync "grouping - hooks - ensure logged in", (test, next) ->
+    InsecureLogin.ready next
+
+  Tinytest.addAsync "grouping - hooks - add client group", (test, next) ->
+    Meteor.call "joinGroup", testGroupId, (err, res) ->
+      test.isFalse err
+      next()
+
+  Tinytest.addAsync "grouping - hooks - vanilla client find", (test, next) ->
     ctx =
       args: []
 
@@ -12,8 +21,51 @@ if Meteor.isClient
     test.length ctx.args, 0
 
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
-    # Should replace undefined with { _groupId: ... }
+    # Also nothing changed
+    test.length ctx.args, 0
+
+    next()
+
+  Tinytest.addAsync "grouping - hooks - set admin", (test, next) ->
+    Meteor.call "setAdmin", true, (err, res) ->
+      test.isFalse err
+      test.isTrue Meteor.user().admin
+      next()
+
+  Tinytest.addAsync "grouping - hooks - admin hidden in client find", (test, next) ->
+    ctx =
+      args: []
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.length ctx.args, 0
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, Meteor.userId(), ctx.args[0], ctx.args[1])
+    # Admin removed from find
     test.equal ctx.args[0].admin.$exists, false
+    next()
+
+  Tinytest.addAsync "grouping - hooks - admin hidden in selector find", (test, next) ->
+    ctx =
+      args: [ { foo: "bar" }]
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.length ctx.args, 1
+    test.equal ctx.args[0].foo, "bar"
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, Meteor.userId(), ctx.args[0], ctx.args[1])
+    # Admin removed from find
+    test.equal ctx.args[0].foo, "bar"
+    test.equal ctx.args[0].admin.$exists, false
+    next()
+
+  # Need to remove admin to avoid fubars in other tests
+  Tinytest.addAsync "grouping - hooks - unset admin", (test, next) ->
+    Meteor.call "setAdmin", false, (err, res) ->
+      test.isFalse err
+      test.isFalse Meteor.user().admin
+      next()
 
 if Meteor.isServer
   userId = null

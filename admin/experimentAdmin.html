@@ -19,9 +19,9 @@
         <tr>
             <th>Start Time</th>
             <th>Treatment</th>
-            <th>Size</th>
+            <th style="width: 40px">Size</th>
             <th>Users</th>
-            <th></th>
+            <th style="width: 120px"></th>
         </tr>
         </thead>
         {{#each experiments}}
@@ -34,8 +34,12 @@
                 {{/each}}
             </td>
             <td>
-                <button class="btn btn-small btn-primary -ts-watch-experiment">Watch</button>
-                <button class="btn btn-small btn-danger -ts-stop-experiment">Stop</button>
+                <button class="btn btn-mini btn-primary -ts-watch-experiment">
+                    <i class="icon-white icon-camera"></i> Watch
+                </button>
+                <button class="btn btn-mini btn-danger -ts-stop-experiment">
+                    <i class="icon-white icon-ban-circle"></i> Stop
+                </button>
             </td>
         </tr>
         {{/each}}
