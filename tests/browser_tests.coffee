@@ -1,4 +1,3 @@
-Tinytest.add "blah - sync", (test) ->
+# Prevent router from complaining about missing path
+Router.map -> @route("/")
 
-Tinytest.addAsync "blah - async", (test, next) ->
-  next()

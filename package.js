@@ -97,6 +97,9 @@ Package.on_test(function (api) {
       'deps',
       'coffeescript'
     ]);
+
+    api.use('iron-router');
+
     api.use([
       'tinytest',
       'test-helpers'
