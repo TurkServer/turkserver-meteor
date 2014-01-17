@@ -28,3 +28,6 @@ TurkServer.inExperiment = ->
 TurkServer.group = ->
   TSConfig.findOne("groupId")?.value
 
+TurkServer.treatment = ->
+  TSConfig.findOne("treatment")?.value
+

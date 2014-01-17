@@ -8,6 +8,26 @@ TurkServer.initialize = (handler) ->
 # Used in grouping.coffee
 TurkServer._initGroupId = undefined
 
+# Publish the user's current treatment, if any
+# TODO this observe is a bit inefficient
+Meteor.publish null, ->
+  return unless @userId
+  sub = this
+  subHandle = Experiments.find({
+    users: { $in: [ @userId ] }
+    treatment: { $exists: true }
+  }, {
+    fields: {treatment: 1}
+  }).observeChanges
+    added: (id, fields) ->
+      sub.added "ts.config", "treatment", { value: Treatments.findOne(fields.treatment).name }
+    changed: (id, fields) ->
+      sub.changed "ts.config", "treatment", { value: Treatments.findOne(fields.treatment).name }
+    removed: (id) ->
+      sub.removed "ts.config", "treatment"
+  sub.ready()
+  sub.onStop -> subHandle.stop()
+
 class TurkServer.Experiment
   @setup: (groupId, treatment) ->
     context =

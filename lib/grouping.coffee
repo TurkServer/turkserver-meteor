@@ -17,6 +17,7 @@ class TurkServer.Groups
       $set: {groupId: groupId}
 
     # Record user in experiment
+    # TODO move this out of here; not all groups must be an experiment
     Experiments.update { _id: groupId }, { $addToSet: { users: userId } }
 
   @getUserGroup = (userId) ->
