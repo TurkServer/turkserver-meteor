@@ -64,6 +64,10 @@ if Meteor.isServer
 
     return cursors
 
+  # Clear any previous data
+  Treatments.remove(name: treatmentName)
+  Experiments.remove(myGroup)
+
   # Insert a fake treatment and experiment
   treatmentId = Treatments.insert
     name: treatmentName

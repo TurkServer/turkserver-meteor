@@ -50,7 +50,8 @@ Package.on_use(function (api) {
         'lib/logging.coffee',
         'lib/assigners.coffee',
         'lib/connections.coffee',
-        'lib/accounts_mturk.coffee'
+        'lib/accounts_mturk.coffee',
+        'lib/lobby_server.coffee'
     ], 'server');
 
     // Client
@@ -61,7 +62,9 @@ Package.on_use(function (api) {
         'client/helpers.coffee',
         'client/ts_client.styl',
         'client/ts_client.html',
-        'client/ts_client.coffee'
+        'client/ts_client.coffee',
+        'client/lobby_client.html',
+        'client/lobby_client.coffee'
     ], 'client');
 
     // Admin
@@ -77,13 +80,6 @@ Package.on_use(function (api) {
     ], 'client');
 
     api.add_files('admin/admin.coffee', 'server');
-
-    // Lobby
-    api.add_files('lobby/lobby_server.coffee', 'server');
-    api.add_files([
-        'lobby/lobby_client.html',
-        'lobby/lobby_client.coffee'
-    ], 'client');
 
     api.export(['TurkServer']);
 });
