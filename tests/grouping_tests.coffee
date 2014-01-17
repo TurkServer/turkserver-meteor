@@ -1,6 +1,7 @@
 myGroup = "group1"
 otherGroup = "group2"
 username = "fooser"
+treatmentName = "baz"
 
 basicInsertCollection = new Meteor.Collection("basicInsert")
 twoGroupCollection = new Meteor.Collection("twoGroup")
@@ -63,6 +64,14 @@ if Meteor.isServer
 
     return cursors
 
+  # Insert a fake treatment and experiment
+  treatmentId = Treatments.insert
+    name: treatmentName
+
+  Experiments.insert
+    _id: myGroup
+    treatment: treatmentId
+
   Meteor.methods
     joinGroup: ->
       userId = Meteor.userId()
@@ -109,6 +118,15 @@ if Meteor.isClient
       groupId = TSConfig.findOne("groupId")
       if groupId?.value
         c.stop()
+        test.equal groupId.value, myGroup
+        next()
+
+  Tinytest.addAsync "grouping - collections - received experiment id", (test, next) ->
+    Deps.autorun (c) ->
+      treatment = TSConfig.findOne("treatment")
+      if treatment?.value
+        c.stop()
+        test.equal treatment.value, treatmentName
         next()
 
   Tinytest.addAsync "grouping - collections - test subscriptions ready", (test, next) ->
