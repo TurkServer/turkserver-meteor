@@ -5,8 +5,11 @@ Template.tsAdminExperiments.activeBatch = activeBatch
 
 Template.tsAdminActiveExperiments.events =
   "click .-ts-watch-experiment": ->
+    groupId = @_id
     bootbox.prompt "Enter route for the experiment task", (result) ->
-      console.log "Joining group not implemented yet."
+      Meteor.call "ts-admin-join-group", groupId, (err, res) ->
+        return if err
+        Router.go(result)
 
 Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
 Template.tsAdminActiveExperiments.treatmentName = -> Treatments.findOne(@treatment)?.name

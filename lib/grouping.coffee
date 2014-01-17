@@ -18,6 +18,7 @@ class TurkServer.Groups
 
     # Record user in experiment
     # TODO move this out of here; not all groups must be an experiment
+    return if Meteor.users.findOne(userId)?.admin
     Experiments.update { _id: groupId }, { $addToSet: { users: userId } }
 
   @getUserGroup = (userId) ->
@@ -70,9 +71,12 @@ userFindHook = (userId, selector, options) ->
 
   # If user is in a group, scope the find to the group
   unless @args[0]
-    @args[0] = { "turkserver.group" : groupId }
+    @args[0] =
+      "turkserver.group" : groupId
+      "admin": {$exists: false}
   else
     selector["turkserver.group"] = groupId
+    selector.admin = {$exists: false}
   return true
 
 TurkServer.groupingHooks.userFindHook = userFindHook

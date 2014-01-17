@@ -2,13 +2,20 @@ Router.map ->
   @route "turkserver/:page?",
     layoutTemplate: "tsAdminLayout"
     before: ->
+      # If not logged in, render login
       unless Meteor.user()
         @setLayout("tsContainer")
         @render("tsAdminLogin")
         @stop()
+      # If not admin, render access denied
       else unless Meteor.user().admin
         @setLayout("tsContainer")
         @render("tsAdminDenied")
+        @stop()
+      # If admin but in a group, make button to leave group
+      else if TurkServer.group()
+        @setLayout("tsContainer")
+        @render("tsAdminLeaveGroup")
         @stop()
     action: ->
       switch @params?.page

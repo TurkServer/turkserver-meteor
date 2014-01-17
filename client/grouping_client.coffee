@@ -4,16 +4,33 @@
 
 TurkServer.groupingHooks = {}
 
+userFindHook = (userId, selector, options) ->
+  # Do the usual find for no user or single selector
+  return true if !userId or _.isString(selector) or (selector? and "_id" of selector)
+
+  # Don't have admin show up on client-side finds
+  unless @args[0]
+    @args[0] =
+      "admin": {$exists: false}
+  else
+    selector.admin = {$exists: false}
+  return true
+
+TurkServer.groupingHooks.userFindHook = userFindHook
+
+Meteor.users.before.find userFindHook
+Meteor.users.before.findOne userFindHook
+
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  groupId = TSConfig.findOne("groupId")?.value
+  groupId = TurkServer.group()
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
   # No need to add selectors if server side filtering works properly
 
 insertHook = (userId, doc) ->
   throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-  groupId = TSConfig.findOne("groupId")?.value
+  groupId = TurkServer.group()
   throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
   doc._groupId = groupId
   return true

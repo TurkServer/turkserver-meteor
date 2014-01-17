@@ -25,6 +25,15 @@ Meteor.publish "tsAdmin", ->
 # Publish admin role for users that have it
 Meteor.publish null, -> Meteor.users.find({_id: @userId, admin: true})
 
+Meteor.methods
+  "ts-admin-join-group": (groupId) ->
+    throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
+    TurkServer.Groups.setUserGroup Meteor.userId(), groupId
+
+  "ts-admin-leave-group": ->
+    throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
+    TurkServer.Groups.clearUserGroup Meteor.userId()
+
 # Create and set up admin user (and password) if not existent
 Meteor.startup ->
   adminPw = TurkServer.config?.adminPassword

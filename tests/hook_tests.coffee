@@ -66,6 +66,7 @@ if Meteor.isServer
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should replace undefined with { _groupId: ... }
     test.equal ctx.args[0]["turkserver.group"], testGroupId
+    test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "grouping - hooks - user find with string id", (test) ->
     ctx =
@@ -101,8 +102,10 @@ if Meteor.isServer
     # Should have nothing changed
     test.equal ctx.args[0].foo, "bar"
     test.isFalse ctx.args[0]["turkserver.group"]
+    test.equal ctx.args[0].admin.$exists, false
 
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
-    # Should not touch a string
+    # Should modify the selector
     test.equal ctx.args[0].foo, "bar"
     test.equal ctx.args[0]["turkserver.group"], testGroupId
+    test.equal ctx.args[0].admin.$exists, false
