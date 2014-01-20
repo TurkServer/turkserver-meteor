@@ -7,6 +7,9 @@
 
 @Grouping = new Meteor.Collection("ts.grouping")
 
+# Meteor environment variable for scoping group operations
+TurkServer._currentGroup = new Meteor.EnvironmentVariable()
+
 class TurkServer.Groups
   @setUserGroup = (userId, groupId) ->
     check(userId, String)
@@ -28,6 +31,42 @@ class TurkServer.Groups
   @clearUserGroup = (userId) ->
     check(userId, String)
     Grouping.remove(userId)
+
+TurkServer.bindGroup = (groupId, func) ->
+  TurkServer._currentGroup.withValue(groupId, func);
+
+alwaysTrue = -> true
+
+TurkServer.registerCollection = (collection) ->
+  # Because of below, need to create an allow validator if there isn't one already
+  if collection._isInsecure
+    collection.allow
+      insert: alwaysTrue
+      update: alwaysTrue
+      remove: alwaysTrue
+
+  # Idiot-proof the collection against admin users
+  # TurkServer.isAdmin defined in turkserver.coffee
+  collection.deny
+    insert: TurkServer.isAdminRule
+    update: TurkServer.isAdminRule
+    remove: TurkServer.isAdminRule
+
+  collection.before.find findHook
+  collection.before.findOne findHook
+
+  # These will hook the _validated methods as well
+  collection.before.insert insertHook
+
+  ###
+    No update/remove hook necessary, see
+    https://github.com/matb33/meteor-collection-hooks/issues/23
+  ###
+
+  # Index the collections by groupId on the server for faster lookups...?
+  # TODO figure out how compound indices work on Mongo and if we should do something smarter
+  collection._ensureIndex
+    _groupId: 1
 
 # Publish a user's group to the config collection - much better than keeping it in the user.
 Meteor.publish null, ->
@@ -99,7 +138,7 @@ findHook = (userId, selector, options) ->
   return true if _.isString(selector) or (selector? and "_id" of selector)
 
   # Check for global hook
-  groupId = TurkServer._initGroupId
+  groupId = TurkServer._currentGroup.get()
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
     groupId = Grouping.findOne(userId)?.groupId
@@ -118,7 +157,7 @@ insertHook = (userId, doc) ->
     delete doc._direct
     return true
 
-  groupId = TurkServer._initGroupId
+  groupId = TurkServer._currentGroup.get()
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
     groupId = Grouping.findOne(userId)?.groupId
@@ -130,35 +169,3 @@ insertHook = (userId, doc) ->
 TurkServer.groupingHooks.findHook = findHook
 TurkServer.groupingHooks.insertHook = insertHook
 
-alwaysTrue = -> true
-
-TurkServer.registerCollection = (collection) ->
-  # Because of below, need to create an allow validator if there isn't one already
-  if collection._isInsecure
-    collection.allow
-      insert: alwaysTrue
-      update: alwaysTrue
-      remove: alwaysTrue
-
-  # Idiot-proof the collection against admin users
-  # TurkServer.isAdmin defined in turkserver.coffee
-  collection.deny
-    insert: TurkServer.isAdminRule
-    update: TurkServer.isAdminRule
-    remove: TurkServer.isAdminRule
-
-  collection.before.find findHook
-  collection.before.findOne findHook
-
-  # These will hook the _validated methods as well
-  collection.before.insert insertHook
-
-  ###
-    No update/remove hook necessary, see
-    https://github.com/matb33/meteor-collection-hooks/issues/23
-  ###
-
-  # Index the collections by groupId on the server for faster lookups...?
-  # TODO figure out how compound indices work on Mongo and if we should do something smarter
-  collection._ensureIndex
-    _groupId: 1

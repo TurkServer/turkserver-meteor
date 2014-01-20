@@ -13,27 +13,36 @@ if Meteor.isServer
     Doobie.insert
       foo: "bar"
 
+    # Test deferred insert
+    Meteor.defer ->
+      Doobie.insert
+        bar: "baz"
+
   TurkServer.registerCollection Doobie
 
   TurkServer.initialize contextHandler
   TurkServer.initialize insertHandler
 
-  Tinytest.add "experiment - init - setup test", (test) ->
+  Tinytest.addAsync "experiment - init - setup test", (test, next) ->
     Doobie.remove { _direct: true }
     treatment = undefined
     group = undefined
 
     TurkServer.Experiment.setup("fooGroup", "fooTreatment")
-    test.ok()
+    next()
 
-  Tinytest.add "experiment - init - context", (test) ->
+  Tinytest.addAsync "experiment - init - context", (test, next) ->
     test.equal treatment, "fooTreatment"
     test.equal group, "fooGroup"
+    next()
 
-  Tinytest.add "experiment - init - global group", (test) ->
+  Tinytest.addAsync "experiment - init - global group", (test, next) ->
     stuff = Doobie.find( _direct: true ).fetch()
-    test.length stuff, 1
+    test.length stuff, 2
+
     test.equal stuff[0].foo, "bar"
     test.equal stuff[0]._groupId, "fooGroup"
 
-
+    test.equal stuff[1].bar, "baz"
+    test.equal stuff[1]._groupId, "fooGroup"
+    next()
