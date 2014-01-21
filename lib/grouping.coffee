@@ -96,19 +96,21 @@ TurkServer.groupingHooks = {}
 
 # Special hook for Meteor.users to scope for each group
 userFindHook = (userId, selector, options) ->
-  # Do the usual find for no user or single selector
-  return true if !userId or _.isString(selector) or (selector? and "_id" of selector)
+  return true if _.isString(selector) or (selector? and "_id" of selector)
 
-  # TODO add the global hooks here if we need them
-  user = Meteor.users.findOne(userId)
-  groupId = Grouping.findOne(userId)?.groupId
+  groupId = TurkServer._currentGroup.get()
+  # Do the usual find for no user/group or single selector
+  return true if (!userId and !groupId)
 
-  # If user is admin and not in a group, proceed as normal
-  return true if user.admin and !groupId
-  # Normal users need to be in a group
-  throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+  unless groupId
+    user = Meteor.users.findOne(userId)
+    groupId = Grouping.findOne(userId)?.groupId
+    # If user is admin and not in a group, proceed as normal (select all users)
+    return true if user.admin and !groupId
+    # Normal users need to be in a group
+    throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
-  # If user is in a group, scope the find to the group
+  # Since user is in a group, scope the find to the group
   unless @args[0]
     @args[0] =
       "turkserver.group" : groupId

@@ -69,11 +69,18 @@ if Meteor.isClient
 
 if Meteor.isServer
   userId = null
+  ungroupedUserId = null
   try
     userId = Accounts.createUser
-      username: testUsername
+        username: testUsername
   catch
     userId = Meteor.users.findOne(username: testUsername)._id
+
+  try
+    ungroupedUserId = Accounts.createUser
+      username: "blahblah"
+  catch
+    ungroupedUserId = Meteor.users.findOne(username: "blahblah")._id
 
   TurkServer.Groups.clearUserGroup userId
   TurkServer.Groups.setUserGroup userId, testGroupId
@@ -129,10 +136,25 @@ if Meteor.isServer
     # Should have nothing changed
     test.length ctx.args, 0
 
+    # Ungrouped user should throw an error
+    test.throws ->
+      TurkServer.groupingHooks.userFindHook.call(ctx, ungroupedUserId, ctx.args[0], ctx.args[1])
+    (e) -> e.error is 403 and e.reason is ErrMsg.groupErr
+
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should replace undefined with { _groupId: ... }
     test.equal ctx.args[0]["turkserver.group"], testGroupId
     test.equal ctx.args[0].admin.$exists, false
+
+  Tinytest.add "grouping - hooks - user find with environment group but no userId", (test) ->
+    ctx =
+      args: []
+
+    TurkServer._currentGroup.withValue testGroupId, ->
+      TurkServer.groupingHooks.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+      # Should have set the extra arguments
+      test.equal ctx.args[0]["turkserver.group"], testGroupId
+      test.equal ctx.args[0].admin.$exists, false
 
   Tinytest.add "grouping - hooks - user find with string id", (test) ->
     ctx =
@@ -168,6 +190,11 @@ if Meteor.isServer
     # Should have nothing changed
     test.equal ctx.args[0].foo, "bar"
     test.isFalse ctx.args[0]["turkserver.group"]
+
+    # Ungrouped user should throw an error
+    test.throws ->
+      TurkServer.groupingHooks.userFindHook.call(ctx, ungroupedUserId, ctx.args[0], ctx.args[1])
+    (e) -> e.error is 403 and e.reason is ErrMsg.groupErr
 
     TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
     # Should modify the selector
