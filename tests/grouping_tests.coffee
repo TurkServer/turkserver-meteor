@@ -20,10 +20,10 @@ if Meteor.isServer
     collection._insecure = true
 
     # Attach the turkserver hooks to the collection
-    TurkServer.registerCollection(collection)
+    TurkServer.partitionCollection(collection)
 
 if Meteor.isClient
-  hookCollection = (collection) -> TurkServer.registerCollection(collection)
+  hookCollection = (collection) -> TurkServer.partitionCollection(collection)
 
 ###
   Hook collections and run tests
@@ -43,22 +43,22 @@ if Meteor.isServer
   Meteor.publish "groupingTests", ->
     return unless @userId
 
-    basicInsertCollection.remove(_direct: true) # Also uses the find feature here
-    twoGroupCollection.remove(_direct: true)
+    TurkServer.directOperation ->
+      basicInsertCollection.remove({})
+      twoGroupCollection.remove({})
 
     cursors = [ basicInsertCollection.find(), twoGroupCollection.find() ]
 
     Meteor._debug "grouping publication activated"
 
-    twoGroupCollection.insert
-      _direct: true
-      _groupId: myGroup
-      a: 1
+    TurkServer.directOperation ->
+      twoGroupCollection.insert
+        _groupId: myGroup
+        a: 1
 
-    twoGroupCollection.insert
-      _direct: true
-      _groupId: otherGroup
-      a: 1
+      twoGroupCollection.insert
+        _groupId: otherGroup
+        a: 1
 
     Meteor._debug "collections configured"
 
@@ -84,11 +84,11 @@ if Meteor.isServer
     serverRemove: (name, selector) ->
       return groupingCollections[name].remove(selector)
     getCollection: (name, selector) ->
-      return groupingCollections[name].find(_.extend(selector || {}, {_direct: true})).fetch()
+      return TurkServer.directOperation -> groupingCollections[name].find(selector || {}).fetch()
     getMyCollection: (name, selector) ->
       return groupingCollections[name].find(selector).fetch()
     printCollection: (name) ->
-      console.log groupingCollections[name].find(_direct: true).fetch()
+      console.log TurkServer.directOperation -> groupingCollections[name].find().fetch()
     printMyCollection: (name) ->
       console.log groupingCollections[name].find().fetch()
 

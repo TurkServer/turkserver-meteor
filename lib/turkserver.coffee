@@ -45,6 +45,10 @@ Meteor.publish null, ->
   return Meteor.users.find @userId,
     fields: { turkserver: 1 }
 
+TurkServer.startup = (func) ->
+  Meteor.startup ->
+    TurkServer.directOperation(func)
+
 TurkServer.sessionStatus = (record) ->
   # Use 'of' in order to avoid 0's being ignored
   if "inactivePercent" of record

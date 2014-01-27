@@ -37,6 +37,8 @@ mturkLogin = (args) ->
 testLogin = ->
   # Don't try logging in if we are logged in or already have parameters
   return if Meteor.userId() or Session.get("_loginParams")
+  # Don't show this if we are trying to get at the admin interface
+  return if Router.current()?.substring(0, 11) is "/turkserver"
 
   str = Random.id()
   hitId = str + "_HIT"

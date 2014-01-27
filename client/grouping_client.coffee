@@ -43,7 +43,7 @@ TurkServer.groupingHooks.findHook = {}
 TurkServer.groupingHooks.insertHook = {}
 
 # Add in groupId for client so as not to cause unexpected sync changes
-TurkServer.registerCollection = (collection) ->
+TurkServer.partitionCollection = (collection) ->
   # TODO delete the groupId on found records if/when it becomes necessary (transform?)
   collection.before.find findHook
   collection.before.findOne findHook

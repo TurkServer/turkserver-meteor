@@ -7,8 +7,9 @@
 
 @Grouping = new Meteor.Collection("ts.grouping")
 
-# Meteor environment variable for scoping group operations
+# Meteor environment variables for scoping group operations
 TurkServer._currentGroup = new Meteor.EnvironmentVariable()
+TurkServer._directOps = new Meteor.EnvironmentVariable()
 
 class TurkServer.Groups
   @setUserGroup = (userId, groupId) ->
@@ -35,9 +36,17 @@ class TurkServer.Groups
 TurkServer.bindGroup = (groupId, func) ->
   TurkServer._currentGroup.withValue(groupId, func);
 
+TurkServer.directOperation = (func) ->
+  TurkServer._directOps.withValue(true, func);
+
 alwaysTrue = -> true
 
-TurkServer.registerCollection = (collection) ->
+TurkServer._getPartitionedIndex = (index) ->
+  defaultIndex = { _groupId : 1 }
+  return defaultIndex unless index
+  return _.extend( defaultIndex, index )
+
+TurkServer.partitionCollection = (collection, options) ->
   # Because of below, need to create an allow validator if there isn't one already
   if collection._isInsecure
     collection.allow
@@ -65,8 +74,7 @@ TurkServer.registerCollection = (collection) ->
 
   # Index the collections by groupId on the server for faster lookups...?
   # TODO figure out how compound indices work on Mongo and if we should do something smarter
-  collection._ensureIndex
-    _groupId: 1
+  collection._ensureIndex TurkServer._getPartitionedIndex(options?.index)
 
 # Publish a user's group to the config collection - much better than keeping it in the user.
 Meteor.publish null, ->
@@ -95,6 +103,7 @@ Meteor.startup ->
 TurkServer.groupingHooks = {}
 
 # Special hook for Meteor.users to scope for each group
+# TODO decide if directOps should affect the behavior here
 userFindHook = (userId, selector, options) ->
   return true if _.isString(selector) or (selector? and "_id" of selector)
 
@@ -131,9 +140,7 @@ Meteor.startup ->
 # No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
   # Don't scope for direct operations
-  if selector?._direct
-    delete selector._direct
-    return true
+  return true if TurkServer._directOps.get() is true
 
   # for find(id) we should not touch this
   # TODO may allow arbitrary finds
@@ -155,9 +162,7 @@ findHook = (userId, selector, options) ->
 
 insertHook = (userId, doc) ->
   # Don't add group for direct inserts
-  if doc._direct
-    delete doc._direct
-    return true
+  return true if TurkServer._directOps.get() is true
 
   groupId = TurkServer._currentGroup.get()
   unless groupId

@@ -18,13 +18,13 @@ if Meteor.isServer
       Doobie.insert
         bar: "baz"
 
-  TurkServer.registerCollection Doobie
+  TurkServer.partitionCollection Doobie
 
   TurkServer.initialize contextHandler
   TurkServer.initialize insertHandler
 
   Tinytest.addAsync "experiment - init - setup test", (test, next) ->
-    Doobie.remove { _direct: true }
+    TurkServer.directOperation -> Doobie.remove {}
     treatment = undefined
     group = undefined
 
@@ -37,7 +37,7 @@ if Meteor.isServer
     next()
 
   Tinytest.addAsync "experiment - init - global group", (test, next) ->
-    stuff = Doobie.find( _direct: true ).fetch()
+    stuff = TurkServer.directOperation -> Doobie.find().fetch()
     test.length stuff, 2
 
     test.equal stuff[0].foo, "bar"

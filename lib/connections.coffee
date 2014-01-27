@@ -16,6 +16,19 @@ UserStatus.on "sessionLogout", (doc) ->
 
   # TODO record disconnection
 
+disconnectCallbacks = []
+
+UserStatus.on "sessionLogout", (doc) ->
+  return unless doc.userId
+  groupId = Grouping.findOne(doc.userId)?.groupId
+  return unless groupId
+  TurkServer.bindGroup groupId, ->
+    _.each disconnectCallbacks, (cb) ->
+      cb.call(userId: doc.userId)
+
+TurkServer.onDisconnect = (func) ->
+  disconnectCallbacks.push func
+
 Meteor.methods
   "inactive": (data) ->
     # TODO implement tracking inactivity
