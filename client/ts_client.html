@@ -19,13 +19,23 @@
 </template>
 
 <template name="tsRequestUsername">
-    <h3>Please enter a username.</h3>
-    <p>This username will be associated with your Worker ID in future HITs from us, so choose carefully.</p>
-    <form class="form-inline">
-    <input type="text" name="username" required
-        pattern="^[a-zA-Z][a-zA-Z0-9-_\.]{5,12}$"
-        placeholder="Username..."
-        title="5-12 numbers or characters.">
-    <button type="submit" class="btn btn-primary">Continue</button>
-    </form>
+    <div class="modal-header">
+        <h3>Please enter a username.</h3>
+    </div>
+    <div class="modal-body">
+        <p>This username will be associated with your Worker ID in future HITs from us, so choose carefully.</p>
+        <form class="form-inline">
+        <input type="text" name="username" required
+            pattern="^[a-zA-Z][a-zA-Z0-9-_\.]{5,12}$"
+            placeholder="Username..."
+            title="5-12 numbers or characters.">
+        <button type="submit" class="btn btn-primary">Continue</button>
+        </form>
+
+        {{#withif usernameError}}
+        <div class="alert alert-error">
+            {{this}}
+        </div>
+        {{/withif}}
+    </div>
 </template>

@@ -72,9 +72,8 @@ if Meteor.isServer
   treatmentId = Treatments.insert
     name: treatmentName
 
-  Experiments.insert
+  TurkServer.Experiment.create treatmentId,
     _id: myGroup
-    treatment: treatmentId
 
   Meteor.methods
     serverInsert: (name, doc) ->

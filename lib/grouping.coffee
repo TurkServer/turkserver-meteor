@@ -101,6 +101,7 @@ TurkServer.groupingHooks = {}
 # Special hook for Meteor.users to scope for each group
 # TODO decide if directOps should affect the behavior here
 userFindHook = (userId, selector, options) ->
+  return true if TurkServer._directOps.get() is true
   return true if _.isString(selector) or (selector? and "_id" of selector)
 
   groupId = TurkServer._currentGroup.get()

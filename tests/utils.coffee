@@ -17,4 +17,6 @@ if Meteor.isServer
       userId = Meteor.userId()
       throw new Error(403, "Not logged in") unless userId
       TurkServer.Groups.clearUserGroup userId
-      TurkServer.Groups.setUserGroup(userId, myGroup)
+
+      # TurkServer.Groups.setUserGroup(userId, myGroup)
+      TurkServer.Experiment.addUser(myGroup, userId)

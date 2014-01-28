@@ -73,16 +73,17 @@ Meteor.startup ->
       assignmentId: params.assignmentId
       workerId: params.workerId
     })
+    Meteor._debug "Captured login params"
 
   # Recover either page params or stored session params as above
   loginParams = Session.get("_loginParams")
 
   if loginParams
-    Meteor._debug "Logging in with previous user data"
+    Meteor._debug "Logging in with stored parameters"
     mturkLogin(loginParams)
   else
     # Give enough time to load before attempting login
-    Meteor.defer testLogin, 1000
+    Meteor.setTimeout testLogin, 1000
 
 # TODO Testing disconnect and reconnect, remove later
 TurkServer.testingLogin = ->

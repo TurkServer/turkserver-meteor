@@ -34,7 +34,7 @@ Meteor.methods
     # TODO may need validation here due to bad browsers/bad people
     userId = Meteor.userId()
     return unless userId
-    if Meteor.users.findOne(username: username)
+    if TurkServer.directOperation(-> Meteor.users.findOne(username: username))
       throw new Meteor.Error(409, "Sorry, that username is taken.")
     Meteor.users.update userId,
       $set: {username: username}
@@ -67,6 +67,7 @@ TurkServer.handleConnection = (doc) ->
 
   # Is worker in part of an active group (experiment)?
   if TurkServer.Groups.getUserGroup(doc.userId)
+    Meteor._debug doc.userId + " is reconnecting to an existing group"
     # TODO record reconnection
     return
 
@@ -87,7 +88,7 @@ TurkServer.handleConnection = (doc) ->
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
-  newId = TurkServer.Experiments.create(treatmentId)
+  newId = TurkServer.Experiment.create(treatmentId)
   TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
 
   _.each userIds, (userId) ->

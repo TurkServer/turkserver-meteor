@@ -31,6 +31,8 @@ Meteor.methods
 
 Template.tsLobby.lobbyInfo = -> LobbyStatus.find()
 
+Template.tsLobby.identifier = -> Meteor.users.findOne(@_id)?.username || @_id
+
 Template.tsLobby.readyEnabled = ->
   return LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
 

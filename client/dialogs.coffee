@@ -44,8 +44,13 @@ Deps.autorun ->
     return
 
 Template.tsRequestUsername.events =
+  "focus input": -> Session.set("_tsUsernameError", undefined)
   "submit form": (e, tmpl) ->
     e.preventDefault()
-    username = tmpl.find("input[name=username]").value
+    input = tmpl.find("input[name=username]")
+    input.blur()
+    username = input.value
     Meteor.call "ts-set-username", username, (err, res) ->
-      bootbox.alert(err.reason) if err
+      Session.set("_tsUsernameError", err.reason) if err
+
+Template.tsRequestUsername.usernameError = -> Session.get("_tsUsernameError")
