@@ -14,16 +14,12 @@ TurkServer._directOps = new Meteor.EnvironmentVariable()
 class TurkServer.Groups
   @setUserGroup = (userId, groupId) ->
     check(userId, String)
+    check(groupId, String)
     if Grouping.findOne(userId)
       throw new Meteor.Error(403, "User is already in a group")
 
     Grouping.upsert userId,
       $set: {groupId: groupId}
-
-    # Record user in experiment
-    # TODO move this out of here; not all groups must be an experiment
-    return if Meteor.users.findOne(userId)?.admin
-    Experiments.update { _id: groupId }, { $addToSet: { users: userId } }
 
   @getUserGroup = (userId) ->
     check(userId, String)

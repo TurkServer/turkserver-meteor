@@ -41,7 +41,14 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
+# TODO make this into a class like Meteor.collection
 class TurkServer.Experiment
+  @create: (treatmentId, fields) ->
+    fields = _.extend fields || {},
+      startTime: Date.now()
+      treatment: treatmentId
+    return Experiments.insert(fields)
+
   @setup: (groupId, treatment) ->
     context =
       group: groupId
@@ -49,6 +56,15 @@ class TurkServer.Experiment
 
     TurkServer.bindGroup groupId, ->
       _.each init_queue, (handler) -> handler.call(context)
+
+  # Add user to experiment
+  @addUser: (groupId, userId) ->
+    TurkServer.Groups.setUserGroup(userId, groupId)
+
+    Experiments.update { _id: groupId },
+      { $addToSet: { users: userId } }
+    Meteor.users.update userId,
+      $set: { "turkserver.state": "experiment" }
 
 
 

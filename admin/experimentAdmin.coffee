@@ -55,8 +55,7 @@ Template.tsAdminConfigureBatch.events =
     unless @treatmentIds?.length > 0
       bootbox.alert "Select at least one treatment to activate this batch."
       return
-    Batches.update @_id, $set:
-      active: true
+    Meteor.call "ts-admin-activate-batch", @_id
 
 Template.tsAdminConfigureBatch.selectedBatch = ->
   Batches.findOne(Session.get("_tsSelectedBatchId"))

@@ -58,17 +58,18 @@ Package.on_use(function (api) {
     api.add_files([
         'client/grouping_client.coffee',
         'client/logging_client.coffee',
-        'client/disconnection.coffee',
         'client/helpers.coffee',
         'client/ts_client.styl',
         'client/ts_client.html',
         'client/ts_client.coffee',
         'client/lobby_client.html',
-        'client/lobby_client.coffee'
+        'client/lobby_client.coffee',
+        'client/dialogs.coffee'
     ], 'client');
 
     // Admin
     api.add_files([
+        'admin/admin.styl',
         'admin/util.html',
         'admin/util.coffee',
         'admin/clientAdmin.html',

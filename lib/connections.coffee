@@ -30,6 +30,13 @@ TurkServer.onDisconnect = (func) ->
   disconnectCallbacks.push func
 
 Meteor.methods
+  "ts-set-username": (username) ->
+    # TODO may need validation here due to bad browsers/bad people
+    userId = Meteor.userId()
+    return unless userId
+    Meteor.users.update userId,
+      $set: {username: username}
+
   "inactive": (data) ->
     # TODO implement tracking inactivity
     # We don't trust client timestamps, but only as identifier and use difference
@@ -78,25 +85,19 @@ TurkServer.handleConnection = (doc) ->
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
-  newId = Experiments.insert
-    startTime: Date.now()
-    treatment: treatmentId
+  newId = TurkServer.Experiments.create(treatmentId)
   TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
 
   _.each userIds, (userId) ->
-    TurkServer.Groups.setUserGroup(userId, newId)
-    Meteor.users.update userId,
-      $set: { "turkserver.state": "experiment" }
+    TurkServer.Experiment.addUser(newId, userId)
 
 # Assignment for fixed group count
 TurkServer.assignUserRoundRobin = (userId) ->
-  exp = _.min Experiments.find(assignable: true).fetch(), (ex) ->
+  experimentIds = Batches.findOne(active: true).experimentIds
+  exp = _.min Experiments.find(_id: $in: experimentIds).fetch(), (ex) ->
     Grouping.find(groupId: ex._id).count()
 
-  TurkServer.Groups.setUserGroup(userId, exp._id)
-
-  Meteor.users.update userId,
-    $set: { "turkserver.state": "experiment" }
+  TurkServer.Experiment.addUser(exp._id, userId)
 
 # Assignment for no lobby fixed group size
 TurkServer.assignUserSequential = (userId) ->
@@ -106,18 +107,18 @@ TurkServer.assignUserSequential = (userId) ->
   Experiments.find(assignable: true).forEach (exp) ->
     return if assignedToExisting # Break loop if already assigned
     if Grouping.find(groupId: exp._id).count() < activeBatch.groupVal
-      TurkServer.Groups.setUserGroup(userId, exp._id)
+      TurkServer.experiment.addUser(exp._id, userId)
       assignedToExisting = true
 
-  unless assignedToExisting # Create a new experiment
-    newId = Experiments.insert
-      startTime: Date.now()
-      assignable: true
-    TurkServer.Experiment.setup(newId, undefined)
+  return if assignedToExisting
 
-    TurkServer.Groups.setUserGroup(userId, newId)
+  # Create a new experiment
+  # TODO find a treatment
+  treatmentId = undefined
+  newId = TurkServer.Experiment.create treatmentId,
+    assignable: true
+  TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
+  TurkServer.Experiment.addUser(newId, userId)
 
-  Meteor.users.update userId,
-    $set: { "turkserver.state": "experiment" }
 
 

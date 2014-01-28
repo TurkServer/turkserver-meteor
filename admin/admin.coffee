@@ -31,13 +31,34 @@ Meteor.publish null, ->
   return Meteor.users.find @userId,
     fields: {admin: 1}
 
+checkAdmin = ->
+  throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
+
 Meteor.methods
+  "ts-admin-activate-batch": (batchId) ->
+    checkAdmin()
+
+    activeBatch = Batches.findOne(batchId)
+    if activeBatch.grouping is "groupCount"
+      # Make sure we have enough experiments in this batch
+      numExps = activeBatch?.experimentIds?.length || 0
+      while numExps++ < activeBatch.groupVal
+        # TODO pick treatments properly
+        treatmentId = _.sample activeBatch.treatmentIds
+        expId = TurkServer.Experiment.create(treatmentId)
+        TurkServer.Experiment.setup(expId, Treatments.findOne(treatmentId).name)
+        Batches.update batchId,
+          $addToSet: experimentIds: expId
+
+    Batches.update batchId, $set:
+      active: true
+
   "ts-admin-join-group": (groupId) ->
-    throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
+    checkAdmin()
     TurkServer.Groups.setUserGroup Meteor.userId(), groupId
 
   "ts-admin-leave-group": ->
-    throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
+    checkAdmin()
     TurkServer.Groups.clearUserGroup Meteor.userId()
 
 # Create and set up admin user (and password) if not existent
