@@ -34,6 +34,8 @@ Meteor.methods
     # TODO may need validation here due to bad browsers/bad people
     userId = Meteor.userId()
     return unless userId
+    if Meteor.users.findOne(username: username)
+      throw new Meteor.Error(409, "Sorry, that username is taken.")
     Meteor.users.update userId,
       $set: {username: username}
 

@@ -47,4 +47,5 @@ Template.tsRequestUsername.events =
   "submit form": (e, tmpl) ->
     e.preventDefault()
     username = tmpl.find("input[name=username]").value
-    Meteor.call "ts-set-username", username
+    Meteor.call "ts-set-username", username, (err, res) ->
+      bootbox.alert(err.reason) if err
