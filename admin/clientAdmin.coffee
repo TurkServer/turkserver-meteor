@@ -14,8 +14,9 @@ Router.map ->
         @stop()
       # If admin but in a group, leave the group
       else if TurkServer.group()
-        Meteor.call "ts-admin-leave-group", (err, res) ->
-          bootbox.alert(err.reason) if err
+        @setLayout("tsContainer")
+        @render("tsAdminWatching")
+        @stop()
     action: ->
       switch @params?.page
         when "hits" then @render("tsAdminHits")
@@ -49,6 +50,13 @@ Template.tsAdminLogin.events =
     password = $(tp.find("input")).val()
     Meteor.loginWithPassword "admin", password, (err) ->
       bootbox.alert("Unable to login: " + err.reason) if err?
+
+Template.tsAdminWatching.events =
+  "click .-ts-watch-experiment": ->
+    Router.go TSConfig.findOne("watchRoute").value
+  "click .-ts-leave-experiment": ->
+    Meteor.call "ts-admin-leave-group", (err, res) ->
+      bootbox.alert(err.reason) if err
 
 onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
 
