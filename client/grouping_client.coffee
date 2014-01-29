@@ -24,11 +24,19 @@ TurkServer.groupingHooks.userFindHook = userFindHook
 Meteor.users.before.find userFindHook
 Meteor.users.before.findOne userFindHook
 
-# No allow/deny for find so we make our own checks
 findHook = (userId, selector, options) ->
-  throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
+  # Allow these operations to proceed for the sake of reactivity
+  # but may be useful for diagnostic purposes
+  unless userId
+    # Meteor._debug "Find hook called but " + ErrMsg.userIdErr
+    return true
   groupId = TurkServer.group()
-  throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
+  unless groupId
+    # Meteor._debug "Find hook called but " + ErrMsg.groupErr
+    return true
+
+  # TODO delete the groupId on found records if/when it becomes necessary (transform?)
+
   # No need to add selectors if server side filtering works properly
   return true
 
