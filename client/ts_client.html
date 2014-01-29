@@ -25,8 +25,9 @@
     <div class="modal-body">
         <p>This username will be associated with your Worker ID in future HITs from us, so choose carefully.</p>
         <form class="form-inline">
+        {{! We use the pattern below because it matches \w in in autocomplete for user names}}
         <input type="text" name="username" required
-            pattern="^[a-zA-Z][a-zA-Z0-9-_\.]{5,12}$"
+            pattern="^[a-zA-Z][a-zA-Z0-9_]{5,12}$"
             placeholder="Username..."
             title="5-12 numbers or characters.">
         <button type="submit" class="btn btn-primary">Continue</button>
