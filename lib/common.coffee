@@ -21,3 +21,7 @@ Meteor.methods
       throw new Meteor.Error(403, "can't delete treatments that are used by existing batches")
 
     Treatments.remove(id)
+
+# Helpful functions
+TurkServer.checkNotAdmin = ->
+  Deps.nonreactive -> not Meteor.user()?.admin
