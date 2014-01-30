@@ -1,5 +1,8 @@
 # Server admin code
 
+# Only admin gets server facts
+Facts.setUserIdFilter (userId) -> Meteor.users.findOne(userId)?.admin
+
 Meteor.publish "tsAdmin", ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 

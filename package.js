@@ -25,7 +25,8 @@ Package.on_use(function (api) {
         'stylus',
         'jquery',
         'underscore',
-        'coffeescript'
+        'coffeescript',
+        'facts'
     ]);
 
     // Non-core packages
