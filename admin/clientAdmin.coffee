@@ -1,5 +1,6 @@
 Router.map ->
-  @route "turkserver/:page?",
+  @route "turkserver",
+    path: "turkserver/:page?"
     layoutTemplate: "tsAdminLayout"
     before: ->
       # If not logged in, render login
@@ -27,11 +28,6 @@ Router.map ->
         else @render("tsAdminOverview")
       return
 
-Template.turkserverPulldown.events =
-  "click .ts-adminToggle": (e) ->
-    e.preventDefault()
-    $("#ts-content").slideToggle()
-
 # Subscribe to admin data if we are an admin user.
 # On rerun, subscription is automatically stopped
 Deps.autorun ->
@@ -43,6 +39,17 @@ Deps.autorun ->
   return unless Meteor.user()?.admin
   # must pass in different args to actually effect it
   Meteor.subscribe("tsAdminUsers", TurkServer.group())
+
+Template.turkserverPulldown.events =
+  "click .ts-adminToggle": (e) ->
+    e.preventDefault()
+    $("#ts-content").slideToggle()
+
+Template.turkserverPulldown.admin = -> Meteor.user()?.admin
+
+Template.tsAdminGroupInfo.group = -> TurkServer.group()
+
+Template.tsAdminGroupInfo.users = -> Meteor.users.find()
 
 Template.tsAdminLogin.events =
   "submit form": (e, tp) ->

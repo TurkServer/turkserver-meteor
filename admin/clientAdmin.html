@@ -1,16 +1,33 @@
 <!-- pulldown interface for accessing turkserver when iron router is not being used -->
 
 <template name="turkserverPulldown">
+    {{#if admin}}
     <div id="ts-container">
         <div class="tabbable tabs-below container">
             <div id="ts-content" class="tab-content well">
-                {{> turkserver}}
+                {{> tsAdminGroupInfo }}
             </div>
             <ul id="ts-tabs" class="nav nav-tabs pull-right">
                 <li><a href="#" class="ts-adminToggle">TurkServer</a></li>
             </ul>
         </div>
     </div>
+    {{/if}}
+</template>
+
+<template name="tsAdminGroupInfo">
+    <dl class="dl-horizontal">
+        <dt>Group:</dt>
+        <dd>{{group}}</dd>
+        <dt>Users:</dt>
+        <dd>
+            {{#each users}}
+            {{> tsUserPill}}
+            {{/each}}
+        </dd>
+    </dl>
+
+    <a href="/turkserver" class="btn btn-info pull-right">Return to Admin</a>
 </template>
 
 <template name="tsAdminLogin">
@@ -37,7 +54,8 @@
         This account is currently watching an experiment.
     </div>
 
-    You can either <button class="btn btn-primary -ts-watch-experiment">Watch</button> as well or <button class="btn btn-inverse -ts-leave-experiment">Leave</button> to return the admin interface. Note that this will kick out watching on any other connections.
+    <p>You can either <button class="btn btn-primary -ts-watch-experiment">Watch</button> as well or <button class="btn btn-inverse -ts-leave-experiment">Leave</button> to return the admin interface. Note that this will kick out watching on any other connections.
+    </p>
 </template>
 
 <template name="tsAdminLayout">
