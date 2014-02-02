@@ -9,6 +9,7 @@
         "bootboxjs": {},
         "x-editable-bootstrap": {},
         "iron-router": {},
+        "moment": {},
         "collection-hooks": {
             "path": "../meteor-collection-hooks"
         },

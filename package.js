@@ -33,6 +33,7 @@ Package.on_use(function (api) {
     api.use('bootboxjs');
     api.use('x-editable-bootstrap');
     api.use('iron-router');
+    api.use('moment');
     api.use('collection-hooks');
     api.use('user-status');
 
