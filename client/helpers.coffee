@@ -4,6 +4,22 @@ Handlebars.registerHelper "_tsDebug", ->
 Handlebars.registerHelper "withif", (obj, options) ->
   if obj then options.fn(obj) else options.inverse(this)
 
+# Submit as soon as this template appears on the page.
+Template.mturkSubmit.rendered = -> @find("form").submit()
+
+Template.tsTimePicker.zone = -> moment().format("Z")
+
+Template.tsTimeOptions.momentList = ->
+  # Default time selections: 9AM EST to 11PM EST
+  m = moment.utc(hours: 9 + 5).local()
+  return (m.clone().add('hours', x) for x in [0..14])
+
+# Store all values in GMT-5
+Template.tsTimeOptions.valueFormatted = -> @zone(300).format('HH ZZ')
+
+# Display values in user's timezone
+Template.tsTimeOptions.displayFormatted = -> @local().format('hA [UTC]Z')
+
 unescapeURL = (s) ->
   decodeURIComponent s.replace(/\+/g, "%20")
 
@@ -20,6 +36,8 @@ getURLParams = ->
 
 params = getURLParams()
 
+submitHIT = -> $("body").append Meteor.render Template.mturkSubmit
+
 Handlebars.registerHelper "hitParams", params
 
 Handlebars.registerHelper "hitIsViewing",
@@ -27,7 +45,11 @@ Handlebars.registerHelper "hitIsViewing",
 
 loginCallback = (e) ->
   return unless e?
-  bootbox.dialog("<p>Unable to login:</p>" + e.message)
+  if e.message is ErrMsg.alreadyCompleted
+    # submit the HIT
+    submitHIT()
+  else
+    bootbox.dialog("<p>Unable to login:</p>" + e.message)
 
 mturkLogin = (args) ->
   Accounts.callLoginMethod

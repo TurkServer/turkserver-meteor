@@ -10,16 +10,14 @@ workerId2 = "authWorkerId2"
 experimentId = "authExperimentId"
 
 withCleanup = (fn) ->
-  return ->
+  return ->      
     try
-      res = fn.apply(this, arguments);
+      fn.apply(this, arguments)
     catch error
       throw error
     finally
       Assignments.remove({})
       Meteor.flush()
-
-    return res
 
 Tinytest.add "auth - with unknown hit", withCleanup (test) ->
   TurkServer.authenticateWorker
@@ -30,9 +28,11 @@ Tinytest.add "auth - with unknown hit", withCleanup (test) ->
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+
+  test.isTrue(record)
   test.equal(record.workerId, workerId, "workerId not saved")
 
-Tinytest.add "auth - with existing hit", withCleanup (test) ->
+Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
@@ -45,7 +45,30 @@ Tinytest.add "auth - with existing hit", withCleanup (test) ->
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+
+  test.isTrue(record)
   test.equal(record.workerId, workerId, "workerId not saved")
+
+Tinytest.add "auth - reconnect - with existing hit after batch retired", withCleanup (test) ->
+  batchId = Batches.findOne(active: true)._id
+  Batches.update(batchId, $unset: active: false)
+
+  Assignments.insert
+    hitId: hitId
+    assignmentId: assignmentId
+
+  TurkServer.authenticateWorker
+    hitId: hitId,
+    assignmentId : assignmentId
+    workerId: workerId
+
+  record = Assignments.findOne
+    hitId: hitId
+    assignmentId: assignmentId
+
+  test.isTrue(record)
+  test.equal(record.workerId, workerId, "workerId not saved")
+  Batches.update(batchId, $set: active: true)
 
 Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
   Assignments.insert
@@ -63,10 +86,14 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+
+  test.isTrue(record)
   test.equal(record.workerId, workerId2, "workerId not replaced")
-  test.isNull(record.experimentId)
+  # experimentId erased
+  test.isFalse(record.experimentId)
 
 Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
+  # This case should not happen often
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
@@ -83,9 +110,13 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+
+  test.isTrue(record)
   test.equal(record.workerId, workerId2, "workerId not replaced")
-  test.isNull(record.experimentId)
-  test.isNull(record.inactivePercent)
+
+  # experimentId and inactivePercent erased
+  test.isFalse(record.experimentId)
+  test.isFalse(record.inactivePercent)
 
 Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
   Assignments.insert
@@ -95,35 +126,60 @@ Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
     experimentId: experimentId
     inactivePercent: 0
 
-  test.throws -> TurkServer.authenticateWorker
+  testFunc = -> TurkServer.authenticateWorker
     hitId: hitId,
     assignmentId : assignmentId
     workerId: workerId
-  , (e) -> e.error is 403 and e.reason is "completed"
 
-Tinytest.add "auth - too many concurrent", withCleanup (test) ->
+  test.throws testFunc, (e) ->
+    e.error is 403 and e.reason is ErrMsg.alreadyCompleted
+
+Tinytest.add "auth - limit - concurrent across hits", withCleanup (test) ->
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
 
-  test.throws -> TurkServer.authenticateWorker
+  testFunc = -> TurkServer.authenticateWorker
     hitId: hitId2,
     assignmentId : assignmentId2
     workerId: workerId
-  , (e) -> e.error is 403 and e.reason is "too many simultaneous logins"
 
-Tinytest.add "auth - too many total", withCleanup (test) ->
+  test.throws testFunc, (e) ->
+    e.error is 403 and e.reason is ErrMsg.simultaneousLimit
+
+Tinytest.add "auth - limit - concurrent across assts", withCleanup (test) ->
   Assignments.insert
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+
+  testFunc = -> TurkServer.authenticateWorker
+    hitId: hitId,
+    assignmentId : assignmentId2
+    workerId: workerId
+
+  test.throws testFunc, (e) ->
+    e.error is 403 and e.reason is ErrMsg.simultaneousLimit
+
+Tinytest.add "auth - limit - too many total", withCleanup (test) ->
+  batchId = Batches.findOne(active: true)._id
+
+  Assignments.insert
+    batchId: batchId
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
     experimentId: experimentId
     inactivePercent: 0
+    status: "completed"
+  # Should not trigger concurrent limit
 
-  test.throws -> TurkServer.authenticateWorker
+  testFunc = -> TurkServer.authenticateWorker
     hitId: hitId2,
     assignmentId : assignmentId2
     workerId: workerId
-  , (e) -> e.error is 403 and e.reason is "too many hits"
+
+  test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
+  
 

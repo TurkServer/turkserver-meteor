@@ -1,21 +1,23 @@
 if Meteor.isServer
   Meteor.methods
-    setupLobby: -> Batches.insert
-      lobby: true
-      active: true
-      grouping: "groupSize"
-      groupVal: 3
+    setupLobby: -> Batches.update {active: true},
+      $set:
+        lobby: true
+        grouping: "groupSize"
+        groupVal: 3
     joinLobby: ->
       TurkServer.Lobby.addUser Meteor.userId()
     getLobby: ->
       LobbyStatus.find().fetch()
     leaveLobby: ->
       TurkServer.Lobby.removeUser Meteor.userId()
-    teardownLobby: ->
-      Batches.remove(active: true)
+    teardownLobby: -> Batches.update {active: true},
+      $unset:
+        lobby: null
+        grouping: null
+        groupVal: null
 
 if Meteor.isClient
-
   Tinytest.addAsync "lobby - set up", (test, next) ->
     Meteor.call "setupLobby", next
 

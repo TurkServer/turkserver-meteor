@@ -10,8 +10,16 @@ TurkServer = TurkServer || {}
 @Assignments = new Meteor.Collection("ts.assignments")
 
 @ErrMsg =
-  userIdErr: "Must be logged in to operate on TurkServer collection"
+  # authentication
+  batchLimit: "too many hits"
+  simultaneousLimit: "too many simultaneous logins"
+  alreadyCompleted: "you have already completed this HIT"
+  # operations
+  adminErr: "Operation not permitted by admin"
   groupErr: "Must have group assigned to operate on TurkServer collection"
+  userIdErr: "Must be logged in to operate on TurkServer collection"
+  # Stuff
+  usernameTaken: "Sorry, that username is taken."
   userNotInLobbyErr: "User is not in lobby"
 
 # TODO: only the admin is allowed to modify these from the client side
@@ -24,4 +32,5 @@ Meteor.methods
 
 # Helpful functions
 TurkServer.checkNotAdmin = ->
-  Deps.nonreactive -> not Meteor.user()?.admin
+  if Deps.nonreactive(-> Meteor.user()?.admin)
+    throw new Meteor.Error(403, ErrMsg.adminErr)

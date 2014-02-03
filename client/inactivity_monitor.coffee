@@ -36,9 +36,11 @@ class InactivityMonitor
     return unless inactiveTime > @inactivityThreshold
 
     # Send inactivity to turkserver
-    Meteor.call "inactive", {
+    Meteor.call "ts-record-inactive", {
       start: @lastInactive,
       time: inactiveTime
     }
 
     @callback?(inactiveTime)
+
+# TODO start automatically with an experiment and catch window events

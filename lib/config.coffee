@@ -10,7 +10,7 @@ defaultSettings = {
   experiment : {
     limit: {
       simultaneous: 1
-      set: 1
+      batch: 1
     }
   },
   mturk: {

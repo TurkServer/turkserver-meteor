@@ -1,3 +1,7 @@
+###
+  Connect callbacks
+###
+
 UserStatus.on "sessionLogin", (doc) ->
   # Update ip address in assignments for this worker
   user = Meteor.users.findOne(doc.userId)
@@ -5,16 +9,31 @@ UserStatus.on "sessionLogin", (doc) ->
   # TODO verify this is valid as we reject multiple connections on login
   Assignments.update {
     workerId: user.workerId
-    status: "ASSIGNED"
+    status: "assigned"
   }, {
     $set: {ipAddr: doc.ipAddr}
   }
 
+connectCallbacks = []
+
+UserStatus.on "sessionLogin", (doc) ->
+  return unless doc.userId
+  groupId = Grouping.findOne(doc.userId)?.groupId
+  return unless groupId
+  TurkServer.bindGroup groupId, ->
+    _.each connectCallbacks, (cb) ->
+      cb.call(userId: doc.userId)
+
+TurkServer.onConnect = (func) ->
+  connectCallbacks.push func
+
+###
+  Disconnect callbacks
+###
+
 UserStatus.on "sessionLogout", (doc) ->
   # Remove disconnected users from lobby, if they are there
   TurkServer.Lobby.removeUser(doc.userId)
-
-  # TODO record disconnection
 
 disconnectCallbacks = []
 
@@ -29,29 +48,42 @@ UserStatus.on "sessionLogout", (doc) ->
 TurkServer.onDisconnect = (func) ->
   disconnectCallbacks.push func
 
+###
+  Methods
+###
+
 Meteor.methods
   "ts-set-username": (username) ->
     # TODO may need validation here due to bad browsers/bad people
     userId = Meteor.userId()
     return unless userId
     if TurkServer.directOperation(-> Meteor.users.findOne(username: username))
-      throw new Meteor.Error(409, "Sorry, that username is taken.")
+      throw new Meteor.Error(409, ErrMsg.usernameTaken)
     Meteor.users.update userId,
       $set: {username: username}
 
-  "inactive": (data) ->
+  "ts-record-inactive": (data) ->
     # TODO implement tracking inactivity
     # We don't trust client timestamps, but only as identifier and use difference
     console.log data.start, data.time
 
+  "ts-submit-exitdata": (doc) ->
+    userId = Meteor.userId()
+
+    # TODO check that the user is allowed to do this
+    # TODO save the data
+    # TODO return true to auto submit the HIT
+    return true
+
 TurkServer.handleConnection = (doc) ->
   # Make sure any previous assignments are recorded as returned
+  # TODO this is currently not used
   Assignments.update {
     hitId: doc.hitId
     assignmentId: doc.assignmentId
     workerId: {$ne: doc.workerId}
   }, {
-    $set: { status: "RETURNED" }
+    $set: { status: "returned" }
   }, { multi: true }
 
   # Track this worker as assigned
@@ -60,15 +92,16 @@ TurkServer.handleConnection = (doc) ->
     assignmentId: doc.assignmentId
     workerId: doc.workerId
   }, {
-    $set: { status: "ASSIGNED" }
+    $set: { status: "assigned" }
   }
 
   # TODO Does the worker need to take quiz/tutorial?
 
   # Is worker in part of an active group (experiment)?
+  # This is okay even if no active batch
   if TurkServer.Groups.getUserGroup(doc.userId)
     Meteor._debug doc.userId + " is reconnecting to an existing group"
-    # TODO record reconnection
+    # other reconnection info recorded above
     return
 
   # None of the above, throw them into the assignment mechanism

@@ -25,21 +25,11 @@ TurkServer.inLobby = ->
 TurkServer.inExperiment = ->
   Session.equals("turkserver.state", "experiment")
 
+TurkServer.inExitSurvey = ->
+  Session.equals("turkserver.state", "exitsurvey")
+
 TurkServer.group = ->
   TSConfig.findOne("groupId")?.value
 
 TurkServer.treatment = ->
   TSConfig.findOne("treatment")?.value
-
-Template.tsTimePicker.zone = -> moment().format("Z")
-
-Template.tsTimeOptions.momentList = ->
-  # Default time selections: 9AM EST to 11PM EST
-  m = moment.utc(hours: 9 + 5).local()
-  return (m.clone().add('hours', x) for x in [0..14])
-
-# Store all values in GMT-5
-Template.tsTimeOptions.valueFormatted = -> @zone(300).format('HH ZZ')
-
-# Display values in user's timezone
-Template.tsTimeOptions.displayFormatted = -> @local().format('hA [UTC]Z')

@@ -41,7 +41,7 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
-# TODO make this into a class like Meteor.collection
+# TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
   @create: (treatmentId, fields) ->
     fields = _.extend fields || {},

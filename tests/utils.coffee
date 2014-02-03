@@ -20,3 +20,7 @@ if Meteor.isServer
 
       # TurkServer.Groups.setUserGroup(userId, myGroup)
       TurkServer.Experiment.addUser(myGroup, userId)
+
+  # Set up a dummy batch
+  unless Batches.findOne(active: true)
+    Batches.insert(active: true)

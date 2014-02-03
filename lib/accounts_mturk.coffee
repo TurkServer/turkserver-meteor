@@ -4,16 +4,20 @@ TurkServer.authenticateWorker = (loginRequest) ->
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
 
+  # Do we have a record of this assignment?
   unless existing
     # not previously existing session
     _id = Assignments.insert
       hitId: loginRequest.hitId
       assignmentId: loginRequest.assignmentId
 
+  # Has this worker already completed this HIT?
   else if loginRequest.workerId is existing?.workerId
+    # TODO make the client auto-submit if there was an error
     if TurkServer.sessionStatus(existing) is "completed"
-      throw new Meteor.Error(403, "completed")
+      throw new Meteor.Error(403, ErrMsg.alreadyCompleted)
 
+  # Was a different account in progress?
   else if loginRequest.workerId isnt existing?.workerId
     status = TurkServer.sessionStatus(existing)
     if status is "experiment" or status is "completed"
@@ -29,28 +33,35 @@ TurkServer.authenticateWorker = (loginRequest) ->
       # TODO remove this hack
       existing.workerId = loginRequest.workerId # for next part check
 
+  activeBatch = Batches.findOne(active: true)
+
   # Check for limits if worker is not on same HIT
-  # TODO account for setId
   if loginRequest.workerId isnt existing?.workerId
 
     if Assignments.find({
         workerId: loginRequest.workerId,
-        inactiveTime: { $exists: false }
+        status: { $ne: "completed" }
       }).count() >=
     TurkServer.config.experiment.limit.simultaneous
-      throw new Meteor.Error(403, "too many simultaneous logins")
+      throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
-    if Assignments.find({
-        workerId: loginRequest.workerId
-      }).count() >=
-    TurkServer.config.experiment.limit.set
-      throw new Meteor.Error(403, "too many hits")
+    predicate =
+      workerId: loginRequest.workerId
+
+    # TODO: allow for excluding other batches
+    predicate.batchId = activeBatch._id if activeBatch
+
+    if Assignments.find(predicate).count() >=
+    TurkServer.config.experiment.limit.batch
+      throw new Meteor.Error(403, ErrMsg.batchLimit)
+
+  save =
+    workerId: loginRequest.workerId
+  save.batchId = activeBatch._id if activeBatch
 
   # Set this worker as assigned to the HIT
   # TODO this repeats code from up there ^
-  Assignments.update _id || existing._id,
-    $set:
-      workerId: loginRequest.workerId
+  Assignments.update (_id || existing._id), {$set: save}
 
   return
 
@@ -76,15 +87,6 @@ Accounts.registerLoginHandler (loginRequest) ->
 
 #  Meteor.users.update userId,
 #    $push: {'services.resume.loginTokens': stampedToken}
-
-  # Delete old resume tokens so they don't clog up the db
-#  cutoff = +(new Date) - (24*60*60)*1000
-#  Meteor.users.update userId, {
-#    $pull:
-#      'services.resume.loginTokens':
-#        when: {$lt: cutoff}
-#  },
-#  {multi : true}
 
   TurkServer.handleConnection
     hitId: loginRequest.hitId
