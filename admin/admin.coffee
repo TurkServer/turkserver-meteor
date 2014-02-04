@@ -18,7 +18,6 @@ Meteor.publish "tsAdmin", ->
   ]
 
 userFindOptions =
-  # {"status.online": true},
   fields:
     status: 1
     turkserver: 1
@@ -31,6 +30,13 @@ Meteor.publish "tsAdminUsers", (groupId) ->
 
   return Meteor.users.find {}, userFindOptions
 
+# Don't return status here as the user is not connected to this experiment
+offlineFindOptions =
+  fields:
+    turkserver: 1
+    username: 1
+    workerId: 1
+
 # Helper publish function to get users for experiments that have ended.
 # Necessary to watch completed experiments.
 Meteor.publish "tsGroupUsers", (groupId) ->
@@ -40,7 +46,7 @@ Meteor.publish "tsGroupUsers", (groupId) ->
 
   # This won't update if users changes, but it shouldn't after an experiment is completed
   # TODO Just return everything here; we don't know what the app subscription was using
-  subHandle = Meteor.users.find({ _id: $in: exp.users}, userFindOptions).observeChanges
+  subHandle = Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions).observeChanges
     added: (id, fields) ->
       sub.added "users", id, fields
     changed: (id, fields) ->
