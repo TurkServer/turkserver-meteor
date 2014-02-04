@@ -2,6 +2,11 @@
 
 merge = Npm.require('deepmerge')
 
+# These are just here for reference
+defaultPublicSettings = {
+  watchRoute: "/"
+}
+
 defaultSettings = {
   adminPassword: undefined,
   hits: {
@@ -17,14 +22,8 @@ defaultSettings = {
     sandbox: true
     accessKeyId: undefined
     secretAccessKey: undefined
-  },
-  watchRoute: "/"
+  }
 }
 
 TurkServer.config = merge(defaultSettings, Meteor.settings?.turkserver || {})
 
-# Publish static config variables
-Meteor.publish null, ->
-  sub = this
-  sub.added "ts.config", "watchRoute", { value: TurkServer.config.watchRoute }
-  sub.ready()

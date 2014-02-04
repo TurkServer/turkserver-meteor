@@ -18,7 +18,7 @@ class TurkServer.Lobby
       $set: { status: not existing.status }
 
   @removeUser: (userId) ->
-    LobbyStatus.remove userId
+    LobbyStatus.remove(userId)
 
   # Check for adding people in lobby to an experiment
   @checkState = ->
@@ -75,4 +75,6 @@ Meteor.methods
 Meteor.startup ->
   LobbyStatus.remove {}
 
-# TODO Reactively enabling/disabling lobby - if Lobby was disabled, kick people out
+  Meteor.users.update { "turkserver.state": "lobby" },
+    $unset: {"turkserver.state": null}
+  , {multi: true}

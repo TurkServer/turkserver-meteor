@@ -4,8 +4,20 @@ if Meteor.isServer
   # Clear anything in logs
   Meteor.methods
     clearLogs: -> Logs.remove({})
-    getLogs: ->
-      return Logs.find().fetch()
+    getLogs: (selector) ->
+      return Logs.find(selector || {}).fetch()
+
+  Tinytest.addAsync "logging - server group binding", (test, next) ->
+    TurkServer.bindGroup "poop", ->
+      TurkServer.log
+        boo: "hoo"
+
+      doc = Logs.findOne(boo: "hoo")
+
+      test.equal doc.boo, "hoo"
+      test.isTrue doc._groupId
+      test.isTrue doc._timestamp
+      next()
 
 # Client methods
 if Meteor.isClient
@@ -21,13 +33,14 @@ if Meteor.isClient
         test.isFalse err
   ,
     (test, expect) ->
-      Meteor.call "getLogs", expect (err, res) ->
+      Meteor.call "getLogs", {foo: "bar"}, expect (err, res) ->
         test.isFalse err
         test.length res, 1
 
         logItem = res[0]
 
         test.isTrue logItem.foo
+        test.isTrue logItem._userId
         test.isTrue logItem._groupId
         test.isTrue logItem._timestamp
   ]

@@ -182,6 +182,20 @@ if Meteor.isServer
     test.equal ctx.args[0]._id, "yabbadabbadoo"
     test.isFalse ctx.args[0]["turkserver.group"]
 
+  Tinytest.add "grouping - hooks - user find with username", (test) ->
+    ctx =
+      args: [ {username: "yabbadabbadoo"} ]
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, undefined, ctx.args[0], ctx.args[1])
+    # Should have nothing changed
+    test.equal ctx.args[0].username, "yabbadabbadoo"
+    test.isFalse ctx.args[0]["turkserver.group"]
+
+    TurkServer.groupingHooks.userFindHook.call(ctx, userId, ctx.args[0], ctx.args[1])
+    # Should not touch a single object
+    test.equal ctx.args[0].username, "yabbadabbadoo"
+    test.isFalse ctx.args[0]["turkserver.group"]
+
   Tinytest.add "grouping - hooks - user find with selector", (test) ->
     ctx =
       args: [ { foo: "bar" } ]

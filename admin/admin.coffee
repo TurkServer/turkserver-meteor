@@ -17,16 +17,39 @@ Meteor.publish "tsAdmin", ->
     LobbyStatus.find()
   ]
 
+userFindOptions =
+  # {"status.online": true},
+  fields:
+    status: 1
+    turkserver: 1
+    username: 1
+    workerId: 1
+
 # Admin users - needs to update if group updates
 Meteor.publish "tsAdminUsers", (groupId) ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 
-  return Meteor.users.find {},
-    # {"status.online": true},
-    fields:
-      status: 1
-      turkserver: 1
-      workerId: 1
+  return Meteor.users.find {}, userFindOptions
+
+# Helper publish function to get users for experiments that have ended.
+# Necessary to watch completed experiments.
+Meteor.publish "tsGroupUsers", (groupId) ->
+  sub = this
+  exp = Experiments.findOne(groupId)
+  return unless exp
+
+  # This won't update if users changes, but it shouldn't after an experiment is completed
+  # TODO Just return everything here; we don't know what the app subscription was using
+  subHandle = Meteor.users.find({ _id: $in: exp.users}, userFindOptions).observeChanges
+    added: (id, fields) ->
+      sub.added "users", id, fields
+    changed: (id, fields) ->
+      sub.changed "users", id, fields
+    removed: (id) ->
+      sub.removed "users", id
+
+  sub.ready()
+  sub.onStop -> subHandle.stop()
 
 # Publish admin role for users that have it
 Meteor.publish null, ->
@@ -63,6 +86,10 @@ Meteor.methods
   "ts-admin-leave-group": ->
     checkAdmin()
     TurkServer.Groups.clearUserGroup Meteor.userId()
+
+  "ts-admin-stop-experiment": (groupId) ->
+    checkAdmin()
+    TurkServer.Experiment.complete(groupId)
 
 # Create and set up admin user (and password) if not existent
 Meteor.startup ->

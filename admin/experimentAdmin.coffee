@@ -1,24 +1,45 @@
 activeBatch = -> Batches.findOne(active: true)
 treatments = -> Treatments.find()
 
-Template.tsAdminExperiments.activeBatch = activeBatch
-
-Template.tsAdminActiveExperiments.events =
+Template.tsAdminExperiments.events =
   "click .-ts-watch-experiment": ->
     groupId = @_id
     currentRoute = Router.current()
     # Go to new route to avoid triggering leaving group
-    Router.go TSConfig.findOne("watchRoute").value
+    Router.go(Meteor.settings?.public?.turkserver?.watchRoute || "/")
 
     Meteor.call "ts-admin-join-group", groupId, (err, res) ->
       return unless err
       Router.go(currentRoute)
       bootbox.alert(err.reason)
 
-Template.tsAdminActiveExperiments.experiments = -> Experiments.find()
-Template.tsAdminActiveExperiments.treatmentName = -> Treatments.findOne(@treatment)?.name
-Template.tsAdminActiveExperiments.numUsers = -> @users?.length
-Template.tsAdminActiveExperiments.zeroExperiments = -> Experiments.find().count() is 0
+  "click .-ts-stop-experiment": ->
+    expId = @_id
+    bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
+      Meteor.call "ts-admin-stop-experiment", expId if res
+
+treatmentName = -> Treatments.findOne(@treatment)?.name
+numUsers = -> @users?.length
+
+Template.tsAdminActiveExperiments.experiments = ->
+  Experiments.find
+    endTime: {$exists: false}
+  ,
+    sort: { startTime: 1 }
+
+Template.tsAdminActiveExperiments.treatmentName = treatmentName
+Template.tsAdminActiveExperiments.numUsers = numUsers
+
+Template.tsAdminCompletedExperiments.experiments = ->
+  Experiments.find
+    endTime: {$exists: true}
+  ,
+    sort: { startTime: 1 }
+
+Template.tsAdminCompletedExperiments.duration = ->
+  moment.utc(@endTime - @startTime).format("(DDD) H:mm:ss.SSS")
+Template.tsAdminCompletedExperiments.treatmentName = treatmentName
+Template.tsAdminCompletedExperiments.numUsers = numUsers
 
 Template.tsAdminTreatments.treatments = treatments
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0

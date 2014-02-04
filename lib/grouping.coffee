@@ -101,8 +101,8 @@ TurkServer.groupingHooks = {}
 # Special hook for Meteor.users to scope for each group
 userFindHook = (userId, selector, options) ->
   return true if TurkServer._directOps.get() is true
-  return true if _.isString(selector) or (selector? and "_id" of selector)
-  # TODO allow direct username searches since it is a unique index
+  return true if _.isString(selector) or
+    (selector? and ("_id" of selector or "username" of selector))
 
   groupId = TurkServer._currentGroup.get()
   # Do the usual find for no user/group or single selector

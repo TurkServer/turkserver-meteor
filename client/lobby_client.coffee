@@ -8,7 +8,6 @@ Router.map ->
     before: ->
       # Don't show lobby to unauthenticated users
       unless Meteor.user()
-        console.log @setLayout
         @setLayout("tsContainer")
         @render("tsUserAccessDenied")
         @stop()

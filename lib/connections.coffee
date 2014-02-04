@@ -21,8 +21,15 @@ UserStatus.on "sessionLogin", (doc) ->
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
   TurkServer.bindGroup groupId, ->
+    TurkServer.log
+      _userId: doc.userId
+      _meta: "connected"
+
     _.each connectCallbacks, (cb) ->
-      cb.call(userId: doc.userId)
+      try
+        cb.call(userId: doc.userId)
+      catch e
+        Meteor._debug "Exception in experiment connect callback: " + e
 
 TurkServer.onConnect = (func) ->
   connectCallbacks.push func
@@ -42,8 +49,15 @@ UserStatus.on "sessionLogout", (doc) ->
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
   TurkServer.bindGroup groupId, ->
+    TurkServer.log
+      _userId: doc.userId
+      _meta: "disconnected"
+
     _.each disconnectCallbacks, (cb) ->
-      cb.call(userId: doc.userId)
+      try
+        cb.call(userId: doc.userId)
+      catch e
+        Meteor._debug "Exception in experiment disconnect callback: " + e
 
 TurkServer.onDisconnect = (func) ->
   disconnectCallbacks.push func
@@ -102,6 +116,12 @@ TurkServer.handleConnection = (doc) ->
   if TurkServer.Groups.getUserGroup(doc.userId)
     Meteor._debug doc.userId + " is reconnecting to an existing group"
     # other reconnection info recorded above
+    return
+
+  # Is the worker reconnecting to an exit survey?
+  if Meteor.users.findOne(doc.userId).turkserver.state is "exitsurvey"
+    Meteor._debug doc.userId + " is reconnecting to the exit survey"
+    # Wait for them to fill it out
     return
 
   # None of the above, throw them into the assignment mechanism

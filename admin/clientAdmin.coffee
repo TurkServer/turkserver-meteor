@@ -41,6 +41,11 @@ Deps.autorun ->
   # must pass in different args to actually effect it
   Meteor.subscribe("tsAdminUsers", TurkServer.group())
 
+# Extra admin user subscription for after experiment ended
+Deps.autorun ->
+  return unless Meteor.user()?.admin
+  Meteor.subscribe "tsGroupUsers", TurkServer.group()
+
 Template.turkserverPulldown.events =
   "click .ts-adminToggle": (e) ->
     e.preventDefault()
@@ -61,7 +66,7 @@ Template.tsAdminLogin.events =
 
 Template.tsAdminWatching.events =
   "click .-ts-watch-experiment": ->
-    Router.go TSConfig.findOne("watchRoute").value
+    Router.go(Meteor.settings?.public?.turkserver?.watchRoute || "/")
   "click .-ts-leave-experiment": ->
     Meteor.call "ts-admin-leave-group", (err, res) ->
       bootbox.alert(err.reason) if err
@@ -74,4 +79,7 @@ Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
 Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
 
 # All non-admin users who are online
-Template.tsAdminConnections.users = onlineUsers
+Template.tsAdminConnections.users = ->
+  Meteor.users.find
+    admin: {$exists: false}
+    "turkserver.state": {$exists: true}

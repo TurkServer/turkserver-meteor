@@ -1,8 +1,3 @@
-init_queue = []
-
-# The experiment-specific version of Meteor.startup
-TurkServer.initialize = (handler) ->
-  init_queue.push(handler)
 
 # Publish the user's current treatment, if any
 # TODO this observe is a bit inefficient
@@ -41,6 +36,12 @@ Meteor.publish null, ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
+init_queue = []
+
+# The experiment-specific version of Meteor.startup
+TurkServer.initialize = (handler) ->
+  init_queue.push(handler)
+
 # TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
   @create: (treatmentId, fields) ->
@@ -65,6 +66,23 @@ class TurkServer.Experiment
       { $addToSet: { users: userId } }
     Meteor.users.update userId,
       $set: { "turkserver.state": "experiment" }
+
+  # Take all users out of group and send to exit survey
+  @complete: (groupId) ->
+    users = Experiments.findOne(groupId).users
+
+    Experiments.update groupId,
+      $set:
+        endTime: Date.now()
+
+    _.each users, (userId) ->
+      TurkServer.Groups.clearUserGroup(userId)
+      Meteor.users.update userId,
+        $set: { "turkserver.state": "exitsurvey" }
+
+    Meteor.flush()
+
+
 
 
 

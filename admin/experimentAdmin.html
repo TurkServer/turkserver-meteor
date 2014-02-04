@@ -1,20 +1,22 @@
 <template name="tsAdminExperiments">
     {{#withif activeBatch}}
     <div class="alert alert-info">
-        Viewing experiments for batch <b>{{name}}</b>.
+        Batch <b>{{name}}</b> is currently active.
     </div>
-    {{> tsAdminActiveExperiments }}
     {{else}}
     <div class="alert">
-        Make a batch active to view experiments.
+        No batch is currently active.
     </div>
     {{/withif}}
+
+    {{> tsAdminActiveExperiments }}
+    {{> tsAdminCompletedExperiments }}
 </template>
 
 <template name="tsAdminActiveExperiments">
     <h3>Ongoing Experiments</h3>
 
-    <table class="table table-striped">
+    <table class="table table-condensed table-striped">
         <thead>
         <tr>
             <th>Start Time</th>
@@ -43,14 +45,43 @@
             </td>
         </tr>
         {{/each}}
-        {{#if zeroExperiments}}
-        <tr>
-            <td colspan="5"><i>No running experiments.</i></td>
-        </tr>
-        {{/if}}
     </table>
 
+</template>
+
+<template name="tsAdminCompletedExperiments">
     <h3>Completed Experiments</h3>
+
+    <table class="table table-condensed table-striped">
+        <thead>
+        <tr>
+            <th>Start Time</th>
+            <th>Duration</th>
+            <th>Treatment</th>
+            <th style="width: 50px">Size</th>
+            <th>Users</th>
+            <th style="width: 80px"></th>
+        </tr>
+        </thead>
+        {{#each experiments}}
+        <tr>
+            <td>{{_tsRenderTime startTime}}</td>
+            <td>{{ duration }}</td>
+            <td><span class="badge badge-inverse">{{treatmentName}}</span></td>
+            <td><b>{{numUsers}}</b></td>
+            <td>{{#each this.users}}
+                {{> tsUserPill _tsLookupUser}}
+                {{/each}}
+            </td>
+            <td>
+                <button class="btn btn-mini btn-primary -ts-watch-experiment">
+                    <i class="icon-white icon-camera"></i> Watch
+                </button>
+            </td>
+        </tr>
+        {{/each}}
+    </table>
+
 </template>
 
 <template name="tsAdminManage">
