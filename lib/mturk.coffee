@@ -3,11 +3,17 @@ if not TurkServer.config.mturk.accessKeyId or not TurkServer.config.mturk.secret
   Meteor._debug "Missing Amazon API keys for connecting to MTurk. Please configure."
 else
   settings =
-    url: if TurkServer.config.mturk.sandbox is false
-    then "https://mechanicalturk.amazonaws.com"
-    else "https://mechanicalturk.sandbox.amazonaws.com"
-    accessKeyId: TurkServer.config.accessKeyId
-    secretAccessKey: TurkServer.config.secretAccessKey
+    sandbox: TurkServer.config.mturk.sandbox
+    creds:
+      accessKey: TurkServer.config.mturk.accessKeyId
+      secretKey: TurkServer.config.mturk.secretAccessKey
 
-  TurkServer.mturk = Npm.require('mturk')(settings)
+  TurkServer.mturk = mturk(settings)
+
+  TurkServer.mturk.GetAccountBalance {}, Meteor.bindEnvironment (err, res) ->
+    if err
+      console.log(err)
+    else
+      console.log(res)
+
 

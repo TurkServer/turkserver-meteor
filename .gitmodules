@@ -1,0 +1,4 @@
+[submodule "mturk"]
+	path = mturk
+	url = git@github.com:mizzao/mturk.git
+	branch = meteor-hack

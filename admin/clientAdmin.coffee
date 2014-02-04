@@ -21,7 +21,8 @@ Router.map ->
     action: ->
       switch @params?.page
         when "hits" then @render("tsAdminHits")
-        when "users" then @render("tsAdminUsers")
+        when "workers" then @render("tsAdminWorkers")
+        when "connections" then @render("tsAdminConnections")
         when "lobby" then @render("tsAdminLobby")
         when "experiments" then @render("tsAdminExperiments")
         when "manage" then @render("tsAdminManage")
@@ -73,4 +74,4 @@ Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
 Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
 
 # All non-admin users who are online
-Template.tsAdminUsers.users = onlineUsers
+Template.tsAdminConnections.users = onlineUsers

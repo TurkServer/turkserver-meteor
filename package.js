@@ -3,7 +3,15 @@ Package.describe({
 });
 
 Npm.depends({
-    mturk: "0.4.1",
+    // mturk: "./mturk", // https://github.com/meteor/meteor/issues/1810
+    // Currently using a fork in submodule; dependencies below
+    // "crypto": "0.0.3",
+    "request": "2.30.0",
+    "libxmljs": "0.8.1",
+    "validator": "2.0.0",
+    "querystring": "0.2.0",
+    "async": "0.2.10",
+    // End mturk dependencies
     deepmerge: "0.2.7" // For merging config parameters
 });
 
@@ -36,6 +44,11 @@ Package.on_use(function (api) {
     api.use('moment');
     api.use('collection-hooks');
     api.use('user-status');
+
+    // mturk fork
+    api.add_files([
+      'mturk/index.js'
+    ], 'server');
 
     // Shared files
     api.add_files([
@@ -76,6 +89,8 @@ Package.on_use(function (api) {
         'admin/util.coffee',
         'admin/clientAdmin.html',
         'admin/clientAdmin.coffee',
+        'admin/mturkAdmin.html',
+        'admin/mturkAdmin.coffee',
         'admin/experimentAdmin.html',
         'admin/experimentAdmin.coffee',
         'admin/lobbyAdmin.html',
