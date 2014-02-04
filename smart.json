@@ -10,11 +10,7 @@
         "x-editable-bootstrap": {},
         "iron-router": {},
         "moment": {},
-        "collection-hooks": {
-            "path": "../meteor-collection-hooks"
-        },
-        "user-status": {
-            "path": "../meteor-user-status"
-        }
+        "collection-hooks": {},
+        "user-status": {}
     }
 }
