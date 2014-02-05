@@ -13,6 +13,8 @@
         <dd>{{#withif workerId}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
         <dt>Last login:</dt>
         <dd>{{_tsRenderTime status.lastLogin}}</dd>
+        <dt>Current state:</dt>
+        <dd>{{turkserver.state}}</dd>
     </dl>
 
     {{#if status.online}}

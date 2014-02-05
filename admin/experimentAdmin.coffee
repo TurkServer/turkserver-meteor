@@ -18,6 +18,8 @@ Template.tsAdminExperiments.events =
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
       Meteor.call "ts-admin-stop-experiment", expId if res
 
+Template.tsAdminExperiments.activeBatch = activeBatch
+
 treatmentName = -> Treatments.findOne(@treatment)?.name
 numUsers = -> @users?.length
 
@@ -37,7 +39,11 @@ Template.tsAdminCompletedExperiments.experiments = ->
     sort: { startTime: 1 }
 
 Template.tsAdminCompletedExperiments.duration = ->
-  moment.utc(@endTime - @startTime).format("(DDD) H:mm:ss.SSS")
+  diff = moment.utc(@endTime - @startTime)
+  time = diff.format(" H:mm:ss")
+  days = +diff.format("DDD") - 1
+  return (if days then days + "d" else "") + time
+
 Template.tsAdminCompletedExperiments.treatmentName = treatmentName
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 
