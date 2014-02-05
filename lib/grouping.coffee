@@ -32,6 +32,13 @@ class TurkServer.Groups
 TurkServer.bindGroup = (groupId, func) ->
   TurkServer._currentGroup.withValue(groupId, func);
 
+TurkServer.bindUserGroup = (userId, func) ->
+  groupId = TurkServer.Groups.getUserGroup(userId)
+  unless groupId
+    Meteor.debug "Dropping operation because #{userId} is not in a group"
+    return
+  TurkServer.bindGroup(groupId, func)
+
 TurkServer.directOperation = (func) ->
   TurkServer._directOps.withValue(true, func);
 

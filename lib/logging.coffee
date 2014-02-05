@@ -6,6 +6,8 @@ Logs._ensureIndex
 
 # Save group and timestamp for each log request
 Logs.before.insert (userId, doc) ->
+  # Never log admin actions
+  return false if Meteor.users.findOne(userId)?.admin
   groupId = TurkServer._currentGroup.get()
 
   unless groupId
