@@ -1,6 +1,5 @@
 myGroup = "group1"
 otherGroup = "group2"
-username = "fooser"
 treatmentName = "baz"
 
 basicInsertCollection = new Meteor.Collection("basicInsert")
@@ -69,10 +68,9 @@ if Meteor.isServer
   Experiments.remove(myGroup)
 
   # Insert a fake treatment and experiment
-  treatmentId = Treatments.insert
-    name: treatmentName
+  Treatments.insert(name: treatmentName)
 
-  TurkServer.Experiment.create treatmentId,
+  TurkServer.Experiment.create treatmentName,
     _id: myGroup
 
   Meteor.methods
@@ -113,18 +111,19 @@ if Meteor.isClient
   # Ensure that the group id has been recorded before subscribing
   Tinytest.addAsync "grouping - collections - received group id", (test, next) ->
     Deps.autorun (c) ->
-      groupId = TSConfig.findOne("groupId")
-      if groupId?.value
+      groupId = TurkServer.group()
+      if groupId
         c.stop()
-        test.equal groupId.value, myGroup
+        test.equal groupId, myGroup
         next()
 
   Tinytest.addAsync "grouping - collections - received experiment id", (test, next) ->
     Deps.autorun (c) ->
-      treatment = TSConfig.findOne("treatment")
-      if treatment?.value
+      treatment = TurkServer.treatment()
+      if treatment
         c.stop()
-        test.equal treatment.value, treatmentName
+        test.equal treatment, treatmentName
+        test.isTrue Experiments.findOne()
         next()
 
   Tinytest.addAsync "grouping - collections - test subscriptions ready", (test, next) ->

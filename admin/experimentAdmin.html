@@ -29,7 +29,7 @@
         {{#each experiments}}
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
-            <td><span class="badge badge-inverse">{{treatmentName}}</span></td>
+            <td><span class="badge badge-inverse">{{treatment}}</span></td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each this.users}}
                 {{> tsUserPill _tsLookupUser}}
@@ -67,7 +67,7 @@
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
             <td>{{ duration }}</td>
-            <td><span class="badge badge-inverse">{{treatmentName}}</span></td>
+            <td><span class="badge badge-inverse">{{treatment}}</span></td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each this.users}}
                 {{> tsUserPill _tsLookupUser}}

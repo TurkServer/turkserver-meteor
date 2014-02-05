@@ -81,7 +81,7 @@ Meteor.methods
     # We don't trust client timestamps, but only as identifier and use difference
     console.log data.start, data.time
 
-  "ts-submit-exitdata": (doc) ->
+  "ts-submit-exitdata": (doc, panel) ->
     userId = Meteor.userId()
     throw new Meteor.Error(403, ErrMsg.authErr) unless userId
     user = Meteor.users.findOne(userId)
@@ -102,8 +102,19 @@ Meteor.methods
         exitdata: doc
       }
 
-    # return no error to auto submit the HIT
-    return
+    # Update worker contact info
+    # TODO generalize this
+    if panel
+      Workers.upsert user.workerId,
+        $set:
+          contact: panel.contact
+          times: panel.times
+
+    Meteor.users.update userId,
+      $unset: {"turkserver.state": null}
+
+    # return true to auto submit the HIT
+    return true
 
 TurkServer.handleConnection = (doc) ->
 
@@ -139,7 +150,8 @@ TurkServer.handleConnection = (doc) ->
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
-  newId = TurkServer.Experiment.create(treatmentId)
+  treatment = Treatments.findOne(treatmentId).name
+  newId = TurkServer.Experiment.create(treatment)
   TurkServer.Experiment.setup(newId)
 
   _.each userIds, (userId) ->
@@ -169,7 +181,8 @@ TurkServer.assignUserSequential = (userId) ->
   # Create a new experiment
   # TODO find a treatment
   treatmentId = undefined
-  newId = TurkServer.Experiment.create treatmentId,
+  treatment = Treatments.findOne(treatmentId).name
+  newId = TurkServer.Experiment.create treatment,
     assignable: true
   TurkServer.Experiment.setup(newId)
   TurkServer.Experiment.addUser(newId, userId)

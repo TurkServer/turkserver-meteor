@@ -84,7 +84,11 @@ TurkServer.partitionCollection = (collection, options) ->
   # TODO figure out how compound indices work on Mongo and if we should do something smarter
   collection._ensureIndex TurkServer._getPartitionedIndex(options?.index)
 
-# Publish a user's group to the config collection - much better than keeping it in the user.
+###
+  Publish a user's group to the config collection - much better than keeping it in the user.
+
+  NOTE: this is important as it generates all of the other necessary data.
+####
 Meteor.publish null, ->
   return unless @userId
   sub = this

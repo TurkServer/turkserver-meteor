@@ -39,7 +39,7 @@ Deps.autorun ->
 Deps.autorun ->
   return unless Meteor.user()?.admin
   # must pass in different args to actually effect it
-  Meteor.subscribe("tsAdminUsers", TurkServer.group())
+  Meteor.subscribe("tsAdminState", TurkServer.group())
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->
@@ -54,7 +54,7 @@ Template.turkserverPulldown.events =
 Template.turkserverPulldown.admin = -> Meteor.user()?.admin
 
 Template.tsAdminGroupInfo.group = -> TurkServer.group()
-
+Template.tsAdminGroupInfo.treatment = -> TurkServer.treatment()
 Template.tsAdminGroupInfo.users = -> Meteor.users.find()
 
 Template.tsAdminLogin.events =

@@ -1,6 +1,16 @@
-# Server-side code
+# Collection modifiers, in case running on insecure
 
 TurkServer.isAdminRule = (userId) -> Meteor.users.findOne(userId).admin is true
+
+adminOnly =
+  insert: TurkServer.isAdminRule
+  update: TurkServer.isAdminRule
+  remove: TurkServer.isAdminRule
+
+always =
+  insert: -> true
+  update: -> true
+  remove: -> true
 
 ###
   Batches
@@ -8,22 +18,22 @@ TurkServer.isAdminRule = (userId) -> Meteor.users.findOne(userId).admin is true
   Experiments
 ###
 
-Batches.allow
-  insert: TurkServer.isAdminRule
-  update: TurkServer.isAdminRule
-  remove: TurkServer.isAdminRule
+Batches.allow(adminOnly)
+
+Treatments.allow(adminOnly)
 
 Treatments._ensureIndex {name: 1}, {unique: 1}
 
-Treatments.allow
-  insert: TurkServer.isAdminRule
-  update: TurkServer.isAdminRule
-  remove: TurkServer.isAdminRule
+# Only server should update these
+Experiments.deny(always)
 
 ###
   Workers
   Assignments
 ###
+
+Workers.deny(always)
+Assignments.deny(always)
 
 # TODO more careful indices on these collections
 
@@ -41,10 +51,15 @@ Assignments._ensureIndex
 
 # Publish turkserver user fields to a user
 Meteor.publish null, ->
-  return null unless @userId
+  return unless @userId
 
   return Meteor.users.find @userId,
     fields: { turkserver: 1 }
+
+# Publish current experiment for a user, if it exists
+Meteor.publish "tsCurrentExperiment", (group) ->
+  return unless @userId
+  return Experiments.find(group)
 
 TurkServer.startup = (func) ->
   Meteor.startup ->

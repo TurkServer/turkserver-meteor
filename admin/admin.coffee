@@ -10,7 +10,6 @@ Meteor.publish "tsAdmin", ->
   return [
     Batches.find(),
     Treatments.find(),
-    Experiments.find(),
     # Grouping.find(),
     Assignments.find(),
     Workers.find(),
@@ -25,10 +24,14 @@ userFindOptions =
     workerId: 1
 
 # Admin users - needs to update if group updates
-Meteor.publish "tsAdminUsers", (groupId) ->
+# Return all experiments unless in a group
+Meteor.publish "tsAdminState", (groupId) ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 
-  return Meteor.users.find {}, userFindOptions
+  cursors = [ Meteor.users.find {}, userFindOptions ]
+  cursors.push Experiments.find() unless groupId # taken care of in tsCurrentExperiment
+
+  return cursors
 
 # Don't return status here as the user is not connected to this experiment
 offlineFindOptions =
@@ -77,8 +80,9 @@ Meteor.methods
       while numExps++ < activeBatch.groupVal
         # TODO pick treatments properly
         treatmentId = _.sample activeBatch.treatmentIds
-        expId = TurkServer.Experiment.create(treatmentId)
-        TurkServer.Experiment.setup(expId, Treatments.findOne(treatmentId).name)
+        treatment = Treatments.findOne(treatmentId).name
+        expId = TurkServer.Experiment.create(treatment)
+        TurkServer.Experiment.setup(expId)
         Batches.update batchId,
           $addToSet: experimentIds: expId
 

@@ -20,7 +20,6 @@ Template.tsAdminExperiments.events =
 
 Template.tsAdminExperiments.activeBatch = activeBatch
 
-treatmentName = -> Treatments.findOne(@treatment)?.name
 numUsers = -> @users?.length
 
 Template.tsAdminActiveExperiments.experiments = ->
@@ -29,7 +28,6 @@ Template.tsAdminActiveExperiments.experiments = ->
   ,
     sort: { startTime: 1 }
 
-Template.tsAdminActiveExperiments.treatmentName = treatmentName
 Template.tsAdminActiveExperiments.numUsers = numUsers
 
 Template.tsAdminCompletedExperiments.experiments = ->
@@ -44,7 +42,6 @@ Template.tsAdminCompletedExperiments.duration = ->
   days = +diff.format("DDD") - 1
   return (if days then days + "d" else "") + time
 
-Template.tsAdminCompletedExperiments.treatmentName = treatmentName
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 
 Template.tsAdminTreatments.treatments = treatments

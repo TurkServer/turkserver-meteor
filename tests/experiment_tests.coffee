@@ -23,16 +23,34 @@ if Meteor.isServer
   TurkServer.initialize contextHandler
   TurkServer.initialize insertHandler
 
+  # Create a dummy assignment
+  userId = "expUser"
+  workerId = "expWorker"
+
   Tinytest.addAsync "experiment - init - setup test", (test, next) ->
     TurkServer.directOperation ->
       # initial cleanup for this test
       Doobie.remove {}
-      Experiments.remove "fooGroup"
+
+    Experiments.remove "fooGroup"
+    Treatments.remove(name: "fooTreatment")
+    TurkServer.Groups.clearUserGroup(userId)
+    Meteor.users.upsert { _id: userId },
+        $set: workerId: workerId
+
+    Assignments.upsert {
+        hitId: "expHIT"
+        assignmentId: "expAsst"
+        workerId: workerId
+      }, {
+        $set: status: "assigned"
+        $unset: experimentId: null
+      }
 
     treatment = undefined
     group = undefined
-    treatmentId = Treatments.insert(name: "fooTreatment")
-    TurkServer.Experiment.create(treatmentId, _id: "fooGroup")
+    Treatments.insert(name: "fooTreatment")
+    TurkServer.Experiment.create("fooTreatment", _id: "fooGroup")
     TurkServer.Experiment.setup("fooGroup")
     next()
 
@@ -51,3 +69,11 @@ if Meteor.isServer
     test.equal stuff[1].bar, "baz"
     test.equal stuff[1]._groupId, "fooGroup"
     next()
+
+  Tinytest.addAsync "experiment - addUser - records experiment ID", (test, next) ->
+    TurkServer.Experiment.addUser("fooGroup", userId)
+    asst = Assignments.findOne(workerId: workerId, status: "assigned")
+    test.equal asst.experimentId, "fooGroup"
+    next()
+
+  # TODO clean up assignments if they affect other tests
