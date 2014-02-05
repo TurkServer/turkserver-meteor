@@ -1,68 +1,63 @@
 
 TurkServer.authenticateWorker = (loginRequest) ->
+  # Has this worker already completed the HIT?
+  if Assignments.findOne({
+    hitId: loginRequest.hitId
+    assignmentId: loginRequest.assignmentId
+    workerId: loginRequest.workerId
+    status: "completed"
+  })
+    # makes the client auto-submit with this error
+    throw new Meteor.Error(403, ErrMsg.alreadyCompleted)
+
+  # Is this already assigned to someone?
   existing = Assignments.findOne
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
+    status: "assigned"
 
-  # Do we have a record of this assignment?
-  unless existing
-    # not previously existing session
-    _id = Assignments.insert
-      hitId: loginRequest.hitId
-      assignmentId: loginRequest.assignmentId
-
-  # Has this worker already completed this HIT?
-  else if loginRequest.workerId is existing?.workerId
-    # TODO make the client auto-submit if there was an error
-    if TurkServer.sessionStatus(existing) is "completed"
-      throw new Meteor.Error(403, ErrMsg.alreadyCompleted)
-
-  # Was a different account in progress?
-  else if loginRequest.workerId isnt existing?.workerId
-    status = TurkServer.sessionStatus(existing)
-    if status is "experiment" or status is "completed"
-      # HIT has been taken by someone else. Reuse it
-      # TODO: maybe we keep this copy and create a new one?
+  if existing
+    # Was a different account in progress?
+    if loginRequest.workerId is existing.workerId
+      # Worker has already logged in to this HIT, no need to create record below
+      return
+    else
+      # HIT has been taken by someone else. Record a new assignment for this worker.
       Assignments.update existing._id,
-        $set:
-          workerId: loginRequest.workerId
-        $unset:
-          experimentId: null
-          inactivePercent: null
+        $set: { status: "returned" }
 
-      # TODO remove this hack
-      existing.workerId = loginRequest.workerId # for next part check
+  # Check for limits before creating a new assignment
+  if Assignments.find({
+    workerId: loginRequest.workerId,
+    status: { $ne: "completed" }
+  }).count() >=
+  TurkServer.config.experiment.limit.simultaneous
+    throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
+  predicate =
+    workerId: loginRequest.workerId
+
+  # TODO: allow for excluding other batches
+  predicate.batchId = activeBatch._id if activeBatch
+
+  if Assignments.find(predicate).count() >=
+  TurkServer.config.experiment.limit.batch
+    throw new Meteor.Error(403, ErrMsg.batchLimit)
+
+  # TODO check for the hitId in the current batch, in case the HIT is out of date
   activeBatch = Batches.findOne(active: true)
 
-  # Check for limits if worker is not on same HIT
-  if loginRequest.workerId isnt existing?.workerId
-
-    if Assignments.find({
-        workerId: loginRequest.workerId,
-        status: { $ne: "completed" }
-      }).count() >=
-    TurkServer.config.experiment.limit.simultaneous
-      throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
-
-    predicate =
-      workerId: loginRequest.workerId
-
-    # TODO: allow for excluding other batches
-    predicate.batchId = activeBatch._id if activeBatch
-
-    if Assignments.find(predicate).count() >=
-    TurkServer.config.experiment.limit.batch
-      throw new Meteor.Error(403, ErrMsg.batchLimit)
-
+  # Either no one has this assignment before or this worker replaced someone;
+  # Create a new record for this worker on this assignment
   save =
+    hitId: loginRequest.hitId
+    assignmentId: loginRequest.assignmentId
     workerId: loginRequest.workerId
+    status: "assigned"
+
   save.batchId = activeBatch._id if activeBatch
 
-  # Set this worker as assigned to the HIT
-  # TODO this repeats code from up there ^
-  Assignments.update (_id || existing._id), {$set: save}
-
+  Assignments.insert(save)
   return
 
 Accounts.registerLoginHandler (loginRequest) ->

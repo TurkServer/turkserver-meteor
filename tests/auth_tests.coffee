@@ -36,6 +36,8 @@ Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
+    status: "assigned"
 
   TurkServer.authenticateWorker
     hitId: hitId,
@@ -45,17 +47,20 @@ Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
 
-  test.isTrue(record)
-  test.equal(record.workerId, workerId, "workerId not saved")
+  test.equal(record.status, "assigned")
 
 Tinytest.add "auth - reconnect - with existing hit after batch retired", withCleanup (test) ->
+  # TODO clean up batch hack in here
   batchId = Batches.findOne(active: true)._id
   Batches.update(batchId, $unset: active: false)
 
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
+    status: "assigned"
 
   TurkServer.authenticateWorker
     hitId: hitId,
@@ -65,9 +70,10 @@ Tinytest.add "auth - reconnect - with existing hit after batch retired", withCle
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
 
-  test.isTrue(record)
-  test.equal(record.workerId, workerId, "workerId not saved")
+  test.equal(record.status, "assigned")
+
   Batches.update(batchId, $set: active: true)
 
 Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
@@ -75,6 +81,7 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
+    status: "assigned"
     experimentId: experimentId
 
   # Authenticate with different worker
@@ -83,14 +90,19 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
     assignmentId : assignmentId
     workerId: workerId2
 
-  record = Assignments.findOne
+  prevRecord = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
 
-  test.isTrue(record)
-  test.equal(record.workerId, workerId2, "workerId not replaced")
-  # experimentId erased
-  test.isFalse(record.experimentId)
+  newRecord = Assignments.findOne
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId2
+
+  test.equal(prevRecord.status, "returned")
+
+  test.equal(newRecord.status, "assigned")
 
 Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
   # This case should not happen often
@@ -98,8 +110,7 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
-    experimentId: experimentId
-    inactivePercent: 0
+    status: "completed"
 
   # Authenticate with different worker
   TurkServer.authenticateWorker
@@ -107,24 +118,26 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     assignmentId : assignmentId
     workerId: workerId2
 
-  record = Assignments.findOne
+  prevRecord = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
+    workerId: workerId
 
-  test.isTrue(record)
-  test.equal(record.workerId, workerId2, "workerId not replaced")
+  newRecord = Assignments.findOne
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId2
 
-  # experimentId and inactivePercent erased
-  test.isFalse(record.experimentId)
-  test.isFalse(record.inactivePercent)
+  test.equal(prevRecord.status, "completed")
+
+  test.equal(newRecord.status, "assigned")
 
 Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
-    experimentId: experimentId
-    inactivePercent: 0
+    status: "completed"
 
   testFunc = -> TurkServer.authenticateWorker
     hitId: hitId,
@@ -139,6 +152,7 @@ Tinytest.add "auth - limit - concurrent across hits", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
+    status: "assigned"
 
   testFunc = -> TurkServer.authenticateWorker
     hitId: hitId2,
@@ -148,11 +162,13 @@ Tinytest.add "auth - limit - concurrent across hits", withCleanup (test) ->
   test.throws testFunc, (e) ->
     e.error is 403 and e.reason is ErrMsg.simultaneousLimit
 
+# Not sure this test needs to exist because only 1 assignment per worker for a HIT
 Tinytest.add "auth - limit - concurrent across assts", withCleanup (test) ->
   Assignments.insert
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
+    status: "assigned"
 
   testFunc = -> TurkServer.authenticateWorker
     hitId: hitId,
@@ -170,8 +186,6 @@ Tinytest.add "auth - limit - too many total", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
-    experimentId: experimentId
-    inactivePercent: 0
     status: "completed"
   # Should not trigger concurrent limit
 

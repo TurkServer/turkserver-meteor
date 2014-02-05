@@ -15,6 +15,8 @@ TurkServer = TurkServer || {}
   simultaneousLimit: "too many simultaneous logins"
   alreadyCompleted: "you have already completed this HIT"
   # operations
+  authErr: "You are not logged in"
+  stateErr: "You can't perform that operation right now"
   adminErr: "Operation not permitted by admin"
   groupErr: "Must have group assigned to operate on TurkServer collection"
   userIdErr: "Must be logged in to operate on TurkServer collection"

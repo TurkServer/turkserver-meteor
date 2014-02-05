@@ -83,31 +83,29 @@ Meteor.methods
 
   "ts-submit-exitdata": (doc) ->
     userId = Meteor.userId()
+    throw new Meteor.Error(403, ErrMsg.authErr) unless userId
+    user = Meteor.users.findOne(userId)
 
-    # TODO check that the user is allowed to do this
-    # TODO save the data
-    # TODO return true to auto submit the HIT
-    return true
+    # check that the user is allowed to do this
+    throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
+
+    # TODO what if this doesn't exist?
+    asst = Assignments.findOne
+      workerId: user.workerId
+      status: "assigned"
+
+    # mark assignment as completed and save the data
+    Assignments.update asst._id,
+      $set: {
+        status: "completed"
+        submitTime: Date.now()
+        exitdata: doc
+      }
+
+    # return no error to auto submit the HIT
+    return
 
 TurkServer.handleConnection = (doc) ->
-  # Make sure any previous assignments are recorded as returned
-  # TODO this is currently not used
-  Assignments.update {
-    hitId: doc.hitId
-    assignmentId: doc.assignmentId
-    workerId: {$ne: doc.workerId}
-  }, {
-    $set: { status: "returned" }
-  }, { multi: true }
-
-  # Track this worker as assigned
-  Assignments.upsert {
-    hitId: doc.hitId
-    assignmentId: doc.assignmentId
-    workerId: doc.workerId
-  }, {
-    $set: { status: "assigned" }
-  }
 
   # TODO Does the worker need to take quiz/tutorial?
 

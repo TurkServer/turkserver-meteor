@@ -36,7 +36,7 @@ getURLParams = ->
 
 params = getURLParams()
 
-submitHIT = -> $("body").append Meteor.render Template.mturkSubmit
+TurkServer.submitHIT = -> $("body").append Meteor.render Template.mturkSubmit
 
 Handlebars.registerHelper "hitParams", params
 
@@ -47,7 +47,7 @@ loginCallback = (e) ->
   return unless e?
   if e.message is ErrMsg.alreadyCompleted
     # submit the HIT
-    submitHIT()
+    TurkServer.submitHIT()
   else
     bootbox.dialog("<p>Unable to login:</p>" + e.message)
 
@@ -57,6 +57,8 @@ mturkLogin = (args) ->
     userCallback: loginCallback
 
 testLogin = ->
+  # FIXME hack: never run this if we are live
+  return if window.location.protocol is "https:"
   # Don't try logging in if we are logged in or already have parameters
   return if Meteor.userId() or Session.get("_loginParams")
   # Don't show this if we are trying to get at the admin interface

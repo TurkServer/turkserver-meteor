@@ -27,3 +27,5 @@ Meteor.methods
   "ts-log": (doc) ->
     Meteor._debug("Warning; received log request for not logged in user") unless Meteor.userId()
     Logs.insert(doc)
+    return
+

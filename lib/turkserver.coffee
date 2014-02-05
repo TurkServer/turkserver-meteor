@@ -34,9 +34,10 @@ Assignments._ensureIndex
   workerId: 1
 , { unique: 1 }
 
-# Allow fast lookup of a worker's previous HITs
+# Allow fast lookup of a worker's HIT assignments by status
 Assignments._ensureIndex
   workerId: 1
+  status: 1
 
 # Publish turkserver user fields to a user
 Meteor.publish null, ->
@@ -49,15 +50,3 @@ TurkServer.startup = (func) ->
   Meteor.startup ->
     TurkServer.directOperation(func)
 
-TurkServer.sessionStatus = (record) ->
-  # Use 'of' in order to avoid 0's being ignored
-  if "inactivePercent" of record
-    "completed"
-  else if "experimentId" of record
-    "experiment"
-  else if "lobbyTime" of record
-    "lobby"
-  else if "connectTime" of record
-    "assigned"
-  else
-    "unassigned"

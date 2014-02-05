@@ -24,11 +24,16 @@ if Meteor.isServer
   TurkServer.initialize insertHandler
 
   Tinytest.addAsync "experiment - init - setup test", (test, next) ->
-    TurkServer.directOperation -> Doobie.remove {}
+    TurkServer.directOperation ->
+      # initial cleanup for this test
+      Doobie.remove {}
+      Experiments.remove "fooGroup"
+
     treatment = undefined
     group = undefined
-
-    TurkServer.Experiment.setup("fooGroup", "fooTreatment")
+    treatmentId = Treatments.insert(name: "fooTreatment")
+    TurkServer.Experiment.create(treatmentId, _id: "fooGroup")
+    TurkServer.Experiment.setup("fooGroup")
     next()
 
   Tinytest.addAsync "experiment - init - context", (test, next) ->
