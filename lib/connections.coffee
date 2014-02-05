@@ -119,7 +119,7 @@ TurkServer.handleConnection = (doc) ->
     return
 
   # Is the worker reconnecting to an exit survey?
-  if Meteor.users.findOne(doc.userId).turkserver.state is "exitsurvey"
+  if Meteor.users.findOne(doc.userId)?.turkserver?.state is "exitsurvey"
     Meteor._debug doc.userId + " is reconnecting to the exit survey"
     # Wait for them to fill it out
     return
@@ -142,7 +142,7 @@ TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
   newId = TurkServer.Experiment.create(treatmentId)
-  TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
+  TurkServer.Experiment.setup(newId)
 
   _.each userIds, (userId) ->
     TurkServer.Experiment.addUser(newId, userId)
@@ -173,7 +173,7 @@ TurkServer.assignUserSequential = (userId) ->
   treatmentId = undefined
   newId = TurkServer.Experiment.create treatmentId,
     assignable: true
-  TurkServer.Experiment.setup(newId, Treatments.findOne(treatmentId).name)
+  TurkServer.Experiment.setup(newId)
   TurkServer.Experiment.addUser(newId, userId)
 
 

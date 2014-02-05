@@ -42,6 +42,13 @@ init_queue = []
 TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
+TurkServer.treatment = -> TurkServer.Experiment.getTreatment TurkServer.group()
+
+TurkServer.finishExperiment = ->
+  group = TurkServer.group()
+  return unless group
+  TurkServer.Experiment.complete(group)
+
 # TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
   @create: (treatmentId, fields) ->
@@ -50,10 +57,14 @@ class TurkServer.Experiment
       treatment: treatmentId
     return Experiments.insert(fields)
 
-  @setup: (groupId, treatment) ->
+  @getTreatment: (groupId) ->
+    exp = Experiments.findOne(groupId)
+    return Treatments.findOne(exp.treatment).name
+
+  @setup: (groupId) ->
     context =
       group: groupId
-      treatment: treatment
+      treatment: @getTreatment(groupId)
 
     TurkServer.bindGroup groupId, ->
       _.each init_queue, (handler) -> handler.call(context)

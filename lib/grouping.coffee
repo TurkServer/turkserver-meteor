@@ -29,6 +29,11 @@ class TurkServer.Groups
     check(userId, String)
     Grouping.remove(userId)
 
+TurkServer.group = ->
+  userId = Meteor.userId()
+  return unless userId
+  return TurkServer.Groups.getUserGroup(userId)
+
 TurkServer.bindGroup = (groupId, func) ->
   TurkServer._currentGroup.withValue(groupId, func);
 
