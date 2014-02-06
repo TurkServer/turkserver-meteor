@@ -15,8 +15,8 @@ TurkServer = TurkServer || {}
 
 @ErrMsg =
   # authentication
-  batchLimit: "too many hits"
-  simultaneousLimit: "too many simultaneous logins"
+  batchLimit: "You've completed the maximum number of HITs allowed in this group. Please return this assignment."
+  simultaneousLimit: "You are already connected through another HIT. Please complete that one first."
   alreadyCompleted: "you have already completed this HIT"
   # operations
   authErr: "You are not logged in"

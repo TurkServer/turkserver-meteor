@@ -6,7 +6,7 @@
 
 <template name="tsUserPillPopover">
     <b class="text-info">{{_id}}</b>
-    <dl>
+    <dl class="ts-compact">
         <dt>Username:</dt>
         <dd>{{#withif username}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
         <dt>WorkerId:</dt>
@@ -32,4 +32,13 @@
     <span class="badge badge-inverse">{{name}}
         <i class="icon-remove icon-white -ts-remove-batch-treatment"></i>
     </span>
+</template>
+
+<template name="tsDescList">
+    <dl class="dl-horizontal">
+        {{#each properties}}
+        <dt>{{key}}</dt>
+        <dd>{{value}}</dd>
+        {{/each}}
+    </dl>
 </template>

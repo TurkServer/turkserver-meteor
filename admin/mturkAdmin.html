@@ -45,7 +45,7 @@
 </template>
 
 <template name="tsAdminViewHitType">
-    <dl>
+    <dl class="ts-compact">
         <dt>Title</dt>
         <dd>{{Title}}</dd>
         <dt>Description</dt>
@@ -82,11 +82,11 @@
         <fieldset>
         <legend>New HIT Type</legend>
         <label>Title</label>
-        <input type="text" name="title" required>
+        <input class="input-xlarge" type="text" name="title" required>
         <label>Description</label>
         <textarea name="desc" required></textarea>
         <label>Keywords</label>
-        <input type="text" name="keywords" required>
+        <input class="input-xlarge" type="text" name="keywords" required>
         <label>Reward</label>
         <input class="input-mini" type="number" min="0" step="0.01" value="0.10" name="reward">
         <label>Qualification Requirements</label>
@@ -179,31 +179,47 @@
                     <td>{{HITId}}</td>
                     <td>{{HITTypeId}}</td>
                     <td>{{MaxAssignments}}</td>
-                    <td>{{Expiration}}</td>
+                    <td>{{_tsRenderISOTime Expiration}}</td>
                 </tr>
                 {{/each}}
             </table>
         </div>
         <div class="span5 well">
-            {{#if selectedHIT}}
+            {{#withif selectedHIT}}
             {{> tsAdminViewHit}}
             {{else}}
             {{> tsAdminNewHit}}
-            {{/if}}
+            {{/withif}}
         </div>
     </div>
 </template>
 
 <template name="tsAdminViewHit">
-    <dl>
+    <button class="btn btn-success -ts-refresh-hit">
+        <i class="icon-white icon-retweet"></i> Refresh HIT data
+    </button>
+    <button class="btn btn-danger -ts-expire-hit">
+        Force Expire
+    </button>
+    <dl class="ts-compact">
         <dt>HITId</dt>
         <dd>{{HITId}}</dd>
         <dt>HITTypeId</dt>
         <dd>{{HITTypeId}}</dd>
         <dt>MaxAssignments</dt>
-        <dd>{{MaxAssignments}}</dd>
+        <dd>{{MaxAssignments}}
+        <form class="form-inline -ts-extend-assignments">
+        <input class="input-small" name="assts" type="number" min="1" max="1000000" required>
+        <button class="btn btn-primary" type="submit">Increase Assignments</button>
+        </form>
+        </dd>
         <dt>Expiration</dt>
-        <dd>{{Expiration}}</dd>
+        <dd>{{_tsRenderISOTime Expiration}}
+        <form class="form-inline -ts-extend-expiration">
+        <input class="input-small" name="secs" type="number" min="3600" max="31536000" required>
+        <button class="btn btn-primary" type="submit">Extend Time</button>
+        </form>
+        </dd>
     </dl>
 </template>
 
@@ -213,10 +229,11 @@
         <legend>Create New HIT</legend>
 
         <label>HIT Type</label>
-        <select name="hittype">
-        {{#each hitTypes}}
+        <select class="input-xlarge" name="hittype" required>
+            <option value="" selected disabled></option>
+            {{#each hitTypes}}
             <option value="{{_id}}">{{Title}}</option>
-        {{/each}}
+            {{/each}}
         </select>
         <label>Max Assignments</label>
         <input class="input-small" name="maxAssts" type="number" min="1" max="1000000" value="1">
@@ -228,5 +245,22 @@
 </template>
 
 <template name="tsAdminWorkers">
+    <h3>Completed Assignments</h3>
+
+    <table class="table table-condensed table-striped">
+        <thead>
+        <tr>
+            <th>Worker ID</th>
+            <th>Exit Data</th>
+        </tr>
+        </thead>
+        {{#each completedAssts}}
+        <tr>
+            <td>{{> tsUserPill _tsLookupWorker}}</td>
+            <td>{{> tsDescList exitdata}}</td>
+        </tr>
+        {{/each}}
+    </table>
+
     <h3>Workers</h3>
 </template>

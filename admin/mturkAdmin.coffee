@@ -74,10 +74,47 @@ Template.tsAdminHits.events =
   "click tr": -> Session.set("_tsSelectedHIT", @_id)
 
 Template.tsAdminHits.hits = -> HITs.find()
-Template.tsAdminHits.selectedHIT = -> Session.get("_tsSelectedHIT")
+Template.tsAdminHits.selectedHIT = -> HITs.findOne Session.get("_tsSelectedHIT")
+
+Template.tsAdminViewHit.events =
+  "click .-ts-refresh-hit": ->
+    Meteor.call "ts-admin-refresh-hit", @HITId, (err, res) ->
+      bootbox.alert(err.reason) if err
+
+  "click .-ts-expire-hit": ->
+    Meteor.call "ts-admin-expire-hit", @HITId, (err, res) ->
+      bootbox.alert(err.reason) if err
+
+  "submit .-ts-extend-assignments": (e, tmpl) ->
+    e.preventDefault()
+    params =
+      HITId: @HITId
+      MaxAssignmentsIncrement: tmpl.find("input[name=assts]").valueAsNumber
+    Meteor.call "ts-admin-extend-hit", params, (err, res) ->
+      bootbox.alert(err.reason) if err
+
+  "submit .-ts-extend-expiration": (e, tmpl) ->
+    e.preventDefault()
+    params =
+      HITId: @HITId
+      ExpirationIncrementInSeconds: tmpl.find("input[name=secs]").valueAsNumber
+    Meteor.call "ts-admin-extend-hit", params, (err, res) ->
+      bootbox.alert(err.reason) if err
 
 Template.tsAdminNewHit.events =
   "submit form": (e, tmpl) ->
     e.preventDefault()
 
+    hitTypeId = tmpl.find("select[name=hittype]").value
+
+    params =
+      MaxAssignments: tmpl.find("input[name=maxAssts]").valueAsNumber
+      LifetimeInSeconds: tmpl.find("input[name=lifetime]").valueAsNumber
+
+    Meteor.call "ts-admin-create-hit", hitTypeId, params, (err, res) ->
+      bootbox.alert(err.reason) if err
+
 Template.tsAdminNewHit.hitTypes = -> HITTypes.find()
+
+Template.tsAdminWorkers.completedAssts = -> Assignments.find { status: "completed" },
+    { sort: submitTime: -1 }

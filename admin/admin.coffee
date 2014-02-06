@@ -114,8 +114,6 @@ Meteor.methods
 
     params.QualificationRequirement = quals
 
-    console.log params
-
     id = null
     try
       id = TurkServer.mturk "RegisterHITType", params
@@ -124,6 +122,68 @@ Meteor.methods
 
     HITTypes.update hitTypeId,
       $set: {HITTypeId: id}
+    return
+
+  "ts-admin-create-hit": (hitTypeId, params) ->
+    checkAdmin()
+    hitType = HITTypes.findOne(hitTypeId)
+    throw new Meteor.Error(403, "HITType not registered") unless hitType.HITTypeId
+
+    params.HITTypeId = hitType.HITTypeId
+    params.Question =
+      """<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd">
+          <ExternalURL>#{TurkServer.config.mturk.externalUrl}</ExternalURL>
+          <FrameHeight>#{TurkServer.config.mturk.frameHeight}</FrameHeight>
+        </ExternalQuestion>
+      """
+
+    hit = null
+    try
+      hit = TurkServer.mturk "CreateHIT", params
+    catch e
+      throw new Meteor.error(500, e.toString())
+
+    HITs.insert
+      HITId: hit
+      HitTypeId: hitType.HITTypeId
+
+    return
+
+  "ts-admin-refresh-hit": (HITId) ->
+    checkAdmin()
+    throw new Meteor.Error(400, "HIT ID not specified") unless HITId
+    try
+      hitData = TurkServer.mturk "GetHIT", HITId: HITId
+      HITs.update {HITId: HITId}, $set: hitData
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    return
+
+  "ts-admin-expire-hit": (HITId) ->
+    checkAdmin()
+    throw new Meteor.Error(400, "HIT ID not specified") unless HITId
+    try
+      hitData = TurkServer.mturk "ForceExpireHIT", HITId: HITId
+
+      @unblock() # If successful, refresh the HIT
+      Meteor.call "ts-admin-refresh-hit", HITId
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    return
+
+  "ts-admin-extend-hit": (params) ->
+    checkAdmin()
+    throw new Meteor.Error(400, "HIT ID not specified") unless params.HITId
+    try
+      TurkServer.mturk "ExtendHIT", params
+
+      @unblock() # If successful, refresh the HIT
+      Meteor.call "ts-admin-refresh-hit", params.HITId
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
     return
 
   "ts-admin-join-group": (groupId) ->

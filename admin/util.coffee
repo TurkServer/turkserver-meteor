@@ -1,7 +1,13 @@
 Handlebars.registerHelper "_tsLookupTreatment", -> Treatments.findOne("" + (@_id || @))
 Handlebars.registerHelper "_tsLookupUser", -> Meteor.users.findOne("" + (@_id || @))
 
+Handlebars.registerHelper "_tsLookupWorker", -> Meteor.users.findOne(workerId: "" + (@workerId || @))
+
 Handlebars.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()
+
+Handlebars.registerHelper "_tsRenderISOTime", (isoString) ->
+  m = moment(isoString)
+  return m.format("l LT") + " (" + m.fromNow() + ")"
 
 Template.tsUserPill.labelClass = -> if @status?.online then "label-success" else "label-default"
 
@@ -20,3 +26,9 @@ Template.tsUserPill.rendered = ->
     trigger: "hover"
     container: @firstNode
     content: => Template.tsUserPillPopover(@data)
+
+Template.tsDescList.properties = ->
+  result = []
+  for key, value of this
+    result.push key: key, value: value
+  return result

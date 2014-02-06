@@ -53,6 +53,7 @@ TurkServer.authenticateWorker = (loginRequest) ->
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
     workerId: loginRequest.workerId
+    acceptTime: Date.now()
     status: "assigned"
 
   save.batchId = activeBatch._id if activeBatch

@@ -23,7 +23,7 @@
         <h3>Please enter a username.</h3>
     </div>
     <div class="modal-body">
-        <p>This username will be associated with your Worker ID in future HITs from us, so choose carefully.</p>
+        <p>This username will be automatically linked with your Worker ID in our HITs.</p>
         <form class="form-inline">
         {{! We use the pattern below because it matches \w in in autocomplete for user names}}
         <input type="text" name="username" required
@@ -42,7 +42,7 @@
 </template>
 
 <template name="tsTimePicker">
-    <label>Your timezone seems to be <b>UTC {{zone}}</b>. Please pick three different times where you can be present for an hour:</label>
+    <label>Your timezone seems to be <b>UTC {{zone}}</b>. Please pick three different times (on a typical weekday) when you can be present for an hour:</label>
 
     <select name="pickTime1" class="input-medium" required>{{> tsTimeOptions}}</select>
     <select name="pickTime2" class="input-medium" required>{{> tsTimeOptions}}</select>
