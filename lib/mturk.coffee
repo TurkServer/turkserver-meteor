@@ -25,3 +25,34 @@ try
 catch e
   console.log e
 
+# Initialize some helpful qualifications
+Meteor.startup ->
+  return if Qualifications.find().count() > 0
+
+  # US Worker
+  Qualifications.insert
+    name: "US Worker"
+    QualificationTypeId: "00000000000000000071"
+    Comparator: "EqualTo"
+    LocaleValue: "US"
+
+  # 100 HITs
+  Qualifications.insert
+    name: "> 100 HITs"
+    QualificationTypeId: "00000000000000000040"
+    Comparator: "GreaterThan"
+    IntegerValue: "100"
+
+  # 95% Approval
+  Qualifications.insert
+    name: "95% Approval"
+    QualificationTypeId: "000000000000000000L0"
+    Comparator: "GreaterThanOrEqualTo"
+    IntegerValue: "95"
+
+  # Adult Worker
+  Qualifications.insert
+    name: "Adult Worker"
+    QualificationTypeId: "00000000000000000060"
+    Comparator: "EqualTo"
+    IntegerValue: "1"

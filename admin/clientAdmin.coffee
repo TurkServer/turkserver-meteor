@@ -20,6 +20,7 @@ Router.map ->
         @stop()
     action: ->
       switch @params?.page
+        when "mturk" then @render("tsAdminMTurk")
         when "hits" then @render("tsAdminHits")
         when "workers" then @render("tsAdminWorkers")
         when "connections" then @render("tsAdminConnections")

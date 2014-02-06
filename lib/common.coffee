@@ -9,6 +9,9 @@ TurkServer = TurkServer || {}
 @Workers = new Meteor.Collection("ts.workers")
 @Assignments = new Meteor.Collection("ts.assignments")
 
+@HITTypes = new Meteor.Collection("ts.hittypes")
+@Qualifications = new Meteor.Collection("ts.qualifications")
+
 @ErrMsg =
   # authentication
   batchLimit: "too many hits"

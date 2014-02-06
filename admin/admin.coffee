@@ -13,6 +13,8 @@ Meteor.publish "tsAdmin", ->
     # Grouping.find(),
     Assignments.find(),
     Workers.find(),
+    HITTypes.find(),
+    Qualifications.find(),
     LobbyStatus.find()
   ]
 
@@ -88,18 +90,55 @@ Meteor.methods
 
     Batches.update batchId, $set:
       active: true
+    return
+
+  "ts-admin-register-hittype": (hitTypeId) ->
+    checkAdmin()
+    # Build up the params to register the HIT Type
+    params = HITTypes.findOne(hitTypeId)
+    delete params._id
+
+    params.Reward =
+      Amount: params.Reward
+      CurrencyCode: "USD"
+
+    quals = []
+    for i, qualId of params.QualificationRequirement
+      qual = Qualifications.findOne(qualId)
+      delete qual._id
+      delete qual.name
+      # Get the locale into its weird structure
+      qual.LocaleValue = { Country: qual.LocaleValue } if qual.LocaleValue
+      quals.push qual
+
+    params.QualificationRequirement = quals
+
+    console.log params
+
+    id = null
+    try
+      id = TurkServer.mturk "RegisterHITType", params
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    HITTypes.update hitTypeId,
+      $set: {HITTypeId: id}
+    return
 
   "ts-admin-join-group": (groupId) ->
     checkAdmin()
     TurkServer.Groups.setUserGroup Meteor.userId(), groupId
+    return
 
   "ts-admin-leave-group": ->
     checkAdmin()
     TurkServer.Groups.clearUserGroup Meteor.userId()
+    return
 
   "ts-admin-stop-experiment": (groupId) ->
     checkAdmin()
     TurkServer.Experiment.complete(groupId)
+    return
 
 # Create and set up admin user (and password) if not existent
 Meteor.startup ->

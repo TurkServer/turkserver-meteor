@@ -19,7 +19,6 @@ always =
 ###
 
 Batches.allow(adminOnly)
-
 Treatments.allow(adminOnly)
 
 Treatments._ensureIndex {name: 1}, {unique: 1}
@@ -34,6 +33,9 @@ Experiments.deny(always)
 
 Workers.deny(always)
 Assignments.deny(always)
+
+HITTypes.allow(adminOnly)
+Qualifications.allow(adminOnly)
 
 # TODO more careful indices on these collections
 

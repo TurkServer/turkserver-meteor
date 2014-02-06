@@ -1,9 +1,169 @@
-<template name="tsAdminHits">
-    <h3>Outstanding HITs</h3>
+<template name="tsAdminMTurk">
+    <h3>HIT Types</h3>
+    <div class="row">
+        <div class="span4">
+            {{> tsAdminHitTypes}}
+        </div>
+        <div class="span7 well">
+            {{#withif selectedHITType}}
+            {{> tsAdminViewHitType }}
+            {{else}}
+            {{> tsAdminNewHitType }}
+            {{/withif}}
+        </div>
+    </div>
 
-    <div class="alert alert-info">Only HITs created by this app are shown here. Other HITs in your account are not included.</div>
+    {{> tsAdminQuals}}
+</template>
+
+<template name="tsAdminHitTypes">
+    <table class="table table-condensed table-striped">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>HITTypeId</th>
+        </tr>
+        </thead>
+        {{#each hitTypes}}
+        <tr class="{{selectedClass}}">
+            <td>{{Title}}</td>
+            <td>
+                {{#if HITTypeId}}
+                {{HITTypeId}}
+                {{else}}
+                <i>Not registered</i>
+                {{/if}}
+            </td>
+        </tr>
+        {{/each}}
+        <tr>
+            <td colspan="2">
+                <button class="btn btn-primary">New HIT Type</button>
+            </td>
+        </tr>
+    </table>
+</template>
+
+<template name="tsAdminViewHitType">
+    <dl>
+        <dt>Title</dt>
+        <dd>{{Title}}</dd>
+        <dt>Description</dt>
+        <dd>{{Description}}</dd>
+        <dt>Keywords</dt>
+        <dd>{{Keywords}}</dd>
+        <dt>Reward</dt>
+        <dd>{{renderReward}}</dd>
+        <dt>Qualification Requirements</dt>
+        <dd>
+            {{#each QualificationRequirement}}
+            <span class="badge badge-info">{{qualName}}</span>
+            {{/each}}
+        </dd>
+        <dt>Assignment Duration (Secs)</dt>
+        <dd>{{AssignmentDurationInSeconds}}</dd>
+        <dt>Auto Approval (Secs)</dt>
+        <dd>{{AutoApprovalDelayInSeconds}}</dd>
+        <dt>HITTypeId</dt>
+        <dd>
+            {{#if HITTypeId}}
+            {{HITTypeId}}
+            {{else}}
+            <button class="btn btn-danger -ts-register-hittype">
+                <i class="icon-white icon-briefcase"></i> Register
+            </button>
+            {{/if}}
+        </dd>
+    </dl>
+</template>
+
+<template name="tsAdminNewHitType">
+    <form>
+        <fieldset>
+        <legend>New HIT Type</legend>
+        <label>Title</label>
+        <input type="text" name="title" required>
+        <label>Description</label>
+        <textarea name="desc" required></textarea>
+        <label>Keywords</label>
+        <input type="text" name="keywords" required>
+        <label>Reward</label>
+        <input class="input-mini" type="number" min="0" step="0.01" value="0.10" name="reward">
+        <label>Qualification Requirements</label>
+        <select name="quals" multiple>
+            {{#each quals}}
+            <option value="{{_id}}">{{name}}</option>
+            {{/each}}
+        </select>
+        <label>Assignment Duration in Seconds</label>
+        <input class="input-small" type="number" min="30" max="3153600" value="86400" name="duration">
+        <label>Auto Approval Delay in Seconds</label>
+        <input class="input-small" type="number" min="0" max="2592000" value="604800" name="delay">
+
+        <button type="submit" class="btn btn-primary pull-right">Create</button>
+        </fieldset>
+    </form>
+</template>
+
+<template name="tsAdminQuals">
+    <h3>Qualifications</h3>
+    <table class="table table-condensed table-striped">
+        <thead>
+        <tr>
+            <th>Nickname</th>
+            <th>QualificationType ID</th>
+            <th>Comparator</th>
+            <th>Value</th>
+            <th style="width: 50px"></th>
+        </tr>
+        </thead>
+        {{#each quals}}
+        <tr>
+            <td><span class="badge badge-info">{{name}}</span></td>
+            <td>{{QualificationTypeId}}</td>
+            <td>{{Comparator}}</td>
+            <td>{{value}}</td>
+            <td>
+                <button class="btn btn-mini btn-danger -ts-delete-qual">
+                    <i class="icon-white icon-trash"></i>
+                </button>
+            </td>
+        </tr>
+        {{/each}}
+        {{> tsAdminNewQual}}
+    </table>
+</template>
+
+<template name="tsAdminNewQual">
+    <tr>
+        <td><input type="text" name="name"></td>
+        <td><input type="text" name="type"></td>
+        <td>
+            <select name="comp">
+                <option value="LessThan">LessThan</option>
+                <option value="LessThanOrEqualTo">LessThanOrEqualTo</option>
+                <option value="GreaterThan">GreaterThan</option>
+                <option value="GreaterThanOrEqualTo">GreaterThanOrEqualTo</option>
+                <option value="EqualTo">EqualTo</option>
+                <option value="NotEqualTo">NotEqualTo</option>
+                <option value="Exists">Exists</option>
+            </select>
+        </td>
+        <td><input type="text" name="value"></td>
+        <td>
+            <button class="btn btn-mini btn-primary -ts-create-qual">
+                <i class="icon-white icon-plus"></i>
+            </button>
+        </td>
+    </tr>
 </template>
 
 <template name="tsAdminWorkers">
     <h3>Workers</h3>
+</template>
+
+<template name="tsAdminHits">
+    <div class="alert alert-info">Only HITs created by TurkServer are shown here. Other HITs in your account are not included.</div>
+
+    <h3>Outstanding HITs</h3>
 </template>
