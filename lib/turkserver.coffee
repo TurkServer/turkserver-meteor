@@ -29,13 +29,21 @@ Experiments.deny(always)
 ###
   Workers
   Assignments
+
+  Qualifications
+  HITTypes
+  HITs
 ###
 
 Workers.deny(always)
 Assignments.deny(always)
 
-HITTypes.allow(adminOnly)
 Qualifications.allow(adminOnly)
+HITTypes.allow(adminOnly)
+HITs.allow(adminOnly)
+
+HITTypes._ensureIndex {HITTypeId: 1}, {unique: 1}
+HITs._ensureIndex {HITId: 1}, {unique: 1}
 
 # TODO more careful indices on these collections
 

@@ -69,3 +69,15 @@ Template.tsAdminNewQual.events =
         qual.LocaleValue = value
 
     Qualifications.insert(qual)
+
+Template.tsAdminHits.events =
+  "click tr": -> Session.set("_tsSelectedHIT", @_id)
+
+Template.tsAdminHits.hits = -> HITs.find()
+Template.tsAdminHits.selectedHIT = -> Session.get("_tsSelectedHIT")
+
+Template.tsAdminNewHit.events =
+  "submit form": (e, tmpl) ->
+    e.preventDefault()
+
+Template.tsAdminNewHit.hitTypes = -> HITTypes.find()

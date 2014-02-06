@@ -1,5 +1,6 @@
 # Process config from settings
 
+os = Npm.require('os')
 merge = Npm.require('deepmerge')
 
 # These are just here for reference
@@ -22,6 +23,8 @@ defaultSettings = {
     sandbox: true
     accessKeyId: undefined
     secretAccessKey: undefined
+    externalUrl: "https://" + os.hostname()
+    frameHeight: 900
   }
 }
 

@@ -158,12 +158,75 @@
     </tr>
 </template>
 
-<template name="tsAdminWorkers">
-    <h3>Workers</h3>
-</template>
-
 <template name="tsAdminHits">
     <div class="alert alert-info">Only HITs created by TurkServer are shown here. Other HITs in your account are not included.</div>
 
     <h3>Outstanding HITs</h3>
+
+    <div class="row">
+        <div class="span6">
+            <table class="table table-condensed table-striped">
+                <thead>
+                <tr>
+                    <th>HIT ID</th>
+                    <th>HITTypeId</th>
+                    <th>Assignments</th>
+                    <th>Expiration</th>
+                </tr>
+                </thead>
+                {{#each hits}}
+                <tr>
+                    <td>{{HITId}}</td>
+                    <td>{{HITTypeId}}</td>
+                    <td>{{MaxAssignments}}</td>
+                    <td>{{Expiration}}</td>
+                </tr>
+                {{/each}}
+            </table>
+        </div>
+        <div class="span5 well">
+            {{#if selectedHIT}}
+            {{> tsAdminViewHit}}
+            {{else}}
+            {{> tsAdminNewHit}}
+            {{/if}}
+        </div>
+    </div>
+</template>
+
+<template name="tsAdminViewHit">
+    <dl>
+        <dt>HITId</dt>
+        <dd>{{HITId}}</dd>
+        <dt>HITTypeId</dt>
+        <dd>{{HITTypeId}}</dd>
+        <dt>MaxAssignments</dt>
+        <dd>{{MaxAssignments}}</dd>
+        <dt>Expiration</dt>
+        <dd>{{Expiration}}</dd>
+    </dl>
+</template>
+
+<template name="tsAdminNewHit">
+    <form>
+        <fieldset>
+        <legend>Create New HIT</legend>
+
+        <label>HIT Type</label>
+        <select name="hittype">
+        {{#each hitTypes}}
+            <option value="{{_id}}">{{Title}}</option>
+        {{/each}}
+        </select>
+        <label>Max Assignments</label>
+        <input class="input-small" name="maxAssts" type="number" min="1" max="1000000" value="1">
+        <label>Lifetime in Seconds</label>
+        <input class="input-small" name="lifetime" type="number" min="30" max="31536000" value="86400">
+        <button class="btn btn-primary pull-right" type="submit">Create</button>
+        </fieldset>
+    </form>
+</template>
+
+<template name="tsAdminWorkers">
+    <h3>Workers</h3>
 </template>

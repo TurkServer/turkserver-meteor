@@ -13,8 +13,9 @@ Meteor.publish "tsAdmin", ->
     # Grouping.find(),
     Assignments.find(),
     Workers.find(),
-    HITTypes.find(),
     Qualifications.find(),
+    HITTypes.find(),
+    HITs.find(),
     LobbyStatus.find()
   ]
 

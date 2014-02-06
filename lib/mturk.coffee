@@ -23,7 +23,7 @@ try
   bal = TurkServer.mturk "GetAccountBalance", {}
   console.log "Balance in Account: " + bal
 catch e
-  console.log e
+  console.log e.toString()
 
 # Initialize some helpful qualifications
 Meteor.startup ->
