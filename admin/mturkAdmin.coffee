@@ -4,6 +4,7 @@ Template.tsAdminMTurk.selectedHITType = -> HITTypes.findOne Session.get("_tsSele
 
 Template.tsAdminHitTypes.events =
   "click tr": -> Session.set("_tsSelectedHITType", @_id)
+  "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
 
 Template.tsAdminHitTypes.hitTypes = -> HITTypes.find()
 Template.tsAdminHitTypes.selectedClass = ->
@@ -13,6 +14,8 @@ Template.tsAdminViewHitType.events =
   "click .-ts-register-hittype": ->
     Meteor.call "ts-admin-register-hittype", @_id, (err, res) ->
       bootbox.alert(err.reason) if err
+  "click .-ts-delete-hittype": ->
+    HITTypes.remove(@_id)
 
 Template.tsAdminViewHitType.renderReward = -> @Reward.toFixed(2)
 Template.tsAdminViewHitType.qualName = -> Qualifications.findOne(""+@)?.name

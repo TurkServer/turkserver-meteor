@@ -36,16 +36,12 @@
             </td>
         </tr>
         {{/each}}
-        <tr>
-            <td colspan="2">
-                <button class="btn btn-primary">New HIT Type</button>
-            </td>
-        </tr>
     </table>
+    <button class="btn btn-primary -ts-new-hittype">New HIT Type</button>
 </template>
 
 <template name="tsAdminViewHitType">
-    <dl class="ts-compact">
+    <dl class="dl-horizontal ts-compact">
         <dt>Title</dt>
         <dd>{{Title}}</dd>
         <dt>Description</dt>
@@ -54,13 +50,16 @@
         <dd>{{Keywords}}</dd>
         <dt>Reward</dt>
         <dd>{{renderReward}}</dd>
-        <dt>Qualification Requirements</dt>
+        <dt>Qualifications</dt>
         <dd>
             {{#each QualificationRequirement}}
             <span class="badge badge-info">{{qualName}}</span>
             {{/each}}
+            {{#unless QualificationRequirement}}
+            <i>(none)</i>
+            {{/unless}}
         </dd>
-        <dt>Assignment Duration (Secs)</dt>
+        <dt>Asst. Duration (Secs)</dt>
         <dd>{{AssignmentDurationInSeconds}}</dd>
         <dt>Auto Approval (Secs)</dt>
         <dd>{{AutoApprovalDelayInSeconds}}</dd>
@@ -69,39 +68,67 @@
             {{#if HITTypeId}}
             {{HITTypeId}}
             {{else}}
-            <button class="btn btn-danger -ts-register-hittype">
+            <button class="btn btn-primary -ts-register-hittype">
                 <i class="icon-white icon-briefcase"></i> Register
             </button>
             {{/if}}
         </dd>
     </dl>
+    <button class="btn btn-danger pull-right -ts-delete-hittype">
+        <i class="icon-white icon-trash"></i> Delete
+    </button>
 </template>
 
 <template name="tsAdminNewHitType">
-    <form>
-        <fieldset>
+    <form class="form-horizontal">
         <legend>New HIT Type</legend>
-        <label>Title</label>
-        <input class="input-xlarge" type="text" name="title" required>
-        <label>Description</label>
-        <textarea name="desc" required></textarea>
-        <label>Keywords</label>
-        <input class="input-xlarge" type="text" name="keywords" required>
-        <label>Reward</label>
-        <input class="input-mini" type="number" min="0" step="0.01" value="0.10" name="reward">
-        <label>Qualification Requirements</label>
-        <select name="quals" multiple>
-            {{#each quals}}
-            <option value="{{_id}}">{{name}}</option>
-            {{/each}}
-        </select>
-        <label>Assignment Duration in Seconds</label>
-        <input class="input-small" type="number" min="30" max="3153600" value="86400" name="duration">
-        <label>Auto Approval Delay in Seconds</label>
-        <input class="input-small" type="number" min="0" max="2592000" value="604800" name="delay">
-
+        <div class="control-group">
+            <label class="control-label">Title</label>
+            <div class="controls">
+                <input class="input-xlarge" type="text" name="title" required>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Description</label>
+            <div class="controls">
+                <textarea name="desc" required></textarea>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Keywords</label>
+            <div class="controls">
+                <input class="input-xlarge" type="text" name="keywords" required>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Reward</label>
+            <div class="controls">
+                <input class="input-mini" type="number" min="0" step="0.01" value="0.10" name="reward" required>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Qualification Requirements</label>
+            <div class="controls">
+                <select name="quals" multiple>
+                    {{#each quals}}
+                    <option value="{{_id}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Assignment Duration in Seconds</label>
+            <div class="controls">
+                <input class="input-small" type="number" min="30" max="3153600" value="86400" name="duration" required>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Auto Approval Delay in Seconds</label>
+            <div class="controls">
+                <input class="input-small" type="number" min="0" max="2592000" value="604800" name="delay" required>
+            </div>
+        </div>
         <button type="submit" class="btn btn-primary pull-right">Create</button>
-        </fieldset>
     </form>
 </template>
 
@@ -250,7 +277,7 @@
     <table class="table table-condensed table-striped">
         <thead>
         <tr>
-            <th>Worker ID</th>
+            <th style="width: 100px">Worker ID</th>
             <th>Exit Data</th>
         </tr>
         </thead>

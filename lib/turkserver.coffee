@@ -59,6 +59,11 @@ Assignments._ensureIndex
   workerId: 1
   status: 1
 
+# Allow lookup of assignments by batch
+Assignments._ensureIndex
+  batchId: 1
+  acceptTime: 1
+
 # Publish turkserver user fields to a user
 Meteor.publish null, ->
   return unless @userId

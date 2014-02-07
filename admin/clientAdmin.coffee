@@ -74,6 +74,11 @@ Template.tsAdminWatching.events =
 
 onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
 
+Template.tsAdminOverview.events =
+  "click .-ts-account-balance": ->
+    Meteor.call "ts-admin-account-balance", (err, res) ->
+      if err then bootbox.alert(err.reason) else bootbox.alert("<h3>$#{res.toFixed(2)}</h3>")
+
 Template.tsAdminOverview.onlineUserCount = -> onlineUsers().count()
 
 Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()

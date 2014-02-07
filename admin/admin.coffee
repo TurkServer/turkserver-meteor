@@ -93,6 +93,13 @@ Meteor.methods
       active: true
     return
 
+  "ts-admin-account-balance": ->
+    checkAdmin()
+    try
+      return TurkServer.mturk "GetAccountBalance", {}
+    catch e
+      throw new Meteor.Error(403, e.toString())
+
   "ts-admin-register-hittype": (hitTypeId) ->
     checkAdmin()
     # Build up the params to register the HIT Type

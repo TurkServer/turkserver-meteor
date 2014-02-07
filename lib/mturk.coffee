@@ -19,12 +19,6 @@ TurkServer.mturk = (op, params) ->
   syncFunc = Meteor._wrapAsync mturkAPI[op].bind mturkAPI
   return syncFunc(params)
 
-try
-  bal = TurkServer.mturk "GetAccountBalance", {}
-  console.log "Balance in Account: " + bal
-catch e
-  console.log e.toString()
-
 # Initialize some helpful qualifications
 Meteor.startup ->
   return if Qualifications.find().count() > 0
