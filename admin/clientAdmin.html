@@ -105,24 +105,25 @@
 
 <template name="tsAdminOverview">
     <h3>TurkServer Overview</h3>
+    <div class="row">
+        <div class="span6">
+            <dl class="well dl-horizontal ts-compact">
+                <dt>Connected Users:</dt>
+                <dd>{{onlineUserCount}}</dd>
+                <dt>Users in Lobby:</dt>
+                <dd>{{lobbyUserCount}}</dd>
+                <dt>Active Experiments:</dt>
+                <dd>{{activeExperiments}}</dd>
+            </dl>
+            <button class="btn btn-info -ts-account-balance">Get Account Balance</button>
+        </div>
 
-    <div class="well">
-        <dl class="dl-horizontal ts-compact">
-            <dt>Connected Users:</dt>
-            <dd>{{onlineUserCount}}</dd>
-            <dt>Users in Lobby:</dt>
-            <dd>{{lobbyUserCount}}</dd>
-            <dt>Active Experiments:</dt>
-            <dd>{{activeExperiments}}</dd>
-        </dl>
-    </div>
-
-    <button class="btn btn-info -ts-account-balance">Get Account Balance</button>
-
-    <h4>Meteor server statistics</h4>
-
-    <div class="well">
-        {{> serverFacts}}
+        <div class="span5">
+            <div class="well">
+                <h4>Meteor server statistics</h4>
+                {{> serverFacts}}
+            </div>
+        </div>
     </div>
 </template>
 
