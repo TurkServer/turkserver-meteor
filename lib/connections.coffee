@@ -20,6 +20,7 @@ UserStatus.on "sessionLogin", (doc) ->
   return unless doc.userId
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
+  treatment = TurkServer.Experiment.getTreatment(groupId)
   TurkServer.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -27,7 +28,9 @@ UserStatus.on "sessionLogin", (doc) ->
 
     _.each connectCallbacks, (cb) ->
       try
-        cb.call(userId: doc.userId)
+        cb.call
+          userId: doc.userId
+          treatment: treatment
       catch e
         Meteor._debug "Exception in experiment connect callback: " + e
 
@@ -48,6 +51,7 @@ UserStatus.on "sessionLogout", (doc) ->
   return unless doc.userId
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
+  treatment = TurkServer.Experiment.getTreatment(groupId)
   TurkServer.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -55,7 +59,9 @@ UserStatus.on "sessionLogout", (doc) ->
 
     _.each disconnectCallbacks, (cb) ->
       try
-        cb.call(userId: doc.userId)
+        cb.call
+          userId: doc.userId
+          treatment: treatment
       catch e
         Meteor._debug "Exception in experiment disconnect callback: " + e
 

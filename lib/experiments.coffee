@@ -19,7 +19,7 @@ class TurkServer.Experiment
       treatment: treatment
     return Experiments.insert(fields)
 
-  @getTreatment: (groupId) -> Experiments.findOne(groupId).treatment
+  @getTreatment: (groupId) -> Experiments.findOne(groupId)?.treatment
 
   @setup: (groupId) ->
     context =
