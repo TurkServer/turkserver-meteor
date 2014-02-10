@@ -61,7 +61,7 @@
 </template>
 
 <template name="tsAdminLayout">
-    <div class="container ts-scroll-parent">
+    <div class="container ts-admin-layout">
         <div class="navbar">
             <div class="navbar-inner">
                 <ul class="nav">
@@ -99,7 +99,9 @@
             </div>
         </div>
 
-        {{yield}}
+        <div class="ts-admin-body ts-scroll-parent">
+            {{yield}}
+        </div>
     </div>
 </template>
 

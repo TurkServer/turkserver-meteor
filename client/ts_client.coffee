@@ -14,6 +14,16 @@ TurkServer.inExperiment = ->
 TurkServer.inExitSurvey = ->
   Session.equals("turkserver.state", "exitsurvey")
 
+TurkServer.isAdmin = ->
+  userId = Meteor.userId()
+  return false unless userId
+  return Meteor.users.findOne(
+    _id: userId
+    "admin": { $exists: true }
+  , fields:
+    "admin" : 1
+  )?.admin
+
 TurkServer.group = ->
   TSConfig.findOne("groupId")?.value
 

@@ -119,5 +119,11 @@ Template.tsAdminNewHit.events =
 
 Template.tsAdminNewHit.hitTypes = -> HITTypes.find()
 
-Template.tsAdminWorkers.completedAssts = -> Assignments.find { status: "completed" },
+Template.tsAdminPanel.rendered = ->
+  # for now, statically display the worker panel data
+
+Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
+Template.tsAdminPanel.workerTotal = -> Workers.find().count()
+
+Template.tsAdminAssignments.completedAssts = -> Assignments.find { status: "completed" },
     { sort: submitTime: -1 }

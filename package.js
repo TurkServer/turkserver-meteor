@@ -21,7 +21,8 @@ Package.on_use(function (api) {
         'bootstrap',
         'session',
         'handlebars',
-        'templating'
+        'templating',
+        'd3'
     ], 'client');
 
     // Client & Server deps

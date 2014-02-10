@@ -272,6 +272,22 @@
 </template>
 
 <template name="tsAdminWorkers">
+    {{> tsAdminPanel}}
+
+    {{> tsAdminAssignments}}
+</template>
+
+<template name="tsAdminPanel">
+    <h3>Panel</h3>
+
+    <p>Contact: {{workerContact}} / {{workerTotal}}</p>
+
+    <svg width="100%" height="300">
+
+    </svg>
+</template>
+
+<template name="tsAdminAssignments">
     <h3>Completed Assignments</h3>
 
     <table class="table table-condensed table-striped">
@@ -288,6 +304,4 @@
         </tr>
         {{/each}}
     </table>
-
-    <h3>Workers</h3>
 </template>
