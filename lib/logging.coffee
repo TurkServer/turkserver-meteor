@@ -12,7 +12,7 @@ Logs.before.insert (userId, doc) ->
 
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId).groupId
+    groupId = Grouping.findOne(userId)?.groupId
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   doc._userId = userId if userId
