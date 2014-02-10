@@ -232,7 +232,17 @@
         <dt>HITId</dt>
         <dd>{{HITId}}</dd>
         <dt>HITTypeId</dt>
-        <dd>{{HITTypeId}}</dd>
+        <dd>{{HITTypeId}}
+        <form class="form-inline -ts-change-hittype">
+        <select class="input-xlarge" name="hittype" required>
+            <option value="" selected disabled></option>
+            {{#each hitTypes}}
+            <option value="{{_id}}">{{Title}}</option>
+            {{/each}}
+        </select>
+        <button class="btn btn-primary" type="submit">Change HIT Type</button>
+        </form>
+        </dd>
         <dt>MaxAssignments</dt>
         <dd>{{MaxAssignments}}
         <form class="form-inline -ts-extend-assignments">

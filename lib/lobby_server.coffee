@@ -29,7 +29,7 @@ class TurkServer.Lobby
       groupVal: {$exists: 1}
     return unless activeBatch?
 
-    users = LobbyStatus.find({ status: true }).fetch()
+    users = LobbyStatus.find({ status: true }, { limit: activeBatch.groupVal }).fetch()
     return if users.length < activeBatch.groupVal
 
     userIds = _.pluck(users, "_id")

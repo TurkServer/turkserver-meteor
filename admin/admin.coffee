@@ -180,6 +180,19 @@ Meteor.methods
 
     return
 
+  "ts-admin-change-hittype": (params) ->
+    checkAdmin()
+    check(params.HITId, String)
+    check(params.HITTypeId, String)
+    try
+      TurkServer.mturk "ChangeHITTypeOfHIT", params
+      @unblock() # If successful, refresh the HIT
+      Meteor.call "ts-admin-refresh-hit", params.HITId
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    return
+
   "ts-admin-extend-hit": (params) ->
     checkAdmin()
     throw new Meteor.Error(400, "HIT ID not specified") unless params.HITId

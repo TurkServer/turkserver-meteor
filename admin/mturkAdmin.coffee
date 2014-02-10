@@ -1,4 +1,5 @@
 quals = -> Qualifications.find()
+hitTypes = -> HITTypes.find()
 
 Template.tsAdminMTurk.selectedHITType = -> HITTypes.findOne Session.get("_tsSelectedHITType")
 
@@ -6,7 +7,7 @@ Template.tsAdminHitTypes.events =
   "click tr": -> Session.set("_tsSelectedHITType", @_id)
   "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
 
-Template.tsAdminHitTypes.hitTypes = -> HITTypes.find()
+Template.tsAdminHitTypes.hitTypes = hitTypes
 Template.tsAdminHitTypes.selectedClass = ->
   if Session.equals("_tsSelectedHITType", @_id) then "info" else ""
 
@@ -88,6 +89,14 @@ Template.tsAdminViewHit.events =
     Meteor.call "ts-admin-expire-hit", @HITId, (err, res) ->
       bootbox.alert(err.reason) if err
 
+  "submit .-ts-change-hittype": (e, tmpl) ->
+    e.preventDefault()
+    params =
+      HITId: @HITId
+      HITTypeId: tmpl.find("select[name=hittype]").value
+    Meteor.call "ts-admin-change-hittype", params, (err, res) ->
+      bootbox.alert(err.reason) if err
+
   "submit .-ts-extend-assignments": (e, tmpl) ->
     e.preventDefault()
     params =
@@ -104,6 +113,8 @@ Template.tsAdminViewHit.events =
     Meteor.call "ts-admin-extend-hit", params, (err, res) ->
       bootbox.alert(err.reason) if err
 
+Template.tsAdminViewHit.hitTypes = hitTypes
+
 Template.tsAdminNewHit.events =
   "submit form": (e, tmpl) ->
     e.preventDefault()
@@ -117,7 +128,7 @@ Template.tsAdminNewHit.events =
     Meteor.call "ts-admin-create-hit", hitTypeId, params, (err, res) ->
       bootbox.alert(err.reason) if err
 
-Template.tsAdminNewHit.hitTypes = -> HITTypes.find()
+Template.tsAdminNewHit.hitTypes = hitTypes
 
 Template.tsAdminPanel.rendered = ->
   # for now, statically display the worker panel data
