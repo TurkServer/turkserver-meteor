@@ -91,9 +91,15 @@ Template.tsAdminViewHit.events =
 
   "submit .-ts-change-hittype": (e, tmpl) ->
     e.preventDefault()
+    htId = tmpl.find("select[name=hittype]").value
+    HITTypeId = HITTypes.findOne(htId).HITTypeId
+    unless HITTypeId
+      bootbox.alert("Register that HIT Type first")
+      return
+
     params =
       HITId: @HITId
-      HITTypeId: tmpl.find("select[name=hittype]").value
+      HITTypeId: HITTypeId
     Meteor.call "ts-admin-change-hittype", params, (err, res) ->
       bootbox.alert(err.reason) if err
 
