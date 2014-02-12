@@ -13,7 +13,7 @@ class TurkServer.Lobby
 
   @toggleStatus: (userId) ->
     existing = LobbyStatus.findOne(userId)
-    throw new Meteor.error(403, ErrMsg.userNotInLobbyErr) unless existing
+    throw new Meteor.Error(403, ErrMsg.userNotInLobbyErr) unless existing
     LobbyStatus.update userId,
       $set: { status: not existing.status }
 

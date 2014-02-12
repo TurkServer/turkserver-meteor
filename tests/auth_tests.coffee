@@ -195,5 +195,37 @@ Tinytest.add "auth - limit - too many total", withCleanup (test) ->
     workerId: workerId
 
   test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
+
+Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) ->
+  batchId = Batches.findOne(active: true)._id
+
+  Assignments.insert
+    batchId: "someOtherBatch"
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+    status: "completed"
+    # Should not trigger concurrent limit
+
+  TurkServer.authenticateWorker
+    hitId: hitId2,
+    assignmentId : assignmentId2
+    workerId: workerId
+
+  prevRecord = Assignments.findOne
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+
+  newRecord = Assignments.findOne
+    hitId: hitId2
+    assignmentId: assignmentId2
+    workerId: workerId
+
+  test.equal(prevRecord.status, "completed")
+  test.equal(prevRecord.batchId, "someOtherBatch")
+
+  test.equal(newRecord.status, "assigned")
+  test.equal(newRecord.batchId, batchId)
   
 

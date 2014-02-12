@@ -34,6 +34,9 @@ TurkServer.authenticateWorker = (loginRequest) ->
   TurkServer.config.experiment.limit.simultaneous
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
+  # TODO check for the hitId in the current batch, in case the HIT is out of date
+  activeBatch = Batches.findOne(active: true)
+
   predicate =
     workerId: loginRequest.workerId
 
@@ -43,9 +46,6 @@ TurkServer.authenticateWorker = (loginRequest) ->
   if Assignments.find(predicate).count() >=
   TurkServer.config.experiment.limit.batch
     throw new Meteor.Error(403, ErrMsg.batchLimit)
-
-  # TODO check for the hitId in the current batch, in case the HIT is out of date
-  activeBatch = Batches.findOne(active: true)
 
   # Either no one has this assignment before or this worker replaced someone;
   # Create a new record for this worker on this assignment
