@@ -9,7 +9,7 @@ else
       accessKey: TurkServer.config.mturk.accessKeyId
       secretKey: TurkServer.config.mturk.secretAccessKey
 
-  mturkAPI = mturk(settings)
+  mturkAPI = mturkModule.exports(settings)
 
 TurkServer.mturk = (op, params) ->
   unless mturkAPI
