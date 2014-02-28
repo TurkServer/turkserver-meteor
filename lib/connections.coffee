@@ -5,6 +5,7 @@
 UserStatus.on "sessionLogin", (doc) ->
   # Update ip address in assignments for this worker
   user = Meteor.users.findOne(doc.userId)
+  return if user?.admin
 
   # TODO verify this is valid as we reject multiple connections on login
   Assignments.update {
@@ -14,10 +15,14 @@ UserStatus.on "sessionLogin", (doc) ->
     $set: {ipAddr: doc.ipAddr}
   }
 
+  return
+
 connectCallbacks = []
 
 UserStatus.on "sessionLogin", (doc) ->
   return unless doc.userId
+  # No side effects from admin, please
+  return if Meteor.users.findOne(doc.userId)?.admin
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
@@ -49,6 +54,8 @@ disconnectCallbacks = []
 
 UserStatus.on "sessionLogout", (doc) ->
   return unless doc.userId
+  # No side effects from admin, please
+  return if Meteor.users.findOne(doc.userId)?.admin
   groupId = Grouping.findOne(doc.userId)?.groupId
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
