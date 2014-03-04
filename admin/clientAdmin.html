@@ -99,8 +99,11 @@
             </div>
         </div>
 
-        <div class="ts-admin-body ts-scroll-parent">
-            {{yield}}
+        {{! Another solution to the popover clipping }}
+        <div class="ts-admin-body">
+            <div class="ts-scroll-parent">
+                {{yield}}
+            </div>
         </div>
     </div>
 </template>
