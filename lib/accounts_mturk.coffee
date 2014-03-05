@@ -77,13 +77,6 @@ Accounts.registerLoginHandler (loginRequest) ->
   # should we let this worker in or not?
   TurkServer.authenticateWorker(loginRequest)
 
-  ###
-    TODO We probably don't want to push this token - disable resume and force login each time
-  ###
-
-#  Meteor.users.update userId,
-#    $push: {'services.resume.loginTokens': stampedToken}
-
   TurkServer.handleConnection
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
@@ -91,6 +84,15 @@ Accounts.registerLoginHandler (loginRequest) ->
     userId: userId
 
   stampedToken = Accounts._generateStampedLoginToken();
+
+  ###
+    TODO
+    Check how we approach using resume tokens - disable resume and force login each time?
+    https://github.com/meteor/meteor/issues/1835
+  ###
+
+  Meteor.users.update userId,
+    $push: {'services.resume.loginTokens': Accounts._hashStampedToken(stampedToken) }
 
   return {
     id: userId,
