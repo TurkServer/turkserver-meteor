@@ -43,7 +43,9 @@ Package.on_use(function (api) {
     api.use('x-editable-bootstrap');
     api.use('iron-router');
     api.use('moment');
+
     api.use('collection-hooks');
+    api.use('timesync');
     api.use('user-status');
 
     // mturk fork

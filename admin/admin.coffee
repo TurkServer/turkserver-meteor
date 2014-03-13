@@ -31,7 +31,7 @@ userFindOptions =
 Meteor.publish "tsAdminState", (groupId) ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 
-  cursors = [ Meteor.users.find {}, userFindOptions ]
+  cursors = [ Meteor.users.find({}, userFindOptions) ]
   cursors.push Experiments.find() unless groupId # taken care of in tsCurrentExperiment
 
   return cursors
