@@ -6,7 +6,8 @@ TurkServer.groupingHooks = {}
 
 userFindHook = (userId, selector, options) ->
   # Do the usual find for no user or single selector
-  return true if !userId or _.isString(selector) or (selector? and "_id" of selector)
+  return true if !userId or _.isString(selector) or
+    (selector? and ("_id" of selector or "username" of selector))
 
   # No hooking needed for regular users, taken care of on server
   return true unless Meteor.user()?.admin
