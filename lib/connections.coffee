@@ -2,7 +2,7 @@
   Connect callbacks
 ###
 
-UserStatus.events.on "sessionLogin", (doc) ->
+UserStatus.events.on "connectionLogin", (doc) ->
   # Update ip address in assignments for this worker
   user = Meteor.users.findOne(doc.userId)
   return if user?.admin
@@ -19,7 +19,7 @@ UserStatus.events.on "sessionLogin", (doc) ->
 
 connectCallbacks = []
 
-UserStatus.events.on "sessionLogin", (doc) ->
+UserStatus.events.on "connectionLogin", (doc) ->
   return unless doc.userId
   # No side effects from admin, please
   return if Meteor.users.findOne(doc.userId)?.admin
@@ -46,13 +46,13 @@ TurkServer.onConnect = (func) ->
   Disconnect callbacks
 ###
 
-UserStatus.events.on "sessionLogout", (doc) ->
+UserStatus.events.on "connectionLogout", (doc) ->
   # Remove disconnected users from lobby, if they are there
   TurkServer.Lobby.removeUser(doc.userId)
 
 disconnectCallbacks = []
 
-UserStatus.events.on "sessionLogout", (doc) ->
+UserStatus.events.on "connectionLogout", (doc) ->
   return unless doc.userId
   # No side effects from admin, please
   return if Meteor.users.findOne(doc.userId)?.admin
