@@ -3,6 +3,12 @@ turkserver-meteor
 
 Implementation of the [TurkServer](https://github.com/HarvardEconCS/TurkServer) functionality as a plugin for the mind-blowing [Meteor](http://www.meteor.com/) web app framework, allowing Meteor apps to be easily modified for MTurk experiments. Using this, will make your online experiments much easier to create and manage.
 
+**NOTE:** TurkServer is currently still in development, but for those who are itching to try it out, feel free to reference any of the examples below (in increasing order of complexity.) See https://github.com/HarvardEconCS/turkserver-meteor/issues/3 for more info.
+
+- https://github.com/kcarnold/hello-turkserver
+- https://github.com/alicexigao/wisdomOfCrowds
+- https://github.com/mizzao/CrowdMapper
+
 ## Usage
 
 turkserver-meteor is a [smart package](https://atmosphere.meteor.com/) for your Meteor app, that is designed to sit on top of the main interface for your experiment and manage it.
