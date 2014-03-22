@@ -21,7 +21,7 @@ Once added, you can navigate to `/turkserver` to log into the administration int
 
 It's easy to use TurkServer because it takes full advantage of Meteor's powerful publish-subscribe data framework.
 
-`TurkServer.registerCollection` tells makes a collection scope to each instance of an experiment.
+`TurkServer.partitionCollection` tells makes a collection scope to each instance of an experiment.
 
 ### Initializing a treatment
 
