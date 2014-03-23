@@ -83,18 +83,11 @@ Accounts.registerLoginHandler (loginRequest) ->
     workerId: loginRequest.workerId
     userId: userId
 
-  stampedToken = Accounts._generateStampedLoginToken();
-
   ###
-    TODO
-    Check how we approach using resume tokens - disable resume and force login each time?
+    TODO Use login handlers and address the issue of resume tokens
     https://github.com/meteor/meteor/issues/1835
   ###
 
-  Meteor.users.update userId,
-    $push: {'services.resume.loginTokens': Accounts._hashStampedToken(stampedToken) }
-
   return {
-    id: userId,
-    token: stampedToken.token
+    userId: userId,
   }
