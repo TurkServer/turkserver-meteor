@@ -193,7 +193,7 @@ TurkServer.assignUserSequential = (userId) ->
 
   # Create a new experiment
   # TODO find a treatment
-  treatmentId = undefined
+  treatmentId = _.sample Batches.findOne(active: true).treatmentIds
   treatment = Treatments.findOne(treatmentId).name
   newId = TurkServer.Experiment.create treatment,
     assignable: true
