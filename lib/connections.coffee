@@ -186,7 +186,7 @@ TurkServer.assignUserSequential = (userId) ->
   Experiments.find(assignable: true).forEach (exp) ->
     return if assignedToExisting # Break loop if already assigned
     if Grouping.find(groupId: exp._id).count() < activeBatch.groupVal
-      TurkServer.experiment.addUser(exp._id, userId)
+      TurkServer.Experiment.addUser(exp._id, userId)
       assignedToExisting = true
 
   return if assignedToExisting
