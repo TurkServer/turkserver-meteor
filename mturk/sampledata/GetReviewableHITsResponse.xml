@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<GetReviewableHITsResponse>
+    <OperationRequest>
+        <RequestId>3d2b4d6d-d5e9-4ecf-ae70-a7eff5877008</RequestId>
+    </OperationRequest>
+    <GetReviewableHITsResult>
+        <Request>
+            <IsValid>True</IsValid>
+        </Request>
+        <NumResults>1</NumResults>
+        <TotalNumResults>1</TotalNumResults>
+        <PageNumber>1</PageNumber>
+        <HIT>
+            <HITId>2OM6OQ1SNQQ7QE68WZHKFNR1FW7Q67</HITId>
+        </HIT>
+    </GetReviewableHITsResult>
+</GetReviewableHITsResponse>

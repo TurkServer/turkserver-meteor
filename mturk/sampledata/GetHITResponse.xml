@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<GetHITResponse>
+    <OperationRequest>
+        <RequestId>59836b99-bf05-4b29-805d-2b92042e1dc2</RequestId>
+    </OperationRequest>
+    <HIT>
+        <Request>
+            <IsValid>True</IsValid>
+        </Request>
+        <HITId>289LFQ0ONNVRH9JPF75GUB760YMKTG</HITId>
+        <HITTypeId>2CC8EBDPGFL6VKO4Q7INGWIOVPC2HD</HITTypeId>
+        <HITGroupId>2C4PHMVHVKCJ090ST5VJA9LR0B8535</HITGroupId>
+        <CreationTime>2013-12-31T21:46:18Z</CreationTime>
+        <Title>Mturk Nodejs module RegisterHITType test</Title>
+        <Description>Test description</Description>
+        <Question>&lt;ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd"&gt;
+          &lt;ExternalURL&gt;http://www.google.com&lt;/ExternalURL&gt;
+          &lt;FrameHeight&gt;500&lt;/FrameHeight&gt;
+        &lt;/ExternalQuestion&gt;</Question>
+        <Keywords>keyword1, keyword2, keyword3</Keywords>
+        <HITStatus>Assignable</HITStatus>
+        <MaxAssignments>1</MaxAssignments>
+        <Reward>
+            <Amount>1.00</Amount>
+            <CurrencyCode>USD</CurrencyCode>
+            <FormattedPrice>$1.00</FormattedPrice>
+        </Reward>
+        <AutoApprovalDelayInSeconds>3600</AutoApprovalDelayInSeconds>
+        <Expiration>2013-12-31T22:06:18Z</Expiration>
+        <AssignmentDurationInSeconds>3600</AssignmentDurationInSeconds>
+        <QualificationRequirement>
+            <QualificationTypeId>00000000000000000060</QualificationTypeId>
+            <Comparator>EqualTo</Comparator>
+            <IntegerValue>1</IntegerValue>
+            <RequiredToPreview>1</RequiredToPreview>
+        </QualificationRequirement>
+        <QualificationRequirement>
+            <QualificationTypeId>2ARFPLSP75KLA8M8DH1HTEQVJT3SY6</QualificationTypeId>
+            <Comparator>EqualTo</Comparator>
+            <IntegerValue>1</IntegerValue>
+            <RequiredToPreview>1</RequiredToPreview>
+        </QualificationRequirement>
+        <HITReviewStatus>NotReviewed</HITReviewStatus>
+    </HIT>
+</GetHITResponse>

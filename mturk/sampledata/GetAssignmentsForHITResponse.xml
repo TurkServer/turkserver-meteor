@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<GetAssignmentsForHITResponse>
+    <OperationRequest>
+        <RequestId>71199738-abd8-407f-b037-dee9100de4e1</RequestId>
+    </OperationRequest>
+    <GetAssignmentsForHITResult>
+        <Request>
+            <IsValid>True</IsValid>
+        </Request>
+        <NumResults>1</NumResults>
+        <TotalNumResults>1</TotalNumResults>
+        <PageNumber>1</PageNumber>
+        <Assignment>
+            <AssignmentId>2YRFYQS1CSTMONWZ4QVIF1EYFYOLOD</AssignmentId>
+            <WorkerId>A2Z5DGE9WH1YMC</WorkerId>
+            <HITId>2OM6OQ1SNQQ7QE68WZHKFNR1FW7Q67</HITId>
+            <AssignmentStatus>Submitted</AssignmentStatus>
+            <AutoApprovalTime>2014-01-02T00:50:50Z</AutoApprovalTime>
+            <AcceptTime>2014-01-01T23:50:26Z</AcceptTime>
+            <SubmitTime>2014-01-01T23:50:50Z</SubmitTime>
+            <Answer>&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+            &lt;QuestionFormAnswers xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2005-10-01/QuestionFormAnswers.xsd"&gt;
+            &lt;Answer&gt;
+            &lt;QuestionIdentifier&gt;001&lt;/QuestionIdentifier&gt;
+            &lt;FreeText&gt;2013-14-02&lt;/FreeText&gt;
+            &lt;/Answer&gt;
+            &lt;Answer&gt;
+            &lt;QuestionIdentifier&gt;002&lt;/QuestionIdentifier&gt;
+            &lt;FreeText&gt;646-246-5999&lt;/FreeText&gt;
+            &lt;/Answer&gt;
+            &lt;Answer&gt;
+            &lt;QuestionIdentifier&gt;003&lt;/QuestionIdentifier&gt;
+            &lt;SelectionIdentifier&gt;C1&lt;/SelectionIdentifier&gt;
+            &lt;/Answer&gt;
+            &lt;Answer&gt;
+            &lt;QuestionIdentifier&gt;004&lt;/QuestionIdentifier&gt;
+            &lt;UploadedFileSizeInBytes&gt;315012&lt;/UploadedFileSizeInBytes&gt;
+            &lt;UploadedFileKey&gt;A2Z5DGE9WH1YMC/2OM6OQ1SNQQ7QE68WZHKFNR1FW7Q67/2YRFYQS1CSTMONWZ4QVIF1EYFYOLOD/004/chimpton2.jpg&lt;/UploadedFileKey&gt;
+            &lt;/Answer&gt;
+            &lt;/QuestionFormAnswers&gt;
+        </Answer>
+    </Assignment>
+</GetAssignmentsForHITResult>
+</GetAssignmentsForHITResponse>
