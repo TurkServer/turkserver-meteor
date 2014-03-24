@@ -50,6 +50,7 @@ class TurkServer.Experiment
     Experiments.update groupId,
       $set:
         endTime: Date.now()
+        assignable: false
 
     _.each users, (userId) ->
       TurkServer.Groups.clearUserGroup(userId)
