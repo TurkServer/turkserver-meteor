@@ -77,3 +77,13 @@ if Meteor.isServer
     next()
 
   # TODO clean up assignments if they affect other tests
+
+if Meteor.isClient
+  Tinytest.addAsync "experiment - client - received experiment id", (test, next) ->
+    Deps.autorun (c) ->
+      treatment = TurkServer.treatment()
+      if treatment
+        c.stop()
+        test.equal treatment, "fooTreatment"
+        test.isTrue Experiments.findOne()
+        next()

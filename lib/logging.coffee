@@ -8,11 +8,11 @@ Logs._ensureIndex
 Logs.before.insert (userId, doc) ->
   # Never log admin actions
   return false if Meteor.users.findOne(userId)?.admin
-  groupId = TurkServer._currentGroup.get()
+  groupId = Partitioner._currentGroup.get()
 
   unless groupId
     throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
-    groupId = Grouping.findOne(userId)?.groupId
+    groupId = Partitioner.getUserGroup(userId)
     throw new Meteor.Error(403, ErrMsg.groupErr) unless groupId
 
   doc._userId = userId if userId

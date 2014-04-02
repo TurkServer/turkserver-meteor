@@ -23,7 +23,7 @@ UserStatus.events.on "connectionLogin", (doc) ->
   return unless doc.userId
   # No side effects from admin, please
   return if Meteor.users.findOne(doc.userId)?.admin
-  groupId = Grouping.findOne(doc.userId)?.groupId
+  groupId = Partitioner.getUserGroup(doc.userId)
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
   TurkServer.bindGroup groupId, ->
@@ -56,7 +56,7 @@ UserStatus.events.on "connectionLogout", (doc) ->
   return unless doc.userId
   # No side effects from admin, please
   return if Meteor.users.findOne(doc.userId)?.admin
-  groupId = Grouping.findOne(doc.userId)?.groupId
+  groupId = Partitioner.getUserGroup(doc.userId)
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
   TurkServer.bindGroup groupId, ->

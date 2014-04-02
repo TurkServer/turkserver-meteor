@@ -11,6 +11,7 @@
         "iron-router": {},
         "moment": {},
         "collection-hooks": {},
+        "partitioner": {},
         "user-status": {}
     }
 }
