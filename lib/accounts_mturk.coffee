@@ -65,7 +65,7 @@ Accounts.registerLoginHandler (loginRequest) ->
   # Don't handle unless we have an mturk login
   return unless loginRequest.hitId and loginRequest.assignmentId and loginRequest.workerId
 
-  user = Meteor.users.findOne
+  user = TurkServer.directOperation -> Meteor.users.findOne
     workerId: loginRequest.workerId
 
   unless user

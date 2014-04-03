@@ -1,0 +1,9 @@
+test/aws_creds.js
+node_modules
+
+.DS_Store
+/manager/
+
+*.sublime-workspace
+
+*.sublime-project

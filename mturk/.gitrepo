@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:jefftimesten/mturk.git
+	branch = develop
+	commit = c27e749b5cde89059e06dfced5961b481a2b6af2
+	parent = c5a1ffab01792a3d1f5aefcfda11768a035b203e
+	cmdver = 0.1.0

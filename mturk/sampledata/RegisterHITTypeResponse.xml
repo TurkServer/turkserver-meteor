@@ -1,0 +1,13 @@
+
+<?xml version="1.0"?>
+<RegisterHITTypeResponse>
+	<OperationRequest>
+		<RequestId>01e0a9c5-50f3-40c9-bd2a-83cfba2c1d74</RequestId>
+	</OperationRequest>
+	<RegisterHITTypeResult>
+		<Request>
+			<IsValid>True</IsValid>
+		</Request>
+		<HITTypeId>2CC8EBDPGFL6VKO4Q7INGWIOVPC2HD</HITTypeId>
+	</RegisterHITTypeResult>
+</RegisterHITTypeResponse>

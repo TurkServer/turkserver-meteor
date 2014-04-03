@@ -1,0 +1,118 @@
+<QuestionForm xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2005-10-01/QuestionForm.xsd">
+	
+	
+	<Overview>
+	    <Title>Test Questions</Title>
+	    <Text>
+	      This first question is just used to test your research skills.
+	    </Text>
+	</Overview>
+
+
+	<!-- QUESTION ONE -->
+	<Question>
+		<QuestionIdentifier>001</QuestionIdentifier>
+		<DisplayName>Question 01</DisplayName>
+		<IsRequired>true</IsRequired>
+		<QuestionContent>
+			<Title>JFK Assassination</Title>
+			<Text>When was JFK assasinated</Text>
+			<List>
+				<ListItem>Provide the date in yyyy-mm-dd fromat</ListItem>
+			</List>
+		</QuestionContent>
+
+		<AnswerSpecification>
+			<FreeTextAnswer>
+				<Constraints>
+					<AnswerFormatRegex regex="^[12][0-9]{3}-[01]?\d-[0-3]?\d$" errorText="You must enter a date with the format yyyy-mm-dd."/>    
+				</Constraints>
+			</FreeTextAnswer>
+		</AnswerSpecification>
+	</Question>
+
+
+
+	<Overview>
+		<Text>The next few questions are pretty random.</Text>
+	</Overview>
+
+
+	<!-- QUESTION TWO -->
+	<Question>
+		<QuestionIdentifier>002</QuestionIdentifier>
+		<DisplayName>Question 02</DisplayName>
+		<IsRequired>true</IsRequired>
+		<QuestionContent>
+			<Title>Phone Number</Title>
+		</QuestionContent>
+
+		<AnswerSpecification>
+			<FreeTextAnswer>
+				<Constraints>
+					<AnswerFormatRegex 
+						regex="^(1[- ]?)?(\([2-9]\d{2}\)\s*|[2-9]\d{2}-?)[2-9]\d{2}-?\d{4}$)" 
+						errorText="You must enter a US phone number in the format 1-555-555-1234 or 555-555-1234."/>
+				</Constraints>
+			</FreeTextAnswer>
+		</AnswerSpecification>
+	</Question>
+
+
+
+
+	<!-- QUESTION THREE -->
+	<Question>
+		<QuestionIdentifier>003</QuestionIdentifier>
+		<DisplayName>Question 03</DisplayName>
+		<IsRequired>true</IsRequired>
+		<QuestionContent>
+			<Title>Favorite Region of the US</Title>
+		</QuestionContent>
+
+		<AnswerSpecification>
+			<SelectionAnswer>
+				<StyleSuggestion>radiobutton</StyleSuggestion>
+				<Selections>
+					<Selection>
+						<SelectionIdentifier>C1</SelectionIdentifier>
+						<Text>C1 (northeast)</Text>
+					</Selection>
+					<Selection>
+						<SelectionIdentifier>C2</SelectionIdentifier>
+						<Text>C2 (east)</Text>
+					</Selection>
+					<Selection>
+						<SelectionIdentifier>A3</SelectionIdentifier>
+						<Text>A3 (southwest)</Text>
+					</Selection>
+					<Selection>
+						<SelectionIdentifier>C3</SelectionIdentifier>
+						<Text>C3 (southeast)</Text>
+					</Selection>
+				</Selections>  
+			</SelectionAnswer>
+		</AnswerSpecification>
+	</Question>
+
+
+
+	<!-- QUESTION FOUR -->
+	<Question>
+		<QuestionIdentifier>004</QuestionIdentifier>
+		<DisplayName>Question 04</DisplayName>
+		<IsRequired>true</IsRequired>
+		<QuestionContent>
+			<Title>Selfie</Title>
+			<Text>Upload a picture of yourself</Text>
+		</QuestionContent>
+
+		<AnswerSpecification>
+			<FileUploadAnswer>
+				<MaxFileSizeInBytes>3000000</MaxFileSizeInBytes>
+				<MinFileSizeInBytes>1000</MinFileSizeInBytes>
+			</FileUploadAnswer>
+		</AnswerSpecification>
+	</Question>
+
+</QuestionForm>
