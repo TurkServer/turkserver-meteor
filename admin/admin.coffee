@@ -63,12 +63,6 @@ Meteor.publish "tsGroupUsers", (groupId) ->
   sub.ready()
   sub.onStop -> subHandle.stop()
 
-# Publish admin role for users that have it
-Meteor.publish null, ->
-  return unless @userId
-  return Meteor.users.find @userId,
-    fields: {admin: 1}
-
 checkAdmin = ->
   throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
 

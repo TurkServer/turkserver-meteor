@@ -45,6 +45,7 @@ Package.on_use(function (api) {
     api.use('moment');
 
     api.use('collection-hooks');
+    api.use('partitioner');
     api.use('timesync');
     api.use('user-status');
 

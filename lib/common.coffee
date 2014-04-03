@@ -22,8 +22,6 @@ TurkServer = TurkServer || {}
   authErr: "You are not logged in"
   stateErr: "You can't perform that operation right now"
   adminErr: "Operation not permitted by admin"
-  groupErr: "Must have group assigned to operate on TurkServer collection"
-  userIdErr: "Must be logged in to operate on TurkServer collection"
   # Stuff
   usernameTaken: "Sorry, that username is taken."
   userNotInLobbyErr: "User is not in lobby"

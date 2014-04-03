@@ -24,9 +24,6 @@ TurkServer.isAdmin = ->
     "admin" : 1
   )?.admin
 
-TurkServer.group = ->
-  TSConfig.findOne("groupId")?.value
-
 TurkServer.treatment = ->
   Experiments.findOne({}, fields: {treatment: 1})?.treatment
 
