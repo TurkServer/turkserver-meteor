@@ -33,11 +33,11 @@
         <button type="submit" class="btn btn-primary">Continue</button>
         </form>
 
-        {{#withif usernameError}}
+        {{#with usernameError}}
         <div class="alert alert-error">
             {{this}}
         </div>
-        {{/withif}}
+        {{/with}}
     </div>
 </template>
 

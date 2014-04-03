@@ -2,7 +2,7 @@ Router.map ->
   @route "turkserver",
     path: "turkserver/:page?"
     layoutTemplate: "tsAdminLayout"
-    before: ->
+    onBeforeAction: ->
       # If not logged in, render login
       unless Meteor.user()
         @setLayout("tsContainer")

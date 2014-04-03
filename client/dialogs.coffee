@@ -41,8 +41,8 @@ Meteor.startup ->
       return
 
     if !username and usernameDialog is null
-      usernameDialog = bootbox.dialog Meteor.render ->
-        Template.tsRequestUsername()
+      usernameDialog = bootbox.dialog()
+      UI.insert UI.render(Template.tsRequestUsername), usernameDialog[0]
       return
 
 Template.tsRequestUsername.events =

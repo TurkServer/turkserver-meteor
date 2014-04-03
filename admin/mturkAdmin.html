@@ -5,11 +5,11 @@
             {{> tsAdminHitTypes}}
         </div>
         <div class="span7 well">
-            {{#withif selectedHITType}}
+            {{#with selectedHITType}}
             {{> tsAdminViewHitType }}
             {{else}}
             {{> tsAdminNewHitType }}
-            {{/withif}}
+            {{/with}}
         </div>
     </div>
 
@@ -212,11 +212,11 @@
             </table>
         </div>
         <div class="span5 well">
-            {{#withif selectedHIT}}
+            {{#with selectedHIT}}
             {{> tsAdminViewHit}}
             {{else}}
             {{> tsAdminNewHit}}
-            {{/withif}}
+            {{/with}}
         </div>
     </div>
 </template>

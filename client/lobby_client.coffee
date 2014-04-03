@@ -5,7 +5,7 @@ Router.map ->
   @route "lobby",
     template: "tsLobby",
     layoutTemplate: "tsContainer"
-    before: ->
+    onBeforeAction: ->
       # Don't show lobby to unauthenticated users
       unless Meteor.user()
         @setLayout("tsContainer")

@@ -8,9 +8,9 @@
     <b class="text-info">{{_id}}</b>
     <dl class="ts-compact">
         <dt>Username:</dt>
-        <dd>{{#withif username}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
+        <dd>{{#with username}} {{this}} {{else}} <i class="muted">(none)</i> {{/with}}</dd>
         <dt>WorkerId:</dt>
-        <dd>{{#withif workerId}} {{this}} {{else}} <i class="muted">(none)</i> {{/withif}}</dd>
+        <dd>{{#with workerId}} {{this}} {{else}} <i class="muted">(none)</i> {{/with}}</dd>
         <dt>Last login:</dt>
         <dd>{{_tsRenderTime status.lastLogin}}</dd>
         <dt>Current state:</dt>

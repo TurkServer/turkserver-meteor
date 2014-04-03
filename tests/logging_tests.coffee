@@ -12,6 +12,7 @@ if Meteor.isServer
       TurkServer.log
         boo: "hoo"
 
+      # TODO race condition where logs can get cleared between there and here
       doc = Logs.findOne(boo: "hoo")
 
       test.equal doc.boo, "hoo"

@@ -1,5 +1,5 @@
 <template name="tsAdminExperiments">
-    {{#withif activeBatch}}
+    {{#with activeBatch}}
     <div class="alert alert-info">
         Batch <b>{{name}}</b> is currently active.
     </div>
@@ -7,7 +7,7 @@
     <div class="alert">
         No batch is currently active.
     </div>
-    {{/withif}}
+    {{/with}}
 
     {{> tsAdminActiveExperiments }}
     {{> tsAdminCompletedExperiments }}
@@ -143,7 +143,7 @@
 </template>
 
 <template name="tsAdminActiveBatches">
-    {{#withif activeBatch}}
+    {{#with activeBatch}}
     <div class="alert alert-info">
         <b>{{name}}</b> is the current active batch.
         <button class="btn btn-danger -ts-retire-batch">Retire</button>
@@ -152,12 +152,12 @@
     <div class="alert">
         No batch of experiments is currently active. Create one below or activate an existing batch.
     </div>
-    {{/withif}}
+    {{/with}}
 </template>
 
 <template name="tsAdminConfigureBatch">
     <div class="well">
-    {{#withif selectedBatch}}
+    {{#with selectedBatch}}
         <dl class="ts-compact">
             <dt><b>Batch Name</b></dt>
             <dd><h4>{{name}}</h4></dd>
@@ -176,7 +176,7 @@
 
     {{else}}
     <i>Select a batch below to view properties.</i>
-    {{/withif}}
+    {{/with}}
     </div>
 </template>
 
