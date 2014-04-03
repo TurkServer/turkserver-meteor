@@ -4,12 +4,11 @@ init_queue = []
 TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
-TurkServer.treatment = -> TurkServer.Experiment.getTreatment TurkServer.group()
+TurkServer.treatment = -> TurkServer.Experiment.getTreatment Partitioner.group()
 
 TurkServer.finishExperiment = ->
-  group = TurkServer.group()
+  group = Partitioner.group()
   return unless group
-  TurkServer.Experiment.complete(group)
 
 # TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
@@ -26,12 +25,12 @@ class TurkServer.Experiment
       group: groupId
       treatment: @getTreatment(groupId)
 
-    TurkServer.bindGroup groupId, ->
+    Partitioner.bindGroup groupId, ->
       _.each init_queue, (handler) -> handler.call(context)
 
   # Add user to experiment
   @addUser: (groupId, userId) ->
-    TurkServer.Groups.setUserGroup(userId, groupId)
+    Partitioner.setUserGroup(userId, groupId)
 
     Experiments.update { _id: groupId },
       { $addToSet: { users: userId } }
@@ -53,7 +52,7 @@ class TurkServer.Experiment
         assignable: false
 
     _.each users, (userId) ->
-      TurkServer.Groups.clearUserGroup(userId)
+      Partitioner.clearUserGroup(userId)
       Meteor.users.update userId,
         $set: { "turkserver.state": "exitsurvey" }
 

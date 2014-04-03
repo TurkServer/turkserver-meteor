@@ -78,5 +78,5 @@ Meteor.publish "tsCurrentExperiment", (group) ->
 
 TurkServer.startup = (func) ->
   Meteor.startup ->
-    TurkServer.directOperation(func)
+    Partitioner.directOperation(func)
 

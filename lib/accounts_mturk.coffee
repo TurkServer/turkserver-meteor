@@ -65,6 +65,8 @@ Accounts.registerLoginHandler (loginRequest) ->
   # Don't handle unless we have an mturk login
   return unless loginRequest.hitId and loginRequest.assignmentId and loginRequest.workerId
 
+  # TODO: Do we need Partitioner.directOperation here?
+  # Probably only if user is already logged in, which would be an error.
   user = Meteor.users.findOne
     workerId: loginRequest.workerId
 

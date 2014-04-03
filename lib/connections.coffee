@@ -26,7 +26,7 @@ UserStatus.events.on "connectionLogin", (doc) ->
   groupId = Partitioner.getUserGroup(doc.userId)
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
-  TurkServer.bindGroup groupId, ->
+  Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
       _meta: "connected"
@@ -59,7 +59,7 @@ UserStatus.events.on "connectionLogout", (doc) ->
   groupId = Partitioner.getUserGroup(doc.userId)
   return unless groupId
   treatment = TurkServer.Experiment.getTreatment(groupId)
-  TurkServer.bindGroup groupId, ->
+  Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
       _meta: "disconnected"
@@ -84,7 +84,7 @@ Meteor.methods
     # TODO may need validation here due to bad browsers/bad people
     userId = Meteor.userId()
     return unless userId
-    if TurkServer.directOperation(-> Meteor.users.findOne(username: username))
+    if Partitioner.directOperation(-> Meteor.users.findOne(username: username))
       throw new Meteor.Error(409, ErrMsg.usernameTaken)
     Meteor.users.update userId,
       $set: {username: username}
@@ -135,7 +135,7 @@ TurkServer.handleConnection = (doc) ->
 
   # Is worker in part of an active group (experiment)?
   # This is okay even if no active batch
-  if TurkServer.Groups.getUserGroup(doc.userId)
+  if Partitioner.getUserGroup(doc.userId)
     Meteor._debug doc.userId + " is reconnecting to an existing group"
     # other reconnection info recorded above
     return

@@ -14,7 +14,7 @@ Router.map ->
         @render("tsAdminDenied")
         @stop()
       # If admin but in a group, leave the group
-      else if TurkServer.group()
+      else if Partitioner.group()
         @setLayout("tsContainer")
         @render("tsAdminWatching")
         @stop()
@@ -40,12 +40,12 @@ Deps.autorun ->
 Deps.autorun ->
   return unless Meteor.user()?.admin
   # must pass in different args to actually effect it
-  Meteor.subscribe("tsAdminState", TurkServer.group())
+  Meteor.subscribe("tsAdminState", Partitioner.group())
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->
   return unless Meteor.user()?.admin
-  Meteor.subscribe "tsGroupUsers", TurkServer.group()
+  Meteor.subscribe "tsGroupUsers", Partitioner.group()
 
 Template.turkserverPulldown.events =
   "click .ts-adminToggle": (e) ->
@@ -54,7 +54,7 @@ Template.turkserverPulldown.events =
 
 Template.turkserverPulldown.admin = -> Meteor.user()?.admin
 
-Template.tsAdminGroupInfo.group = -> TurkServer.group()
+Template.tsAdminGroupInfo.group = -> Partitioner.group()
 Template.tsAdminGroupInfo.treatment = -> TurkServer.treatment()
 Template.tsAdminGroupInfo.users = -> Meteor.users.find()
 

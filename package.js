@@ -64,7 +64,6 @@ Package.on_use(function (api) {
         'lib/config.coffee',
         'lib/turkserver.coffee',
         'lib/mturk.coffee',
-        'lib/grouping.coffee',
         'lib/experiments.coffee',
         'lib/logging.coffee',
         'lib/assigners.coffee',
@@ -78,7 +77,6 @@ Package.on_use(function (api) {
         'client/templates.html',
         'client/ts_client.styl',
         'client/ts_client.coffee',
-        'client/grouping_client.coffee',
         'client/logging_client.coffee',
         'client/helpers.coffee',
         'client/lobby_client.html',
@@ -116,7 +114,8 @@ Package.on_test(function (api) {
       'coffeescript'
     ]);
 
-    api.use('iron-router');
+    api.use('partitioner');
+    api.use('iron-router'); // Needed so we can un-configure the router
 
     api.use([
       'tinytest',
@@ -131,9 +130,6 @@ Package.on_test(function (api) {
 
     api.add_files('tests/lobby_tests.coffee');
     api.add_files('tests/auth_tests.coffee', 'server');
-    api.add_files('tests/hook_tests.coffee');
-    api.add_files('tests/grouping_index_tests.coffee', 'server');
-    api.add_files('tests/grouping_tests.coffee');
     api.add_files('tests/experiment_tests.coffee');
     api.add_files('tests/logging_tests.coffee');
 });

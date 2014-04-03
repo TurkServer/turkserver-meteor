@@ -34,6 +34,9 @@ Meteor.methods
 
     Treatments.remove(id)
 
+# Backwards compat, and for cohesion while programming
+TurkServer.group = Partitioner.group
+
 # Helpful functions
 TurkServer.checkNotAdmin = ->
   if Deps.nonreactive(-> Meteor.user()?.admin)

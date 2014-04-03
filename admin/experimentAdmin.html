@@ -215,12 +215,12 @@
     </h5>
 
     <select>
-        <option value="groupSize" {{#if fixedGroupSize}}selected{{/if}}>Fixed groups of size:</option>
-        <option value="groupCount" {{#if fixedGroupCount}}selected{{/if}}>Fixed number of groups:</option>
+        <option value="groupSize" selected={{fixedGroupSize}}>Fixed groups of size:</option>
+        <option value="groupCount" selected={{fixedGroupCount}}>Fixed number of groups:</option>
     </select>
     <input class="input-mini" type="number" min="1" step="1" value="{{groupVal}}" pattern="\d+" name="groupVal">
     <label class="checkbox">
-        <input type="checkbox" name="lobby" {{#if lobby}}checked{{/if}} {{#if fixedGroupCount}}disabled{{/if}}>Use lobby
+        <input type="checkbox" name="lobby" checked={{lobby}} disabled={{fixedGroupCount}}>Use lobby
     </label>
 </template>
 

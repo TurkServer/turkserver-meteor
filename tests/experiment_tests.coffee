@@ -1,5 +1,4 @@
 if Meteor.isServer
-
   Doobie = new Meteor.Collection("experiment_test")
 
   treatment = undefined
@@ -18,7 +17,7 @@ if Meteor.isServer
       Doobie.insert
         bar: "baz"
 
-  TurkServer.partitionCollection Doobie
+  Partitioner.partitionCollection Doobie
 
   TurkServer.initialize contextHandler
   TurkServer.initialize insertHandler
@@ -28,13 +27,13 @@ if Meteor.isServer
   workerId = "expWorker"
 
   Tinytest.addAsync "experiment - init - setup test", (test, next) ->
-    TurkServer.directOperation ->
+    Partitioner.directOperation ->
       # initial cleanup for this test
       Doobie.remove {}
 
     Experiments.remove "fooGroup"
     Treatments.remove(name: "fooTreatment")
-    TurkServer.Groups.clearUserGroup(userId)
+    Partitioner.clearUserGroup(userId)
     Meteor.users.upsert { _id: userId },
         $set: workerId: workerId
 
@@ -60,7 +59,7 @@ if Meteor.isServer
     next()
 
   Tinytest.addAsync "experiment - init - global group", (test, next) ->
-    stuff = TurkServer.directOperation -> Doobie.find().fetch()
+    stuff = Partitioner.directOperation -> Doobie.find().fetch()
     test.length stuff, 2
 
     test.equal stuff[0].foo, "bar"
@@ -77,6 +76,12 @@ if Meteor.isServer
     next()
 
   # TODO clean up assignments if they affect other tests
+
+  # Add a user to this group upon login, for client tests below
+  Accounts.onLogin (info) ->
+    userId = info.user._id
+    Partitioner.clearUserGroup(userId)
+    TurkServer.Experiment.addUser "fooGroup", userId
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - received experiment id", (test, next) ->

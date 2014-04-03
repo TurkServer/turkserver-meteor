@@ -1,8 +1,3 @@
-/*
- * Created by https://github.com/matb33 for testing packages that make user of userIds
- * Original file https://github.com/matb33/meteor-collection-hooks/blob/master/tests/insecure_login.js
- */
-
 InsecureLogin = {
   queue: [],
   ran: false,
@@ -24,13 +19,9 @@ InsecureLogin = {
 
 if (Meteor.isClient) {
   Accounts.callLoginMethod({
-    methodArguments: [{username: "test"}],
+    methodArguments: [{username: "InsecureLogin"}],
     userCallback: function (err) {
-      if (err) {
-        console.log("Login error:");
-        console.log(err);
-        throw err;
-      }
+      if (err) throw err;
       console.info("Insecure login successful!");
       InsecureLogin.run();
     }
@@ -40,12 +31,14 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isServer) {
-  if (!Meteor.users.find({"profile.name": "Test"}).count()) {
+  // Meteor.users.remove({"username": "InsecureLogin"});
+
+  if (!Meteor.users.find({"username": "InsecureLogin"}).count()) {
     Accounts.createUser({
-      username: "test",
+      username: "InsecureLogin",
       email: "test@test.com",
       password: "password",
-      profile: {name: "Test"}
+      profile: {name: "InsecureLogin"}
     });
   }
 
@@ -55,21 +48,8 @@ if (Meteor.isServer) {
     var user = Meteor.users.findOne({"username": options.username});
     if (!user) return;
 
-    var stampedLoginToken = Accounts._generateStampedLoginToken();
-
-    Meteor._ensure(user, "services", "resume");
-
-    if (_.has(user.services.resume, "loginTokens")) {
-      user.services.resume.loginTokens.push(stampedLoginToken);
-    } else {
-      user.services.resume.loginTokens = [stampedLoginToken];
-    }
-
-    Meteor.users.update({_id: user._id}, {$set: {services: user.services}});
-
     return {
-      id: user._id,
-      token: stampedLoginToken.token
+      userId: user._id
     };
   });
 }

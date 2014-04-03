@@ -202,12 +202,12 @@ Meteor.methods
 
   "ts-admin-join-group": (groupId) ->
     checkAdmin()
-    TurkServer.Groups.setUserGroup Meteor.userId(), groupId
+    Partitioner.setUserGroup Meteor.userId(), groupId
     return
 
   "ts-admin-leave-group": ->
     checkAdmin()
-    TurkServer.Groups.clearUserGroup Meteor.userId()
+    Partitioner.clearUserGroup Meteor.userId()
     return
 
   "ts-admin-stop-experiment": (groupId) ->

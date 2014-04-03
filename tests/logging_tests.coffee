@@ -8,7 +8,7 @@ if Meteor.isServer
       return Logs.find(selector || {}).fetch()
 
   Tinytest.addAsync "logging - server group binding", (test, next) ->
-    TurkServer.bindGroup "poop", ->
+    Partitioner.bindGroup "poop", ->
       TurkServer.log
         boo: "hoo"
 

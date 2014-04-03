@@ -46,6 +46,6 @@ Deps.autorun ->
   Session.set("turkserver.state", turkserver.state)
 
 Deps.autorun ->
-  Meteor.subscribe("tsCurrentExperiment", TurkServer.group())
+  Meteor.subscribe("tsCurrentExperiment", Partitioner.group())
 
 # TODO start idle monitor automatically with an experiment
