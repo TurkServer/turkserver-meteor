@@ -2,9 +2,16 @@
 # This is exported so it doesn't need @
 TurkServer = TurkServer || {}
 
+# Backwards compat, and for cohesion while programming
+TurkServer.group = Partitioner.group
+TurkServer.partitionCollection = Partitioner.partitionCollection
+
 @Batches = new Meteor.Collection("ts.batches")
 @Treatments = new Meteor.Collection("ts.treatments")
 @Experiments = new Meteor.Collection("ts.experiments")
+
+@RoundTimers = new Meteor.Collection("ts.rounds")
+TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 
 @Workers = new Meteor.Collection("ts.workers")
 @Assignments = new Meteor.Collection("ts.assignments")
@@ -33,10 +40,6 @@ Meteor.methods
       throw new Meteor.Error(403, "can't delete treatments that are used by existing batches")
 
     Treatments.remove(id)
-
-# Backwards compat, and for cohesion while programming
-TurkServer.group = Partitioner.group
-TurkServer.partitionCollection = Partitioner.partitionCollection
 
 # Helpful functions
 TurkServer.checkNotAdmin = ->
