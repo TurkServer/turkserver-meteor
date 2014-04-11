@@ -9,6 +9,7 @@ TurkServer.treatment = -> TurkServer.Experiment.getTreatment Partitioner.group()
 TurkServer.finishExperiment = ->
   group = Partitioner.group()
   return unless group
+  TurkServer.Experiment.complete(group)
 
 # TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
