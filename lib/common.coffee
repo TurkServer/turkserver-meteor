@@ -36,6 +36,7 @@ Meteor.methods
 
 # Backwards compat, and for cohesion while programming
 TurkServer.group = Partitioner.group
+TurkServer.partitionCollection = Partitioner.partitionCollection
 
 # Helpful functions
 TurkServer.checkNotAdmin = ->
