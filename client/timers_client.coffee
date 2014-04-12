@@ -13,7 +13,6 @@ TurkServer.remainingTime = ->
   return unless exp.endTime?
   return Math.max(0, exp.endTime - TimeSync.serverTime())
 
-
 # Milliseconds elapsed since round start
 TurkServer.roundElapsedTime = ->
   return unless (round = TurkServer.currentRound())?

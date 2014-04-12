@@ -3,30 +3,25 @@
 TurkServer.startNewRound = (startTime, endTime, callback) ->
   interval = endTime - Date.now()
   throw new Error("endTime is in the past") if interval < 0
-  
-  if (currentRound = RoundTimers.findOne(active: true))?
-    # current round already exists
-    # cancel any scheduled callback
-    Meteor.clearTimeout(currentRound.timeoutId) if currentRound.timeoutId
 
+  if (currentRound = RoundTimers.findOne({}, sort: {index: -1}) )?
+    # current round already exists
     RoundTimers.update currentRound._id,
       $set:
         active: false
-      $unset:
-        timeoutId: null
 
     index = currentRound.index + 1
   else
     index = 1
 
-  timeoutId = Meteor.setTimeout(callback, interval)
+  Meteor.setTimeout(callback, interval) if callback?
 
+  # We can't actually store the timeout in the database
   RoundTimers.insert
-    index: index
-    startTime: startTime
-    endTime: endTime
-    active: true
-    timeoutId: timeoutId
+    index:      index
+    startTime:  startTime
+    endTime:    endTime
+    active:     true
 
 # Stop the current round early
 TurkServer.endCurrentRound = ->
@@ -37,13 +32,10 @@ TurkServer.endCurrentRound = ->
   unless currentRound.endTime > now
     throw new Error("Current round is already ended")
 
-  # Cancel any callback, if it is scheduled
-  Meteor.clearTimeout(currentRound.timeoutId)
-
   RoundTimers.update currentRound._id,
     $set:
       endTime: now
-    $unset:
-      timeoutId: null
+      active: false
+
 
 

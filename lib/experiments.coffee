@@ -27,7 +27,8 @@ class TurkServer.Experiment
       treatment: @getTreatment(groupId)
 
     Partitioner.bindGroup groupId, ->
-      _.each init_queue, (handler) -> handler.call(context)
+      (handler.call(context) for handler in init_queue)
+      return
 
   # Add user to experiment
   @addUser: (groupId, userId) ->
