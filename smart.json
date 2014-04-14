@@ -6,9 +6,9 @@
     "version": "0.0.1",
     "git": "https://github.com/HarvardEconCS/turkserver-meteor.git",
     "packages": {
-        "bootboxjs": {},
+        "bootboxjs": "3.2.2",
         "x-editable-bootstrap": {},
-        "iron-router": {},
+        "iron-router": "0.6.4",
         "moment": {},
         "collection-hooks": {},
         "partitioner": {},

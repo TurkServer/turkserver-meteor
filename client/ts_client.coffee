@@ -27,6 +27,9 @@ TurkServer.isAdmin = ->
 TurkServer.treatment = ->
   Experiments.findOne({}, fields: {treatment: 1})?.treatment
 
+TurkServer.currentRound = ->
+  RoundTimers.findOne(active: true)
+
 ###
   Reactive computations
 ###

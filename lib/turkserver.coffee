@@ -25,6 +25,7 @@ Treatments._ensureIndex {name: 1}, {unique: 1}
 
 # Only server should update these
 Experiments.deny(always)
+RoundTimers.deny(always)
 
 ###
   Workers
@@ -74,7 +75,10 @@ Meteor.publish null, ->
 # Publish current experiment for a user, if it exists
 Meteor.publish "tsCurrentExperiment", (group) ->
   return unless @userId
-  return Experiments.find(group)
+  return [
+    Experiments.find(group),
+    RoundTimers.find() # Partitioned by group
+  ]
 
 TurkServer.startup = (func) ->
   Meteor.startup ->

@@ -68,6 +68,7 @@ Package.on_use(function (api) {
         'lib/logging.coffee',
         'lib/assigners.coffee',
         'lib/connections.coffee',
+        'lib/timers.coffee',
         'lib/accounts_mturk.coffee',
         'lib/lobby_server.coffee'
     ], 'server');
@@ -78,6 +79,7 @@ Package.on_use(function (api) {
         'client/ts_client.styl',
         'client/ts_client.coffee',
         'client/logging_client.coffee',
+        'client/timers_client.coffee',
         'client/helpers.coffee',
         'client/lobby_client.html',
         'client/lobby_client.coffee',
