@@ -220,7 +220,7 @@
     </select>
     <input class="input-mini" type="number" min="1" step="1" value="{{groupVal}}" pattern="\d+" name="groupVal">
     <label class="checkbox">
-        <input type="checkbox" name="lobby" checked={{lobby}} disabled={{fixedGroupCount}}>Use lobby
+        <input type="checkbox" name="lobby" checked={{lobby}} {{#if fixedGroupCount}}disabled{{/if}}>Use lobby
     </label>
 </template>
 
