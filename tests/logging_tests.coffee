@@ -1,27 +1,31 @@
 # Server methods
 if Meteor.isServer
 
-  # Clear anything in logs
   Meteor.methods
-    clearLogs: -> Logs.remove({})
+    # Clear anything in logs for the given group
+    clearLogs: ->
+      Partitioner.group()
+      Logs.remove
+        _groupId: Partitioner.group()
+      return
     getLogs: (selector) ->
       return Logs.find(selector || {}).fetch()
 
   Tinytest.addAsync "logging - server group binding", (test, next) ->
     Partitioner.bindGroup "poop", ->
+      Meteor.call "clearLogs"
       TurkServer.log
         boo: "hoo"
 
-      doc = Logs.findOne(boo: "hoo")
+    doc = Logs.findOne(boo: "hoo")
 
-      test.equal doc.boo, "hoo"
-      test.isTrue doc._groupId
-      test.isTrue doc._timestamp
-      next()
+    test.equal doc.boo, "hoo"
+    test.isTrue doc._groupId
+    test.isTrue doc._timestamp
+    next()
 
 # Client methods
 if Meteor.isClient
-
   Tinytest.addAsync "logging - initialize test", (test, next) ->
     Meteor.call "clearLogs", (err, res) ->
       test.isFalse err
