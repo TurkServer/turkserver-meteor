@@ -5,6 +5,9 @@
     "author": "Andrew Mao  (http://www.andrewmao.net)",
     "version": "0.0.1",
     "git": "https://github.com/HarvardEconCS/turkserver-meteor.git",
+    "meteor": {
+	"tag": "release/0.7.2"
+    },
     "packages": {
         "bootboxjs": "3.2.2",
         "x-editable-bootstrap": {},

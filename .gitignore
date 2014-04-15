@@ -1,6 +1,7 @@
 .idea
 .npm
 packages/*
+smart.lock
 
 lib-cov
 *.seed
