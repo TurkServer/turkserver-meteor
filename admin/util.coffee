@@ -22,10 +22,11 @@ Template.tsUserPill.identifier = ->
 Template.tsUserPill.rendered = ->
   $(@firstNode).popover
     html: true
-    placement: "left"
+    placement: "auto"
     trigger: "hover"
     container: @firstNode
-    content: => Template.tsUserPillPopover(@data)
+    content: =>
+      UI.toHTML(Template.tsUserPillPopover.extend(data: => @data))
 
 Template.tsDescList.properties = ->
   result = []

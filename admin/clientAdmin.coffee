@@ -2,23 +2,24 @@ Router.map ->
   @route "turkserver",
     path: "turkserver/:page?"
     layoutTemplate: "tsAdminLayout"
-    onBeforeAction: ->
+    onBeforeAction: (pause) ->
       # If not logged in, render login
       unless Meteor.user()
         @setLayout("tsContainer")
         @render("tsAdminLogin")
-        @stop()
+        pause()
       # If not admin, render access denied
       else unless Meteor.user().admin
         @setLayout("tsContainer")
         @render("tsAdminDenied")
-        @stop()
+        pause()
       # If admin but in a group, leave the group
       else if Partitioner.group()
         @setLayout("tsContainer")
         @render("tsAdminWatching")
-        @stop()
+        pause()
     action: ->
+      @setLayout("tsAdminLayout") # Apparently we need this now in IR 0.7.0
       switch @params?.page
         when "mturk" then @render("tsAdminMTurk")
         when "hits" then @render("tsAdminHits")
