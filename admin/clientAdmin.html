@@ -95,9 +95,12 @@
             </ul>
         </div>
 
-        {{! Another solution to the popover clipping }}
+        {{!
+            Another solution to the popover clipping
+            container class below makes sure that inner rows line up
+        }}
         <div class="ts-admin-body">
-            <div class="ts-scroll-parent">
+            <div class="container ts-scroll-parent">
                 {{> yield}}
             </div>
         </div>

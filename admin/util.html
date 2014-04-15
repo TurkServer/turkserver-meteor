@@ -8,9 +8,19 @@
     <b class="text-info">{{_id}}</b>
     <dl class="ts-compact">
         <dt>Username:</dt>
-        <dd>{{#with username}} {{this}} {{else}} <i class="muted">(none)</i> {{/with}}</dd>
+        <dd>{{#if username}}
+            {{username}}
+            {{else}}
+            <i class="muted">(none)</i>
+            {{/if}}
+        </dd>
         <dt>WorkerId:</dt>
-        <dd>{{#with workerId}} {{this}} {{else}} <i class="muted">(none)</i> {{/with}}</dd>
+        <dd>{{#if workerId}}
+            {{workerId}}
+            {{else}}
+            <i class="muted">(none)</i>
+            {{/if}}
+        </dd>
         <dt>Last login:</dt>
         <dd>{{_tsRenderTime status.lastLogin}}</dd>
         <dt>Current state:</dt>
@@ -20,7 +30,7 @@
     {{#if status.online}}
     <b class="text-success">Connected</b>
     {{else}}
-    <b class="text-error">Disconnected</b>
+    <b class="text-danger">Disconnected</b>
     {{/if}}
 </template>
 
@@ -30,7 +40,7 @@
 
 <template name="tsTreatmentDeletePill">
     <span class="badge badge-inverse">{{name}}
-        <i class="icon-remove icon-white -ts-remove-batch-treatment"></i>
+        <i class="glyphicon glyphicon-remove -ts-remove-batch-treatment"></i>
     </span>
 </template>
 

@@ -1,10 +1,10 @@
 <template name="tsAdminMTurk">
     <h3>HIT Types</h3>
     <div class="row">
-        <div class="span4">
+        <div class="col-md-5">
             {{> tsAdminHitTypes}}
         </div>
-        <div class="span7 well">
+        <div class="col-md-7 well">
             {{#with selectedHITType}}
             {{> tsAdminViewHitType }}
             {{else}}
@@ -17,7 +17,7 @@
 </template>
 
 <template name="tsAdminHitTypes">
-    <table class="table table-condensed table-striped">
+    <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
             <th>Title</th>
@@ -69,63 +69,63 @@
             {{HITTypeId}}
             {{else}}
             <button class="btn btn-primary -ts-register-hittype">
-                <i class="icon-white icon-briefcase"></i> Register
+                <i class="glyphicon glyphicon-briefcase"></i> Register
             </button>
             {{/if}}
         </dd>
     </dl>
     <button class="btn btn-danger pull-right -ts-delete-hittype">
-        <i class="icon-white icon-trash"></i> Delete
+        <i class="glyphicon glyphicon-trash"></i> Delete
     </button>
 </template>
 
 <template name="tsAdminNewHitType">
     <form class="form-horizontal">
         <legend>New HIT Type</legend>
-        <div class="control-group">
-            <label class="control-label">Title</label>
-            <div class="controls">
-                <input class="input-xlarge" type="text" name="title" required>
+        <div class="form-group">
+            <label class="col-sm-4">Title</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="title" required>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Description</label>
-            <div class="controls">
-                <textarea name="desc" required></textarea>
+        <div class="form-group">
+            <label class="col-sm-4">Description</label>
+            <div class="col-sm-8">
+                <textarea class="form-control" name="desc" required></textarea>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Keywords</label>
-            <div class="controls">
-                <input class="input-xlarge" type="text" name="keywords" required>
+        <div class="form-group">
+            <label class="col-sm-4">Keywords</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="keywords" required>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Reward</label>
-            <div class="controls">
-                <input class="input-mini" type="number" min="0" step="0.01" value="0.10" name="reward" required>
+        <div class="form-group">
+            <label class="col-sm-4">Reward</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="number" min="0" step="0.01" value="0.10" name="reward" required>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Qualification Requirements</label>
-            <div class="controls">
-                <select name="quals" multiple>
+        <div class="form-group">
+            <label class="col-sm-4">Qualification Requirements</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="quals" multiple>
                     {{#each quals}}
                     <option value="{{_id}}">{{name}}</option>
                     {{/each}}
                 </select>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Assignment Duration in Seconds</label>
-            <div class="controls">
-                <input class="input-small" type="number" min="30" max="3153600" value="86400" name="duration" required>
+        <div class="form-group">
+            <label class="col-sm-4">Assignment Duration in Seconds</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="number" min="30" max="3153600" value="86400" name="duration" required>
             </div>
         </div>
-        <div class="control-group">
-            <label class="control-label">Auto Approval Delay in Seconds</label>
-            <div class="controls">
-                <input class="input-small" type="number" min="0" max="2592000" value="604800" name="delay" required>
+        <div class="form-group">
+            <label class="col-sm-4">Auto Approval Delay in Seconds</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="number" min="0" max="2592000" value="604800" name="delay" required>
             </div>
         </div>
         <button type="submit" class="btn btn-primary pull-right">Create</button>
@@ -134,7 +134,7 @@
 
 <template name="tsAdminQuals">
     <h3>Qualifications</h3>
-    <table class="table table-condensed table-striped">
+    <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
             <th>Nickname</th>
@@ -144,6 +144,7 @@
             <th style="width: 50px"></th>
         </tr>
         </thead>
+        <tbody>
         {{#each quals}}
         <tr>
             <td><span class="badge badge-info">{{name}}</span></td>
@@ -151,22 +152,23 @@
             <td>{{Comparator}}</td>
             <td>{{value}}</td>
             <td>
-                <button class="btn btn-mini btn-danger -ts-delete-qual">
-                    <i class="icon-white icon-trash"></i>
+                <button class="btn btn-xs btn-danger -ts-delete-qual">
+                    <i class="glyphicon glyphicon-trash"></i>
                 </button>
             </td>
         </tr>
         {{/each}}
         {{> tsAdminNewQual}}
+        </tbody>
     </table>
 </template>
 
 <template name="tsAdminNewQual">
     <tr>
-        <td><input type="text" name="name"></td>
-        <td><input type="text" name="type"></td>
+        <td><input class="form-control" type="text" name="name"></td>
+        <td><input class="form-control" type="text" name="type"></td>
         <td>
-            <select name="comp">
+            <select class="form-control" name="comp">
                 <option value="LessThan">LessThan</option>
                 <option value="LessThanOrEqualTo">LessThanOrEqualTo</option>
                 <option value="GreaterThan">GreaterThan</option>
@@ -176,10 +178,10 @@
                 <option value="Exists">Exists</option>
             </select>
         </td>
-        <td><input type="text" name="value"></td>
+        <td><input class="form-control" type="text" name="value"></td>
         <td>
-            <button class="btn btn-mini btn-primary -ts-create-qual">
-                <i class="icon-white icon-plus"></i>
+            <button class="btn btn-xs btn-primary -ts-create-qual">
+                <i class="glyphicon glyphicon-plus"></i>
             </button>
         </td>
     </tr>
@@ -191,8 +193,8 @@
     <h3>Outstanding HITs</h3>
 
     <div class="row">
-        <div class="span6">
-            <table class="table table-condensed table-striped">
+        <div class="col-md-6">
+            <table class="table table-condensed table-striped ts-admin-table">
                 <thead>
                 <tr>
                     <th>HIT ID</th>
@@ -211,7 +213,7 @@
                 {{/each}}
             </table>
         </div>
-        <div class="span5 well">
+        <div class="col-md-6 well">
             {{#with selectedHIT}}
             {{> tsAdminViewHit}}
             {{else}}
@@ -223,7 +225,7 @@
 
 <template name="tsAdminViewHit">
     <button class="btn btn-success -ts-refresh-hit">
-        <i class="icon-white icon-retweet"></i> Refresh HIT data
+        <i class="glyphicon glyphicon-retweet"></i> Refresh HIT data
     </button>
     <button class="btn btn-danger -ts-expire-hit">
         Force Expire
@@ -234,7 +236,7 @@
         <dt>HITTypeId</dt>
         <dd>{{HITTypeId}}
         <form class="form-inline -ts-change-hittype">
-        <select class="input-xlarge" name="hittype" required>
+        <select class="form-control" name="hittype" required>
             <option value="" selected disabled></option>
             {{#each hitTypes}}
             <option value="{{_id}}">{{Title}}</option>
@@ -246,14 +248,14 @@
         <dt>MaxAssignments</dt>
         <dd>{{MaxAssignments}}
         <form class="form-inline -ts-extend-assignments">
-        <input class="input-small" name="assts" type="number" min="1" max="1000000" required>
+        <input class="form-control" name="assts" type="number" min="1" max="1000000" required>
         <button class="btn btn-primary" type="submit">Increase Assignments</button>
         </form>
         </dd>
         <dt>Expiration</dt>
         <dd>{{_tsRenderISOTime Expiration}}
         <form class="form-inline -ts-extend-expiration">
-        <input class="input-small" name="secs" type="number" min="3600" max="31536000" required>
+        <input class="form-control" name="secs" type="number" min="3600" max="31536000" required>
         <button class="btn btn-primary" type="submit">Extend Time</button>
         </form>
         </dd>
@@ -261,23 +263,32 @@
 </template>
 
 <template name="tsAdminNewHit">
-    <form>
-        <fieldset>
+    <form class="form-horizontal">
         <legend>Create New HIT</legend>
-
-        <label>HIT Type</label>
-        <select class="input-xlarge" name="hittype" required>
-            <option value="" selected disabled></option>
-            {{#each hitTypes}}
-            <option value="{{_id}}">{{Title}}</option>
-            {{/each}}
-        </select>
-        <label>Max Assignments</label>
-        <input class="input-small" name="maxAssts" type="number" min="1" max="1000000" value="1">
-        <label>Lifetime in Seconds</label>
-        <input class="input-small" name="lifetime" type="number" min="30" max="31536000" value="86400">
+        <div class="form-group">
+            <label class="col-sm-3">HIT Type</label>
+            <div class="col-sm-9">
+                <select class="form-control" name="hittype" required>
+                    <option value="" selected disabled></option>
+                    {{#each hitTypes}}
+                    <option value="{{_id}}">{{Title}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3">Max Assignments</label>
+            <div class="col-sm-9">
+                <input class="form-control" name="maxAssts" type="number" min="1" max="1000000" value="1">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3">Lifetime in Seconds</label>
+            <div class="col-sm-9">
+                <input class="form-control" name="lifetime" type="number" min="30" max="31536000" value="86400">
+            </div>
+        </div>
         <button class="btn btn-primary pull-right" type="submit">Create</button>
-        </fieldset>
     </form>
 </template>
 
@@ -300,7 +311,7 @@
 <template name="tsAdminAssignments">
     <h3>Completed Assignments</h3>
 
-    <table class="table table-condensed table-striped">
+    <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
             <th style="width: 100px">Worker ID</th>
