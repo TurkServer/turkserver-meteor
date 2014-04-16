@@ -39,10 +39,10 @@
             </td>
             <td>
                 <button class="btn btn-xs btn-primary -ts-watch-experiment">
-                    <i class="glyphicon glyphicon-camera"></i> Watch
+                    <span class="glyphicon glyphicon-camera"></span> Watch
                 </button>
                 <button class="btn btn-xs btn-danger -ts-stop-experiment">
-                    <i class="glyphicon glyphicon-ban-circle"></i> Stop
+                    <span class="glyphicon glyphicon-ban-circle"></span> Stop
                 </button>
             </td>
         </tr>
@@ -77,7 +77,7 @@
             </td>
             <td>
                 <button class="btn btn-xs btn-primary -ts-watch-experiment">
-                    <i class="glyphicon glyphicon-camera"></i> Watch
+                    <span class="glyphicon glyphicon-camera"></span> Watch
                 </button>
             </td>
         </tr>
@@ -123,7 +123,7 @@
         <tr>
             <td>{{> tsTreatmentPill}}</td>
             <td><button class="btn btn-xs btn-danger -ts-delete-treatment">
-                <i class="glyphicon glyphicon-trash"></i>
+                <span class="glyphicon glyphicon-trash"></span>
             </button></td>
         </tr>
         {{/each}}
@@ -203,7 +203,7 @@
             {{/each}}
         </select>
         <span class="input-group-btn">
-        <button class="btn btn-primary -ts-add-batch-treatment"><i class="glyphicon glyphicon-plus"></i></button>
+        <button class="btn btn-primary -ts-add-batch-treatment"><span class="glyphicon glyphicon-plus"></span></button>
         </span>
     </div>
 </template>
@@ -250,7 +250,7 @@
             <td>
                 {{#if active}}
                 <span class="badge badge-inverse">
-                <i class="glyphicon glyphicon-ok"></i>
+                <span class="glyphicon glyphicon-ok"></span>
                 </span>
                 {{/if}}
             </td>
@@ -273,7 +273,7 @@
         <td colspan="3">
             <form class="form-inline">
                 <input class="form-control" type="text" placeholder="New batch...">
-                <button class="btn btn-primary -ts-new-batch" type="submit"><i class="glyphicon glyphicon-plus"></i></button>
+                <button class="btn btn-primary -ts-new-batch" type="submit"><span class="glyphicon glyphicon-plus"></span></button>
             </form>
         </td>
     </tr>

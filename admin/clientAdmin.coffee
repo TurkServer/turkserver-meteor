@@ -19,7 +19,8 @@ Router.map ->
         @render("tsAdminWatching")
         pause()
     action: ->
-      @setLayout("tsAdminLayout") # Apparently we need this now in IR 0.7.0
+      # TODO remove this when EventedMind/iron-router#607 is merged
+      @setLayout("tsAdminLayout")
       switch @params?.page
         when "mturk" then @render("tsAdminMTurk")
         when "hits" then @render("tsAdminHits")
