@@ -1,4 +1,7 @@
-# Dialogs to possibly show after page loaded
+###
+  Dialogs to possibly show after page loaded
+###
+
 Meteor.startup ->
   ###
     Disconnect warning
@@ -20,10 +23,10 @@ Meteor.startup ->
             Please check your Internet connection.</h3>""")
       return
 
+TurkServer.ensureUsername = ->
   ###
     Capture username after logging in
   ###
-  # TODO only do this for experiments that require it
   usernameDialog = null
 
   Deps.autorun ->
