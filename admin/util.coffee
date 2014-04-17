@@ -1,11 +1,25 @@
-Handlebars.registerHelper "_tsLookupTreatment", -> Treatments.findOne("" + (@_id || @))
-Handlebars.registerHelper "_tsLookupUser", -> Meteor.users.findOne("" + (@_id || @))
+@Util = {}
 
-Handlebars.registerHelper "_tsLookupWorker", -> Meteor.users.findOne(workerId: "" + (@workerId || @))
+Util.duration = (millis) ->
+  diff = moment.utc(millis)
+  time = diff.format("H:mm:ss")
+  days = +diff.format("DDD") - 1
+  return (if days isnt 0 then days + "d " else "") + time
 
-Handlebars.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()
+Util.timeSince = (timestamp) -> Util.duration(TimeSync.serverTime() - timestamp)
+Util.timeUntil = (timestamp) -> Util.duration(timestamp - TimeSync.serverTime())
 
-Handlebars.registerHelper "_tsRenderISOTime", (isoString) ->
+UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne("" + (@_id || @))
+UI.registerHelper "_tsLookupUser", -> Meteor.users.findOne("" + (@_id || @))
+
+UI.registerHelper "_tsLookupWorker", -> Meteor.users.findOne(workerId: "" + (@workerId || @))
+
+UI.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()
+
+UI.registerHelper "_tsRenderTimeSince", Util.timeSince
+UI.registerHelper "_tsRenderTimeUntil", Util.timeUntil
+
+UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)
   return m.format("l LT") + " (" + m.fromNow() + ")"
 
@@ -22,10 +36,13 @@ Template.tsUserPill.identifier = ->
 Template.tsUserPill.rendered = ->
   $(@firstNode).popover
     html: true
-    placement: "left"
+    placement: "auto right"
     trigger: "hover"
     container: @firstNode
-    content: => Template.tsUserPillPopover(@data)
+    content: =>
+      # FIXME: Workaround as popover doesn't update with changed data
+      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
+      UI.toHTML Template.tsUserPillPopover.extend data: UI.getElementData(@firstNode)
 
 Template.tsDescList.properties = ->
   result = []

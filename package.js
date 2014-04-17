@@ -18,7 +18,6 @@ Npm.depends({
 Package.on_use(function (api) {
     // Client-only deps
     api.use([
-        'bootstrap',
         'session',
         'handlebars',
         'templating',
@@ -39,6 +38,7 @@ Package.on_use(function (api) {
     ]);
 
     // Non-core packages
+    api.use('bootstrap-3');
     api.use('bootboxjs');
     api.use('x-editable-bootstrap');
     api.use('iron-router');

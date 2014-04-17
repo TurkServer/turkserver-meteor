@@ -5,12 +5,12 @@ Router.map ->
   @route "lobby",
     template: "tsLobby",
     layoutTemplate: "tsContainer"
-    before: ->
+    onBeforeAction: (pause) ->
       # Don't show lobby to unauthenticated users
       unless Meteor.user()
         @setLayout("tsContainer")
         @render("tsUserAccessDenied")
-        @stop()
+        pause()
 
 # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
 Deps.autorun ->

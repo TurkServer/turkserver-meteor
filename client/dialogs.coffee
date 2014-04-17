@@ -18,9 +18,11 @@ Meteor.startup ->
       return
 
     if !status.connected and disconnectDialog is null
-      disconnectDialog = bootbox.dialog(
-        """<h3>You have been disconnected from the server.
-            Please check your Internet connection.</h3>""")
+      disconnectDialog = bootbox.dialog
+        closeButton: false
+        message:
+          """<h3>You have been disconnected from the server.
+              Please check your Internet connection.</h3>"""
       return
 
 TurkServer.ensureUsername = ->
@@ -44,8 +46,8 @@ TurkServer.ensureUsername = ->
       return
 
     if !username and usernameDialog is null
-      usernameDialog = bootbox.dialog Meteor.render ->
-        Template.tsRequestUsername()
+      usernameDialog = bootbox.dialog(message: " ").html('')
+      UI.insert UI.render(Template.tsRequestUsername), usernameDialog[0]
       return
 
 Template.tsRequestUsername.events =

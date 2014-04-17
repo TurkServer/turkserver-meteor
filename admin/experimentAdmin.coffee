@@ -36,11 +36,7 @@ Template.tsAdminCompletedExperiments.experiments = ->
   ,
     sort: { startTime: 1 }
 
-Template.tsAdminCompletedExperiments.duration = ->
-  diff = moment.utc(@endTime - @startTime)
-  time = diff.format(" H:mm:ss")
-  days = +diff.format("DDD") - 1
-  return (if days then days + "d" else "") + time
+Template.tsAdminCompletedExperiments.duration = -> Util.duration(@endTime - @startTime)
 
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 

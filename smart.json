@@ -9,9 +9,10 @@
 	"tag": "release/0.7.2"
     },
     "packages": {
-        "bootboxjs": "3.2.2",
+        "bootstrap-3": {},
+        "bootboxjs": "4.2.0",
         "x-editable-bootstrap": {},
-        "iron-router": "0.6.4",
+        "iron-router": "0.7.0",
         "moment": {},
         "collection-hooks": {},
         "partitioner": {},

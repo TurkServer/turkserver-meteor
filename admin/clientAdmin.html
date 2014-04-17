@@ -33,15 +33,13 @@
 </template>
 
 <template name="tsAdminLogin">
-    <div class="alert">
+    <div class="alert alert-warning">
         Please log in to access this part of the site.
     </div>
 
     <form class="form-inline">
-        <fieldset>
-            <input type="password" class="input-small" placeholder="Password">
-            <button type="submit" class="btn">Sign in</button>
-        </fieldset>
+        <input class="form-control" type="password" placeholder="Password">
+        <button type="submit" class="btn">Sign in</button>
     </form>
 </template>
 
@@ -62,47 +60,48 @@
 
 <template name="tsAdminLayout">
     <div class="container ts-admin-layout">
-        <div class="navbar">
-            <div class="navbar-inner">
-                <ul class="nav">
-                    <li>
-                        <a href="/turkserver">Overview</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/mturk">MTurk</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/hits">HITs</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/workers">Workers</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/connections">Connections</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/lobby">Lobby</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/experiments">Experiments</a>
-                    </li>
-                    <li>
-                        <a href="/turkserver/manage">Manage</a>
-                    </li>
-                </ul>
+        <div class="navbar navbar-default">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="/turkserver">Overview</a>
+                </li>
+                <li>
+                    <a href="/turkserver/mturk">MTurk</a>
+                </li>
+                <li>
+                    <a href="/turkserver/hits">HITs</a>
+                </li>
+                <li>
+                    <a href="/turkserver/workers">Workers</a>
+                </li>
+                <li>
+                    <a href="/turkserver/connections">Connections</a>
+                </li>
+                <li>
+                    <a href="/turkserver/lobby">Lobby</a>
+                </li>
+                <li>
+                    <a href="/turkserver/experiments">Experiments</a>
+                </li>
+                <li>
+                    <a href="/turkserver/manage">Manage</a>
+                </li>
+            </ul>
 
-                <ul class="nav pull-right">
-                    <li class="navbar-text">
-                        {{loginButtons align="right"}}
-                    </li>
-                </ul>
-            </div>
+            <ul class="nav navbar-right">
+                <li class="navbar-text">
+                    {{> loginButtons align="right"}}
+                </li>
+            </ul>
         </div>
 
-        {{! Another solution to the popover clipping }}
+        {{!
+            Another solution to the popover clipping
+            container class below makes sure that inner rows line up
+        }}
         <div class="ts-admin-body">
-            <div class="ts-scroll-parent">
-                {{yield}}
+            <div class="container ts-scroll-parent">
+                {{> yield}}
             </div>
         </div>
     </div>
@@ -111,7 +110,7 @@
 <template name="tsAdminOverview">
     <h3>TurkServer Overview</h3>
     <div class="row">
-        <div class="span6">
+        <div class="col-md-6">
             <dl class="well dl-horizontal ts-compact">
                 <dt>Connected Users:</dt>
                 <dd>{{onlineUserCount}}</dd>
@@ -123,7 +122,7 @@
             <button class="btn btn-info -ts-account-balance">Get Account Balance</button>
         </div>
 
-        <div class="span5">
+        <div class="col-md-6">
             <div class="well">
                 <h4>Meteor server statistics</h4>
                 {{> serverFacts}}

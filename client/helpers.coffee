@@ -1,10 +1,6 @@
 Handlebars.registerHelper "_tsDebug", ->
   console.log @, arguments
 
-# TODO remove this
-Handlebars.registerHelper "withif", (obj, options) ->
-  if obj then options.fn(obj) else options.inverse(this)
-
 # Submit as soon as this template appears on the page.
 Template.mturkSubmit.rendered = -> @find("form").submit()
 
@@ -37,7 +33,7 @@ getURLParams = ->
 
 params = getURLParams()
 
-TurkServer.submitHIT = -> $("body").append Meteor.render Template.mturkSubmit
+TurkServer.submitHIT = -> UI.insert UI.render(Template.mturkSubmit), document.body
 
 Handlebars.registerHelper "hitParams", params
 

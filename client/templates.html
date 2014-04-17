@@ -14,11 +14,13 @@
 
 <template name="tsContainer">
     <div class="container">
-    {{yield}}
+    {{> yield}}
     </div>
 </template>
 
 <template name="tsRequestUsername">
+    <div class="modal-dialog">
+    <div class="modal-content">
     <div class="modal-header">
         <h3>Please enter a username.</h3>
     </div>
@@ -26,18 +28,20 @@
         <p>This username will be automatically linked with your Worker ID in our HITs.</p>
         <form class="form-inline">
         {{! We use the pattern below because it matches \w in in autocomplete for user names}}
-        <input type="text" name="username" required
+        <input class="form-control" type="text" name="username" required
             pattern="^[a-zA-Z][a-zA-Z0-9_]{5,12}$"
             placeholder="Username..."
             title="6-13 numbers or characters.">
-        <button type="submit" class="btn btn-primary">Continue</button>
+        <button class="btn btn-primary" type="submit">Continue</button>
         </form>
 
-        {{#withif usernameError}}
+        {{#with usernameError}}
         <div class="alert alert-error">
             {{this}}
         </div>
-        {{/withif}}
+        {{/with}}
+    </div>
+    </div>
     </div>
 </template>
 
