@@ -81,11 +81,19 @@ Template.tsAdminConfigureBatch.selectedBatch = ->
   Batches.findOne(Session.get("_tsSelectedBatchId"))
 
 Template.tsAdminBatchEditDesc.rendered = ->
+  container = @$('div.editable')
   settings =
+    # When opening the popover, get the value from text
+    value: -> $.trim container.text()
+    # Don't set innerText ourselves, let Meteor update to preserve reactivity
+    display: ->
     success: (response, newValue) =>
       Batches.update @data._id,
         $set: { desc: newValue }
-  $(@find('div.editable:not(.editable-click)')).editable('destroy').editable(settings)
+      # Reconstruct the editable so it shows the correct form value next time
+      container.editable('destroy').editable(settings)
+  container.editable(settings)
+  return
 
 Template.tsAdminBatchEditTreatments.events =
   "click .-ts-remove-batch-treatment": (e, tmpl) ->
