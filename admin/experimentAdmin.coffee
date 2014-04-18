@@ -82,17 +82,16 @@ Template.tsAdminConfigureBatch.selectedBatch = ->
 
 Template.tsAdminBatchEditDesc.rendered = ->
   container = @$('div.editable')
-  settings =
-    # When opening the popover, get the value from text
-    value: -> $.trim container.text()
-    # Don't set innerText ourselves, let Meteor update to preserve reactivity
-    display: ->
+  grabValue = -> $.trim container.text() # Always get reactively updated value
+  container.editable
+    value: grabValue
+    display: -> # Never set text; have Meteor update to preserve reactivity
     success: (response, newValue) =>
       Batches.update @data._id,
         $set: { desc: newValue }
-      # Reconstruct the editable so it shows the correct form value next time
-      container.editable('destroy').editable(settings)
-  container.editable(settings)
+      # Thinks it knows the value, but it actually doesn't - grab a fresh value each time
+      Meteor.defer -> container.data('editableContainer').formOptions.value = grabValue
+      return # The value of this function matters
   return
 
 Template.tsAdminBatchEditTreatments.events =
