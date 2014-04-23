@@ -46,7 +46,7 @@ loginCallback = (e) ->
     # submit the HIT
     TurkServer.submitHIT()
   else
-    bootbox.dialog("<p>Unable to login:</p>" + e.message)
+    bootbox.alert("<p>Unable to login:</p>" + e.message)
 
 mturkLogin = (args) ->
   Accounts.callLoginMethod
