@@ -99,6 +99,7 @@ Meteor.methods
     # Build up the params to register the HIT Type
     params = HITTypes.findOne(hitTypeId)
     delete params._id
+    delete params.batchId
 
     params.Reward =
       Amount: params.Reward

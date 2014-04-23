@@ -80,6 +80,9 @@ Meteor.publish "tsCurrentExperiment", (group) ->
     RoundTimers.find() # Partitioned by group
   ]
 
+# For test logins, need to publish the list of batches.
+Meteor.publish null, -> Batches.find()
+
 TurkServer.startup = (func) ->
   Meteor.startup ->
     Partitioner.directOperation(func)
