@@ -16,7 +16,8 @@ class TurkServer.Experiment
   @create: (treatment, fields) ->
     fields = _.extend fields || {},
       startTime: Date.now()
-      treatment: treatment
+      treatment: treatment.name
+      treatmentId: treatment._id
     return Experiments.insert(fields)
 
   @getTreatment: (groupId) -> Experiments.findOne(groupId)?.treatment

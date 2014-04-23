@@ -163,7 +163,7 @@ TurkServer.handleConnection = (doc) ->
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
-  treatment = Treatments.findOne(treatmentId).name
+  treatment = Treatments.findOne(treatmentId)
   newId = TurkServer.Experiment.create(treatment)
   TurkServer.Experiment.setup(newId)
 
@@ -194,7 +194,7 @@ TurkServer.assignUserSequential = (userId) ->
   # Create a new experiment
   # TODO find a treatment
   treatmentId = _.sample Batches.findOne(active: true).treatmentIds
-  treatment = Treatments.findOne(treatmentId).name
+  treatment = Treatments.findOne(treatmentId)
   newId = TurkServer.Experiment.create treatment,
     assignable: true
   TurkServer.Experiment.setup(newId)
