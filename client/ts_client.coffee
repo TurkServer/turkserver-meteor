@@ -27,6 +27,10 @@ TurkServer.isAdmin = ->
 TurkServer.treatment = ->
   Experiments.findOne({}, fields: {treatment: 1})?.treatment
 
+TurkServer.batch = ->
+  experiment = Experiments.findOne({}, fields: {batchId: 1})
+  Batches.findOne(experiment.batchId) if experiment?
+
 TurkServer.currentRound = ->
   RoundTimers.findOne(active: true)
 
