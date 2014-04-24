@@ -100,7 +100,7 @@ Template.tsAdminBatchEditTreatments.events =
       $pull: { treatmentIds: @_id }
   "click .-ts-add-batch-treatment": (e, tmpl) ->
     e.preventDefault()
-    treatment = Spark.getDataContext(tmpl.find(":selected"))
+    treatment = UI.getElementData(tmpl.find(":selected"))
     return unless treatment._id
     Batches.update @_id,
       $addToSet: { treatmentIds: treatment._id }
