@@ -46,14 +46,15 @@ if Meteor.isServer
         $unset: experimentId: null
       }
 
-    treatment = undefined
-    group = undefined
     Treatments.insert(name: "fooTreatment")
-    TurkServer.Experiment.create("fooTreatment", _id: "fooGroup")
-    TurkServer.Experiment.setup("fooGroup")
+    TurkServer.Experiment.create({name: "fooTreatment"}, _id: "fooGroup")
     next()
 
   Tinytest.addAsync "experiment - init - context", (test, next) ->
+    treatment = undefined
+    group = undefined
+    TurkServer.Experiment.setup("fooGroup")
+
     test.equal treatment, "fooTreatment"
     test.equal group, "fooGroup"
     next()
@@ -87,6 +88,7 @@ if Meteor.isClient
   Tinytest.addAsync "experiment - client - received experiment id", (test, next) ->
     Deps.autorun (c) ->
       treatment = TurkServer.treatment()
+      console.info "Got treatment " + treatment
       if treatment
         c.stop()
         test.equal treatment, "fooTreatment"
