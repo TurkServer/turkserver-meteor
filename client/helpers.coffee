@@ -46,7 +46,7 @@ loginCallback = (e) ->
     # submit the HIT
     TurkServer.submitHIT()
   else
-    bootbox.dialog("<p>Unable to login:</p>" + e.message)
+    bootbox.alert("<p>Unable to login:</p>" + e.message)
 
 mturkLogin = (args) ->
   Accounts.callLoginMethod
@@ -72,11 +72,12 @@ testLogin = ->
         <br> Assignment id: <b>#{asstId}</b>
         <br> Worker id: <b>#{workerId}</b>
     """
-  bootbox.confirm prompt, (result) ->
-    return unless result
+  doLogin = (batchId) ->
+    return unless batchId
     console.log "Trying login with fake credentials"
     # Save parameters and login
     loginParams = {
+      batchId: batchId
       hitId: hitId
       assignmentId: asstId
       workerId: workerId
@@ -84,6 +85,12 @@ testLogin = ->
     }
     Session.set("_loginParams", loginParams)
     mturkLogin(loginParams)
+
+  bootbox.prompt
+    title: 'Select batch'
+    inputType: 'select'
+    inputOptions: ({text: batch.name, value: batch._id} for batch in Batches.find().fetch())
+    callback: doLogin
 
 Meteor.startup ->
   # Remember our previous hit parameters unless they have been replaced

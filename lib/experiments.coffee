@@ -4,6 +4,7 @@ init_queue = []
 TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
+TurkServer.batch = -> TurkServer.Experiment.getBatch Partitioner.group()
 TurkServer.treatment = -> TurkServer.Experiment.getTreatment Partitioner.group()
 
 TurkServer.finishExperiment = ->
@@ -13,12 +14,17 @@ TurkServer.finishExperiment = ->
 
 # TODO make this into a class like Meteor.collection ?
 class TurkServer.Experiment
-  @create: (treatment, fields) ->
+  @create: (batch, treatment, fields) ->
     fields = _.extend fields || {},
       startTime: Date.now()
+      batchId: batch._id
       treatment: treatment.name
       treatmentId: treatment._id
     return Experiments.insert(fields)
+
+  @getBatch: (groupId) ->
+    experiment = Experiments.findOne(groupId)
+    return Batches.findOne(experiment.batchId) if experiment?
 
   @getTreatment: (groupId) -> Experiments.findOne(groupId)?.treatment
 
