@@ -27,8 +27,19 @@ TurkServer.isAdmin = ->
 TurkServer.treatment = ->
   Experiments.findOne({}, fields: {treatment: 1})?.treatment
 
-TurkServer.currentRound = ->
-  RoundTimers.findOne(active: true)
+# Find current round, whether running or in break
+# TODO this polls every second, which can be quite inefficient
+currentRound = ->
+  if (activeRound = RoundTimers.findOne(active: true))?
+    # Is the active round started?
+    if activeRound.startTime <= TimeSync.serverTime()
+      return activeRound
+    else
+      # Return the round before this one, if any
+      return RoundTimers.findOne(index: activeRound.index - 1)
+  return
+
+TurkServer.currentRound = if typeof UI isnt "undefined" then UI.emboxValue(currentRound, EJSON.equals) else currentRound
 
 ###
   Reactive computations

@@ -28,9 +28,17 @@ TurkServer.roundRemainingTime = ->
 # Milliseconds until start of next round, if any
 TurkServer.breakRemainingTime = ->
   return unless (round = TurkServer.currentRound())?
-  return unless (nextRound = RoundTimers.findOne(index: round.index + 1))?
-  return unless nextRound.startTime?
-  return Math.max(0, nextRound.startTime - TimeSync.serverTime())
+  now = Date.now()
+  if (round.startTime <= now and round.endTime >= now)
+    # if we are not at a break, return 0
+    return 0
+
+  # if we are at a break, we already set next round to be active.
+  return unless round.startTime?
+  return Math.max(0, round.startTime - TimeSync.serverTime())
+
+#  return unless (nextRound = RoundTimers.findOne(index: round.index + 1))?
+#  return unless nextRound.startTime?
 
 # UI Time helpers
 
