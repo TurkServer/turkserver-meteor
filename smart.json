@@ -8,10 +8,8 @@
     "packages": {
         "bootstrap-3": {},
         "bootboxjs": "4.2.0",
-        "x-editable-bootstrap": {
-          "git": "https://github.com/mizzao/meteor-x-editable-bootstrap.git"
-        },
-        "iron-router": "0.7.1",
+        "x-editable-bootstrap": "1.5.1",
+        "iron-router": {},
         "moment": {},
         "collection-hooks": {},
         "partitioner": {},
