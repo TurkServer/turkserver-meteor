@@ -39,7 +39,7 @@ currentRound = ->
       return RoundTimers.findOne(index: activeRound.index - 1)
   return
 
-TurkServer.currentRound = if typeof UI isnt "undefined" then UI.emboxValue(currentRound, EJSON.equals) else currentRound
+TurkServer.currentRound = UI.emboxValue(currentRound, EJSON.equals)
 
 ###
   Reactive computations

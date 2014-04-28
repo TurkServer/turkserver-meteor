@@ -30,6 +30,7 @@ Package.on_use(function (api) {
         'accounts-ui',
         'accounts-password', // for the admin user
         'deps',
+        'ejson',
         'stylus',
         'jquery',
         'underscore',
