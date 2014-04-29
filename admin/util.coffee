@@ -9,7 +9,10 @@ Util.duration = (millis) ->
 Util.timeSince = (timestamp) -> Util.duration(TimeSync.serverTime() - timestamp)
 Util.timeUntil = (timestamp) -> Util.duration(timestamp - TimeSync.serverTime())
 
-UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne("" + (@_id || @))
+UI.registerHelper "_tsLookupTreatment", ->
+  treatmentId = "" + (@_id || @)
+  return Treatments.findOne(treatmentId) || treatmentId
+
 UI.registerHelper "_tsLookupUser", -> Meteor.users.findOne("" + (@_id || @))
 
 UI.registerHelper "_tsLookupWorker", -> Meteor.users.findOne(workerId: "" + (@workerId || @))
@@ -49,3 +52,9 @@ Template.tsDescList.properties = ->
   for key, value of this
     result.push key: key, value: value
   return result
+
+# Special rules for rendering description lists
+Template.tsDescList.value = ->
+  switch @value
+    when false then "false"
+    else @value

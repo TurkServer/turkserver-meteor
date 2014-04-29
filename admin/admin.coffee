@@ -9,8 +9,6 @@ Meteor.publish "tsAdmin", ->
   # Publish all admin data
   return [
     Batches.find(),
-    Treatments.find(),
-    # Grouping.find(),
     Assignments.find(),
     Workers.find(),
     Qualifications.find(),
@@ -32,7 +30,10 @@ Meteor.publish "tsAdminState", (groupId) ->
   return unless @userId and Meteor.users.findOne(@userId).admin
 
   cursors = [ Meteor.users.find({}, userFindOptions) ]
-  cursors.push Experiments.find() unless groupId # taken care of in tsCurrentExperiment
+
+  unless groupId # specific experiment/treatment sent in tsCurrentExperiment
+    cursors.push Experiments.find()
+    cursors.push Treatments.find()
 
   return cursors
 

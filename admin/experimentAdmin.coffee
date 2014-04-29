@@ -44,6 +44,9 @@ Template.tsAdminTreatments.treatments = treatments
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0
 
 Template.tsAdminTreatments.events =
+  "click tbody > tr": (e) ->
+    Session.set("_tsSelectedTreatmentId", @_id)
+
   "click .-ts-delete-treatment": ->
     Meteor.call "ts-delete-treatment", @_id, (err, res) ->
       bootbox.alert(err.message) if err
@@ -62,6 +65,9 @@ Template.tsAdminNewTreatment.events =
     Treatments.insert
       name: name
     , (e) -> bootbox.alert(e.message) if e
+
+Template.tsAdminTreatmentConfig.selectedTreatment = ->
+  Treatments.findOne Session.get("_tsSelectedTreatmentId")
 
 Template.tsAdminActiveBatches.events =
   "click .-ts-retire-batch": ->
@@ -96,8 +102,10 @@ Template.tsAdminBatchEditDesc.rendered = ->
 
 Template.tsAdminBatchEditTreatments.events =
   "click .-ts-remove-batch-treatment": (e, tmpl) ->
+    treatmentId = "" + (@_id || @) # In case the treatment is gone
     Batches.update Session.get("_tsSelectedBatchId"),
-      $pull: { treatmentIds: @_id }
+      $pull: { treatmentIds:  treatmentId }
+
   "click .-ts-add-batch-treatment": (e, tmpl) ->
     e.preventDefault()
     treatment = UI.getElementData(tmpl.find(":selected"))

@@ -85,12 +85,13 @@ if Meteor.isServer
     TurkServer.Experiment.addUser "fooGroup", userId
 
 if Meteor.isClient
-  Tinytest.addAsync "experiment - client - received experiment id", (test, next) ->
+  Tinytest.addAsync "experiment - client - received experiment and treatment", (test, next) ->
     Deps.autorun (c) ->
       treatment = TurkServer.treatment()
-      console.info "Got treatment " + treatment
+      console.info "Got treatment ", treatment
       if treatment
         c.stop()
-        test.equal treatment, "fooTreatment"
         test.isTrue Experiments.findOne()
+        test.isTrue treatment
+        test.equal treatment.name, "fooTreatment"
         next()

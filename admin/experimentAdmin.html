@@ -90,10 +90,11 @@
     <h3>Manage Treatments</h3>
     <div class="row">
         <div class="col-md-6">
+        {{> tsAdminNewTreatment}}
         {{> tsAdminTreatments }}
         </div>
         <div class="col-md-6">
-        {{> tsAdminNewTreatment}}
+        {{> tsAdminTreatmentConfig }}
         </div>
     </div>
 
@@ -142,6 +143,16 @@
     </form>
 </template>
 
+<template name="tsAdminTreatmentConfig">
+    <div class="well">
+    {{#with selectedTreatment}}
+    {{> tsDescList}}
+    {{else}}
+    <i>Select a treatment to the left to view properties.</i>
+    {{/with}}
+    </div>
+</template>
+
 <template name="tsAdminActiveBatches">
     {{#with activeBatch}}
     <div class="alert alert-info">
@@ -175,7 +186,7 @@
         {{/if}}
 
     {{else}}
-    <i>Select a batch below to view properties.</i>
+    <i>Select a batch to the left to view properties.</i>
     {{/with}}
     </div>
 </template>

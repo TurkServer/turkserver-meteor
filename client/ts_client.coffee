@@ -24,8 +24,7 @@ TurkServer.isAdmin = ->
     "admin" : 1
   )?.admin
 
-TurkServer.treatment = ->
-  Experiments.findOne({}, fields: {treatment: 1})?.treatment
+TurkServer.treatment = -> Treatments.findOne()
 
 # Find current round, whether running or in break
 # TODO this polls every second, which can be quite inefficient

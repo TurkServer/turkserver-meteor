@@ -77,6 +77,7 @@ Meteor.publish "tsCurrentExperiment", (group) ->
   return unless @userId
   return [
     Experiments.find(group),
+    Treatments.find(name: Experiments.findOne(group)?.treatment) # Current treatment data
     RoundTimers.find() # Partitioned by group
   ]
 
