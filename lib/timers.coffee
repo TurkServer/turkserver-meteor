@@ -25,16 +25,20 @@ TurkServer.startNewRound = (startTime, endTime, callback) ->
     active:     true
 
   if callback?
+    # currentInvocation is removed, so we bind the group ourselves if we were called from inside a method
+    # https://github.com/meteor/meteor/blob/devel/packages/meteor/timers.js
+    currentGroup = Partitioner.group()
     Meteor.setTimeout( ->
-      # Check if there is an active round that hasn't ended yet
-      # It may have ended due to the function below; otherwise, the time will have changed
-      activeRound = RoundTimers.findOne
-        index: index,
-        active: true,
-        endTime: endTime
-      return unless activeRound
+      Partitioner.bindGroup currentGroup, ->
+        # Check if there is an active round that hasn't ended yet
+        # It may have ended due to the function below; otherwise, the time will have changed
+        activeRound = RoundTimers.findOne
+          index: index,
+          active: true,
+          endTime: endTime
+        return unless activeRound
 
-      callback()
+        callback()
     , interval)
 
   return

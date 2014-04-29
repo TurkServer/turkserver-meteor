@@ -4,9 +4,9 @@
   for users who are not currently assigned to a HIT.
 ###
 Accounts.validateLoginAttempt (info) ->
-  if info.methodArguments[0].resume? and not info.user.admin
+  if info.methodArguments[0].resume? and not info.user?.admin
     # Is the worker currently assigned to a HIT?
-    unless info.user.workerId and Assignments.findOne(
+    unless info.user?.workerId and Assignments.findOne(
       workerId: info.user.workerId
       status: "assigned"
     )
