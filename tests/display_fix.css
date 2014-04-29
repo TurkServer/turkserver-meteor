@@ -1,0 +1,6 @@
+/*
+  Fix for BS3 fighting with BS2 in tests
+*/
+.container-fluid > .row-fluid:last-child {
+    height: 5000px;
+}

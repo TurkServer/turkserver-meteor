@@ -26,11 +26,13 @@ TurkServer.startNewRound = (startTime, endTime, callback) ->
 
   if callback?
     Meteor.setTimeout( ->
-      # Check if round has already ended, probably due to the function below
-      return unless RoundTimers.findOne
+      # Check if there is an active round that hasn't ended yet
+      # It may have ended due to the function below; otherwise, the time will have changed
+      activeRound = RoundTimers.findOne
         index: index,
         active: true,
-        endTime: { $lt: Date.now() }
+        endTime: endTime
+      return unless activeRound
 
       callback()
     , interval)

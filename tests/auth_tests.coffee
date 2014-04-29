@@ -9,15 +9,12 @@ workerId2 = "authWorkerId2"
 
 experimentId = "authExperimentId"
 
-withCleanup = (fn) ->
-  return ->      
-    try
-      fn.apply(this, arguments)
-    catch error
-      throw error
-    finally
-      Assignments.remove({})
-      Meteor.flush()
+# We can use the after wrapper here because the tests are synchronous
+withCleanup = TestUtils.getCleanupWrapper
+  before: ->
+  after: ->
+    Assignments.remove({})
+    Meteor.flush()
 
 Tinytest.add "auth - with unknown hit", withCleanup (test) ->
   TurkServer.authenticateWorker
