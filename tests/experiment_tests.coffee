@@ -55,7 +55,8 @@ if Meteor.isServer
     group = undefined
     TurkServer.Experiment.setup("fooGroup")
 
-    test.equal treatment, "fooTreatment"
+    test.isTrue treatment
+    test.equal treatment.name, "fooTreatment"
     test.equal group, "fooGroup"
     next()
 

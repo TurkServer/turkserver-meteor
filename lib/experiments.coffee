@@ -20,7 +20,9 @@ class TurkServer.Experiment
       treatmentId: treatment._id
     return Experiments.insert(fields)
 
-  @getTreatment: (groupId) -> Experiments.findOne(groupId)?.treatment
+  @getTreatment: (groupId) ->
+    treatmentName = Experiments.findOne(groupId)?.treatment
+    return Treatments.findOne(name: treatmentName)
 
   @setup: (groupId) ->
     context =

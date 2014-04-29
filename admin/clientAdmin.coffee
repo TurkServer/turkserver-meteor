@@ -57,7 +57,7 @@ Template.turkserverPulldown.events =
 Template.turkserverPulldown.admin = -> Meteor.user()?.admin
 
 Template.tsAdminGroupInfo.group = -> Partitioner.group()
-Template.tsAdminGroupInfo.treatment = -> TurkServer.treatment()
+Template.tsAdminGroupInfo.treatment = -> TurkServer.treatment()?.name
 Template.tsAdminGroupInfo.users = -> Meteor.users.find()
 
 Template.tsAdminLogin.events =
