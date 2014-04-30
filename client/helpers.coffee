@@ -1,4 +1,4 @@
-Handlebars.registerHelper "_tsDebug", ->
+UI.registerHelper "_tsDebug", ->
   console.log @, arguments
 
 # Submit as soon as this template appears on the page.
@@ -35,9 +35,9 @@ params = getURLParams()
 
 TurkServer.submitHIT = -> UI.insert UI.render(Template.mturkSubmit), document.body
 
-Handlebars.registerHelper "hitParams", params
+UI.registerHelper "hitParams", params
 
-Handlebars.registerHelper "hitIsViewing",
+UI.registerHelper "hitIsViewing",
   params.assignmentId and params.assignmentId is "ASSIGNMENT_ID_NOT_AVAILABLE"
 
 loginCallback = (e) ->

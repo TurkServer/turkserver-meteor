@@ -9,22 +9,20 @@ withCleanup = TestUtils.getCleanupWrapper
 Tinytest.addAsync "timers - expiration callback", withCleanup (test, next) ->
   Partitioner.bindGroup testGroup, ->
     now = Date.now()
-    TurkServer.startNewRound now, now + 100, ->
+    TurkServer.Timers.startNewRound now, now + 100, ->
       test.ok()
       next()
 
 Tinytest.addAsync "timers - early expiration", withCleanup (test, next) ->
   Partitioner.bindGroup testGroup, ->
     now = Date.now()
-    TurkServer.startNewRound now, now + 100, ->
+    TurkServer.Timers.startNewRound now, now + 100, ->
       test.fail("This should not have been called")
 
-    TurkServer.endCurrentRound()
+    TurkServer.Timers.endCurrentRound()
 
     # wait to see if we have failed, otherwise we passed
     Meteor.setTimeout ->
       test.ok()
       next()
     , 150
-
-
