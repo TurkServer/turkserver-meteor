@@ -1,3 +1,18 @@
+<template name="tsAdminGroupInfo">
+    <dl class="dl-horizontal ts-compact">
+        <dt>Group:</dt>
+        <dd>{{_id}}</dd>
+        <dt>Treatment:</dt>
+        <dd><span class="badge badge-inverse">{{treatment}}</span></dd>
+        <dt>Users:</dt>
+        <dd>
+            {{#each users}}
+            {{> tsUserPill userId=this}}
+            {{/each}}
+        </dd>
+    </dl>
+</template>
+
 <template name="tsUserPill">
     {{#with user}}
     <div class="ts-user-pill-container">

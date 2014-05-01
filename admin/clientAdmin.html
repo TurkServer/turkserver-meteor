@@ -5,7 +5,8 @@
     <div id="ts-container">
         <div class="tabbable tabs-below container">
             <div id="ts-content" class="tab-content well">
-                {{> tsAdminGroupInfo }}
+                {{> tsAdminGroupInfo currentExperiment }}
+                <a href="/turkserver" class="btn btn-info pull-right">Return to Admin</a>
             </div>
             <ul id="ts-tabs" class="nav nav-tabs pull-right">
                 <li><a href="#" class="ts-adminToggle">TurkServer</a></li>
@@ -13,23 +14,6 @@
         </div>
     </div>
     {{/if}}
-</template>
-
-<template name="tsAdminGroupInfo">
-    <dl class="dl-horizontal ts-compact">
-        <dt>Group:</dt>
-        <dd>{{group}}</dd>
-        <dt>Treatment:</dt>
-        <dd><span class="badge badge-inverse">{{treatment}}</span></dd>
-        <dt>Users:</dt>
-        <dd>
-            {{#each users}}
-            {{> tsUserPill}}
-            {{/each}}
-        </dd>
-    </dl>
-
-    <a href="/turkserver" class="btn btn-info pull-right">Return to Admin</a>
 </template>
 
 <template name="tsAdminLogin">

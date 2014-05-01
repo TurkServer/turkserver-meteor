@@ -20,7 +20,7 @@ UI.registerHelper "_tsRenderTimeUntil", Util.timeUntil
 
 UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)
-  return m.format("l LT") + " (" + m.fromNow() + ")"
+  return m.format("l T") + " (" + m.fromNow() + ")"
 
 Template.tsUserPill.user = ->
   switch

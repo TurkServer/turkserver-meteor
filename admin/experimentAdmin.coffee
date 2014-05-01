@@ -44,7 +44,7 @@ Template.tsAdminCompletedExperiments.duration = -> Util.duration(@endTime - @sta
 
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 
-Template.tsAdminLogs.logEntries = -> Logs.find()
+Template.tsAdminLogs.logEntries = -> Logs.find({}, {sort: _timestamp: -1})
 Template.tsAdminLogs.entryData = -> _.omit(@, "_id", "_userId", "_groupId", "_timestamp")
 
 Template.tsAdminTreatments.treatments = treatments

@@ -45,6 +45,7 @@ Router.map ->
     controller: TSAdminController
     template: "tsAdminLogs"
     waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, parseInt(@params.count))
+    data: -> Experiments.findOne(@params.groupId)
   @route "turkserver/manage",
     controller: TSAdminController
     template: "tsAdminManage"
@@ -75,10 +76,7 @@ Template.turkserverPulldown.events =
     $("#ts-content").slideToggle()
 
 Template.turkserverPulldown.admin = -> Meteor.user()?.admin
-
-Template.tsAdminGroupInfo.group = -> Partitioner.group()
-Template.tsAdminGroupInfo.treatment = -> TurkServer.treatment()?.name
-Template.tsAdminGroupInfo.users = -> Meteor.users.find()
+Template.turkserverPulldown.currentExperiment = -> Experiments.findOne()
 
 Template.tsAdminLogin.events =
   "submit form": (e, tp) ->

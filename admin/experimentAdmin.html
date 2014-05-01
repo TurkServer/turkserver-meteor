@@ -34,7 +34,7 @@
             <td>{{_tsRenderTimeSince startTime}}</td>
             <td><span class="badge badge-inverse">{{treatment}}</span></td>
             <td><b>{{numUsers}}</b></td>
-            <td>{{#each this.users}}
+            <td>{{#each users}}
                 {{> tsUserPill userId=this}}
                 {{/each}}
             </td>
@@ -94,7 +94,11 @@
 </template>
 
 <template name="tsAdminLogs">
-    <h3>Log Viewer</h3>
+    <h3>Showing Logs For:</h3>
+
+    <div class="well">
+        {{> tsAdminGroupInfo}}
+    </div>
 
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
