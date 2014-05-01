@@ -1,5 +1,4 @@
 # Server admin code
-
 isAdmin = (userId) -> userId? and Meteor.users.findOne(userId)?.admin
 
 # Only admin gets server facts
@@ -29,7 +28,7 @@ userFindOptions =
 # Admin users - needs to update if group updates
 # Return all experiments unless in a group
 Meteor.publish "tsAdminState", (groupId) ->
-  return null unless isAdmin(@userId)
+  return [] unless isAdmin(@userId)
 
   cursors = [ Meteor.users.find({}, userFindOptions) ]
 
@@ -49,7 +48,7 @@ offlineFindOptions =
 # Helper publish function to get users for experiments that have ended.
 # Necessary to watch completed experiments.
 Meteor.publish "tsGroupUsers", (groupId) ->
-  return null unless isAdmin(@userId)
+  return [] unless isAdmin(@userId)
   sub = this
   exp = Experiments.findOne(groupId)
   return unless exp
@@ -68,7 +67,7 @@ Meteor.publish "tsGroupUsers", (groupId) ->
   sub.onStop -> subHandle.stop()
 
 Meteor.publish "tsGroupLogs", (groupId, limit) ->
-  return null unless isAdmin(@userId)
+  return [] unless isAdmin(@userId)
 
   return Logs.find({_groupId: groupId}, {
       sort: {_timestamp: -1},
