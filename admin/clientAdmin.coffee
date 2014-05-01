@@ -44,7 +44,7 @@ Router.map ->
   @route "turkserver/logs/:groupId/:count",
     controller: TSAdminController
     template: "tsAdminLogs"
-    waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, @params.count)
+    waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, parseInt(@params.count))
   @route "turkserver/manage",
     controller: TSAdminController
     template: "tsAdminManage"

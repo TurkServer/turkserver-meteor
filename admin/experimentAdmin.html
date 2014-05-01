@@ -35,7 +35,7 @@
             <td><span class="badge badge-inverse">{{treatment}}</span></td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each this.users}}
-                {{> tsUserPill _tsLookupUser}}
+                {{> tsUserPill userId=this}}
                 {{/each}}
             </td>
             <td>
@@ -78,7 +78,7 @@
             <td><span class="badge badge-inverse">{{treatment}}</span></td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each this.users}}
-                {{> tsUserPill _tsLookupUser}}
+                {{> tsUserPill userId=this}}
                 {{/each}}
             </td>
             <td>
@@ -100,6 +100,7 @@
         <thead>
         <tr>
             <th style="width: 160px">Timestamp</th>
+            <th style="width: 120px">User</th>
             <th>Data</th>
         </tr>
         </thead>
@@ -107,6 +108,7 @@
         {{#each logEntries}}
         <tr>
             <td>{{_tsRenderTime _timestamp}}</td>
+            <td>{{> tsUserPill userId=_userId}}</td>
             <td>{{> tsDescList entryData}}</td>
         </tr>
         {{/each}}

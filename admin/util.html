@@ -1,7 +1,9 @@
 <template name="tsUserPill">
+    {{#with user}}
     <div class="ts-user-pill-container">
         <span class="label {{labelClass}}">{{identifier}}</span>
     </div>
+    {{/with}}
 </template>
 
 <template name="tsUserPillPopover">
@@ -28,7 +30,11 @@
     </dl>
 
     {{#if status.online}}
-    <b class="text-success">Connected</b>
+        {{#unless status.idle}}
+        <b class="text-success">Connected</b>
+        {{else}}
+        <b class="text-warning">Connected - Idle</b>
+        {{/unless}}
     {{else}}
     <b class="text-danger">Disconnected</b>
     {{/if}}
