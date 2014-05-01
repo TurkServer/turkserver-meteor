@@ -1,3 +1,9 @@
+getUserGroup = (userId) ->
+  return unless userId
+  # No side effects from admin, please
+  return if Meteor.users.findOne(userId)?.admin
+  return Partitioner.getUserGroup(userId)
+
 ###
   Connect callbacks
 ###
@@ -20,11 +26,7 @@ UserStatus.events.on "connectionLogin", (doc) ->
 connectCallbacks = []
 
 UserStatus.events.on "connectionLogin", (doc) ->
-  return unless doc.userId
-  # No side effects from admin, please
-  return if Meteor.users.findOne(doc.userId)?.admin
-  groupId = Partitioner.getUserGroup(doc.userId)
-  return unless groupId
+  return unless (groupId = getUserGroup(doc.userId))?
   treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
@@ -37,7 +39,7 @@ UserStatus.events.on "connectionLogin", (doc) ->
           userId: doc.userId
           treatment: treatment
       catch e
-        Meteor._debug "Exception in experiment connect callback: " + e
+        Meteor._debug "Exception in user connect callback: " + e
 
 TurkServer.onConnect = (func) ->
   connectCallbacks.push func
@@ -53,11 +55,7 @@ UserStatus.events.on "connectionLogout", (doc) ->
 disconnectCallbacks = []
 
 UserStatus.events.on "connectionLogout", (doc) ->
-  return unless doc.userId
-  # No side effects from admin, please
-  return if Meteor.users.findOne(doc.userId)?.admin
-  groupId = Partitioner.getUserGroup(doc.userId)
-  return unless groupId
+  return unless (groupId = getUserGroup(doc.userId))?
   treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
@@ -70,10 +68,56 @@ UserStatus.events.on "connectionLogout", (doc) ->
           userId: doc.userId
           treatment: treatment
       catch e
-        Meteor._debug "Exception in experiment disconnect callback: " + e
+        Meteor._debug "Exception in user disconnect callback: " + e
 
 TurkServer.onDisconnect = (func) ->
   disconnectCallbacks.push func
+
+###
+  Idle and returning from idle
+###
+
+idleCallbacks = []
+activeCallbacks = []
+
+TurkServer.onIdle = (func) -> idleCallbacks.push(func)
+TurkServer.onActive = (func) -> idleCallbacks.push(func)
+
+# TODO: compute total amount of time a user has been idle in a group
+
+UserStatus.events.on "connectionIdle", (doc) ->
+  return unless (groupId = getUserGroup(doc.userId))?
+  treatment = TurkServer.Experiment.getTreatment(groupId)
+  Partitioner.bindGroup groupId, ->
+    TurkServer.log
+      _userId: doc.userId
+      _meta: "idle"
+      _timestamp: doc.lastActivity # Overridden to a past value
+
+    _.each idleCallbacks, (cb) ->
+      try
+        cb.call
+          userId: doc.userId
+          treatment: treatment
+      catch e
+        Meteor._debug "Exception in user idle callback: " + e
+
+UserStatus.events.on "connectionActive", (doc) ->
+  return unless (groupId = getUserGroup(doc.userId))?
+  treatment = TurkServer.Experiment.getTreatment(groupId)
+  Partitioner.bindGroup groupId, ->
+    TurkServer.log
+      _userId: doc.userId
+      _meta: "active"
+      _timestamp: doc.lastActivity # Also overridden
+
+    _.each activeCallbacks, (cb) ->
+      try
+        cb.call
+          userId: doc.userId
+          treatment: treatment
+      catch e
+        Meteor._debug "Exception in user active callback: " + e
 
 ###
   Methods

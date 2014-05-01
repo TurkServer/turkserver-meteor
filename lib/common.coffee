@@ -10,6 +10,8 @@ TurkServer.partitionCollection = Partitioner.partitionCollection
 @Treatments = new Meteor.Collection("ts.treatments")
 @Experiments = new Meteor.Collection("ts.experiments")
 
+@Logs = new Meteor.Collection("ts.logs")
+
 @RoundTimers = new Meteor.Collection("ts.rounds")
 TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 

@@ -40,6 +40,24 @@ currentRound = ->
 
 TurkServer.currentRound = UI.emboxValue(currentRound, EJSON.equals)
 
+safeStartMonitor = (threshold, idleOnBlur) ->
+  Deps.autorun ->
+    # Don't try to start the monitor in case the state changed
+    @stop() unless TurkServer.inExperiment()
+    try
+      UserStatus.startMonitor {threshold, idleOnBlur}
+      @stop()
+
+idleComp = null
+
+TurkServer.enableIdleMonitor = (threshold, idleOnBlur) ->
+  throw new Error("Idle monitor already enabled") if idleComp?
+  idleComp = Deps.autorun ->
+    if TurkServer.inExperiment()
+      safeStartMonitor(threshold, idleOnBlur)
+    else
+      UserStatus.stopMonitor() if Deps.nonreactive -> UserStatus.isMonitoring()
+
 ###
   Reactive computations
 ###
@@ -61,4 +79,3 @@ Deps.autorun ->
 Deps.autorun ->
   Meteor.subscribe("tsCurrentExperiment", Partitioner.group())
 
-# TODO start idle monitor automatically with an experiment

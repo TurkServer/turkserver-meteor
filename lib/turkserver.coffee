@@ -25,6 +25,7 @@ Treatments._ensureIndex {name: 1}, {unique: 1}
 
 # Only server should update these
 Experiments.deny(always)
+Logs.deny(always)
 RoundTimers.deny(always)
 
 ###

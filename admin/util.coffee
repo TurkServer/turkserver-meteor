@@ -55,6 +55,7 @@ Template.tsDescList.properties = ->
 
 # Special rules for rendering description lists
 Template.tsDescList.value = ->
-  switch @value
-    when false then "false"
+  switch
+    when @value is false then "false"
+    when _.isObject(@value) then JSON.stringify(@value)
     else @value

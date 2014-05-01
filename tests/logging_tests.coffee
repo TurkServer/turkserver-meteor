@@ -1,18 +1,19 @@
 # Server methods
 if Meteor.isServer
 
+  testGroup = "poop"
+
   Meteor.methods
     # Clear anything in logs for the given group
     clearLogs: ->
-      Partitioner.group()
       Logs.remove
         _groupId: Partitioner.group()
       return
     getLogs: (selector) ->
       return Logs.find(selector || {}).fetch()
 
-  Tinytest.addAsync "logging - server group binding", (test, next) ->
-    Partitioner.bindGroup "poop", ->
+  Tinytest.add "logging - server group binding", (test) ->
+    Partitioner.bindGroup testGroup, ->
       Meteor.call "clearLogs"
       TurkServer.log
         boo: "hoo"
@@ -22,7 +23,20 @@ if Meteor.isServer
     test.equal doc.boo, "hoo"
     test.isTrue doc._groupId
     test.isTrue doc._timestamp
-    next()
+
+  Tinytest.add "logging - override timestamp", (test) ->
+    now = new Date()
+    past = new Date(now.getTime() - 1000)
+
+    Partitioner.bindGroup testGroup, ->
+      Meteor.call "clearLogs"
+      TurkServer.log
+        boo: "hoo"
+        _timestamp: past
+
+    doc = Logs.findOne(boo: "hoo")
+    test.isTrue doc._timestamp
+    test.equal doc._timestamp, past
 
 # Client methods
 if Meteor.isClient

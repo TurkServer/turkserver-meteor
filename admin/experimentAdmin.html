@@ -24,10 +24,11 @@
             <th>Treatment</th>
             <th style="width: 50px">Size</th>
             <th>Users</th>
-            <th style="width: 140px"></th>
+            <th style="width: 190px"></th>
         </tr>
         </thead>
         {{#each experiments}}
+        <tbody>
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
             <td>{{_tsRenderTimeSince startTime}}</td>
@@ -41,11 +42,15 @@
                 <button class="btn btn-xs btn-primary -ts-watch-experiment">
                     <span class="glyphicon glyphicon-camera"></span> Watch
                 </button>
+                <button class="btn btn-xs btn-success -ts-experiment-logs">
+                    <span class="glyphicon glyphicon-list-alt"></span> Logs
+                </button>
                 <button class="btn btn-xs btn-danger -ts-stop-experiment">
                     <span class="glyphicon glyphicon-ban-circle"></span> Stop
                 </button>
             </td>
         </tr>
+        </tbody>
         {{/each}}
     </table>
 
@@ -65,6 +70,7 @@
             <th style="width: 80px"></th>
         </tr>
         </thead>
+        <tbody>
         {{#each experiments}}
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
@@ -82,8 +88,30 @@
             </td>
         </tr>
         {{/each}}
+        </tbody>
     </table>
 
+</template>
+
+<template name="tsAdminLogs">
+    <h3>Log Viewer</h3>
+
+    <table class="table table-condensed table-striped ts-admin-table">
+        <thead>
+        <tr>
+            <th style="width: 160px">Timestamp</th>
+            <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each logEntries}}
+        <tr>
+            <td>{{_tsRenderTime _timestamp}}</td>
+            <td>{{> tsDescList entryData}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
 </template>
 
 <template name="tsAdminManage">
@@ -120,6 +148,7 @@
             <th></th>
         </tr>
         </thead>
+        <tbody>
         {{#each treatments}}
         <tr>
             <td>{{> tsTreatmentPill}}</td>
@@ -133,6 +162,7 @@
             <td colspan="2"><i>No treatments configured yet.</i></td>
         </tr>
         {{/if}}
+        </tbody>
     </table>
 </template>
 

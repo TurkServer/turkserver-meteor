@@ -1,5 +1,3 @@
-@Logs = new Meteor.Collection("ts.logs")
-
 Logs._ensureIndex
   _groupId: 1
   _timestamp: 1
@@ -17,7 +15,7 @@ Logs.before.insert (userId, doc) ->
 
   doc._userId = userId if userId
   doc._groupId = groupId
-  doc._timestamp = Date.now()
+  doc._timestamp = new Date() unless doc?._timestamp # Allow specification of custom timestamps
   return true
 
 TurkServer.log = (doc, callback) ->

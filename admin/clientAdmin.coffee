@@ -1,36 +1,56 @@
-Router.map ->
-  @route "turkserver",
-    path: "turkserver/:page?"
-    layoutTemplate: "tsAdminLayout"
-    onBeforeAction: (pause) ->
-      # If not logged in, render login
-      unless Meteor.user()
-        @setLayout("tsContainer")
-        @render("tsAdminLogin")
-        pause()
+# This controller handles the behavior of all admin templates
+class TSAdminController extends RouteController
+  onBeforeAction: (pause) ->
+    # If not logged in, render login
+    unless Meteor.user()
+      @setLayout("tsContainer")
+      @render("tsAdminLogin")
+      pause()
       # If not admin, render access denied
-      else unless Meteor.user().admin
-        @setLayout("tsContainer")
-        @render("tsAdminDenied")
-        pause()
+    else unless Meteor.user().admin
+      @setLayout("tsContainer")
+      @render("tsAdminDenied")
+      pause()
       # If admin but in a group, leave the group
-      else if Partitioner.group()
-        @setLayout("tsContainer")
-        @render("tsAdminWatching")
-        pause()
-    action: ->
-      # TODO remove this when EventedMind/iron-router#607 is merged
-      @setLayout("tsAdminLayout")
-      switch @params?.page
-        when "mturk" then @render("tsAdminMTurk")
-        when "hits" then @render("tsAdminHits")
-        when "workers" then @render("tsAdminWorkers")
-        when "connections" then @render("tsAdminConnections")
-        when "lobby" then @render("tsAdminLobby")
-        when "experiments" then @render("tsAdminExperiments")
-        when "manage" then @render("tsAdminManage")
-        else @render("tsAdminOverview")
-      return
+    else if Partitioner.group()
+      @setLayout("tsContainer")
+      @render("tsAdminWatching")
+      pause()
+  layout: "tsAdminLayout"
+  action: ->
+    # TODO remove this when EventedMind/iron-router#607 is merged
+    @setLayout("tsAdminLayout")
+    @render()
+
+Router.map ->
+  @route "turkserver/mturk",
+    controller: TSAdminController
+    template: "tsAdminMTurk"
+  @route "turkserver/hits",
+    controller: TSAdminController
+    template: "tsAdminHits"
+  @route "turkserver/workers",
+    controller: TSAdminController
+    template: "tsAdminWorkers"
+  @route "turkserver/connections",
+    controller: TSAdminController
+    template: "tsAdminConnections"
+  @route "turkserver/lobby",
+    controller: TSAdminController
+    template: "tsAdminLobby"
+  @route "turkserver/experiments",
+    controller: TSAdminController
+    template: "tsAdminExperiments",
+  @route "turkserver/logs/:groupId/:count",
+    controller: TSAdminController
+    template: "tsAdminLogs"
+    waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, @params.count)
+  @route "turkserver/manage",
+    controller: TSAdminController
+    template: "tsAdminManage"
+  @route "turkserver",
+    controller: TSAdminController
+    template: "tsAdminOverview"
 
 # Subscribe to admin data if we are an admin user.
 # On rerun, subscription is automatically stopped
