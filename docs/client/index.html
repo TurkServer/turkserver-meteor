@@ -1,0 +1,45 @@
+<head>
+    <title>docs</title>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/1.4.11/jquery.scrollTo.min.js"></script>
+    <link rel="stylesheet" href="http://yandex.st/highlightjs/8.0/styles/default.min.css">
+    <script src="http://yandex.st/highlightjs/8.0/highlight.min.js"></script>
+</head>
+
+<body>
+<a href="https://github.com/HarvardEconCS/TurkServer">
+    <img class="forkme" src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub">
+</a>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            {{> _menu}}
+        </div>
+        <div class="col-md-9">
+            {{#each sections}}
+            {{> _section}}
+            {{/each}}
+        </div>
+    </div>
+</div>
+</body>
+
+<template name="_menu">
+    <div id="menu" data-spy="affix" data-offset-top="0" data-offset-bottom="0">
+        <h3>TurkServer</h3>
+        <p class="text-muted">Meteor edition</p>
+        <ul class="nav nav-pills nav-stacked">
+            {{#each sections}}
+            <li><a href="#{{id}}">{{this}}</a></li>
+            {{/each}}
+        </ul>
+    </div>
+</template>
+
+<template name="_section">
+{{#markdown}}
+{{this}}
+--------
+{{> theTemplate }}
+{{/markdown}}
+</template>

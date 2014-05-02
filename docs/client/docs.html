@@ -1,0 +1,119 @@
+<!-- Order of templates here determines display order -->
+
+<template name="Overview">
+[Meteor](https://www.meteor.com) is a fantastic framework that makes building real-time web apps effortless, and iteration very fast.
+
+**This makes it perfect for building web-based experiments.** But, you have to manage your subjects and the data that you collect.
+
+TurkServer is a package that facilitates designing web-based user experiments using the power of Meteor. All you need to do is to learn Meteor. TurkServer gives you useful APIs when you need them, and will stay out of the way otherwise. It does this by sitting on top of the app that you design, intercepting the server-client communication, and then providing a management interface for your experiment.
+
+TurkServer allows you to develop your application as a standalone Meteor app, i.e. for a single instance of your experiment. Then, add TurkServer to your application as a smart package, and you're pretty much ready to run.
+</template>
+
+<template name="Installation">
+
+1. [Install Meteor](http://docs.meteor.com/#quickstart) and create a an app.
+2. Add TurkServer to your app:
+
+    ```
+    git clone --recursive https://github.com:HarvardEconCS/turkserver-meteor.git packages/turkserver
+    ```
+
+3. Update package dependencies:
+
+    ```
+    mrt update turkserver
+    ```
+
+4. Launch Meteor and go to `/turkserver` in your web browser to manage your experiment.
+5. Deploy your experiment on free Meteor hosting and use real subjects on MTurk:
+
+    ```
+    meteor deploy my-experiment.meteor.com
+    ```
+
+</template>
+
+<template name="Administration Interface">
+TurkServer has a built-in administration interface at `/turkserver`. You can use this to manage batches, manage treatments, view the progress of experiments, and post HITs to recruit subjects.
+</template>
+
+<template name="Structuring Your App">
+
+The design of TurkServer uses the [partitioner](https://github.com/mizzao/meteor-partitioner) package for Meteor to divide up a single Meteor app into different instances that are segregated from one another. This makes experiments easy to design while taking full advantage of Meteor's powerful publish-subscribe data framework.
+
+The state of each experiment is encapsulated in [Meteor collections](http://docs.meteor.com/#collections). Declare your collections to be partitioned with the following client/server code:
+
+```js
+Foo = new Meteor.Collection("foo");
+TurkServer.partitionCollection(Foo, options);
+```
+
+For now, `options` can include a single field, `index`, which specifies the index to for MongoDB to use within each partition.
+
+</template>
+
+<template name="Batches and Treatments">
+TurkServer uses the concept of **batches** to logically group instances of experiments together. Each batch controls the assignment of incoming users to **treatments**.
+
+Treatments can be initialized using the `TurkServer.initialize` function, which registers a callback handler when an experiment is created. All collection operations inside this handler will be scoped to the experiment.
+
+Treatments can have structured data which are made available to the app under `TurkServer.treatment()`.
+</template>
+
+<template name="Tutorials">
+TurkServer provides an API for administering tutorials and quizzes for your participants to ensure understanding.
+</template>
+
+<template name="Lobby">
+TurkServer provides a lobby for grouping users into interactive experiments.
+</template>
+
+<template name="Exit Surveys">
+Use an exit survey to collect final data and debrief participants.
+</template>
+
+<template name="Settings">
+
+Put a structure like the following in `Meteor.settings` of your app.
+
+```js
+"turkserver": {
+    "adminPassword": "something",
+    "hits": {
+        "acceptUnknownHits": true
+    },
+    "mturk": {
+        "accessKeyId": "Your_AWS_Access_Key",
+        "secretAccessKey": "Your_AWS_Secret_Key"
+    }
+}
+```
+
+Details are explained below.
+
+- `adminPassword`: The password you will use to log in to the web interface.
+
+### `hits`
+
+- `acceptUnknownHits`: `true`/`false` whether to accept unrecognized HITs (those not created or forgotten) by the server for tasks. Needed for testing and generally safe, but leaves open the possibility of malicious behavior.
+
+### `mturk`
+
+- `accessKey`: Your AWS Access Key ID.
+- `secretKey`: Your AWS Secret Access Key.
+
+</template>
+
+<template name="Notes and Troubleshooting">
+
+Because TurkServer runs alongside your app on both the server and client, strange behavior can occur when writing code without thoughtfulness. While we've tried our best to prevent easily-avoidable problems, some issues might still arise due to these reasons. These are some things to be aware of:
+
+- **CSS conflicts**. TurkServer uses regular Bootstrap classes with no modification. If you use CSS classes that conflict with Bootstrap in your app, or selectors for unqualified tags, the admin backend will likely be messed up.
+- **Meteor template name conflicts**. TurkServer templates all have the prefix `ts`.
+- **Handlebars helper conflicts**. Internal TurkServer global helpers have the prefix `_ts`.
+</template>
+
+<template name="API Reference">
+This can change quite a bit as we approach a stable release. For the most updated API, [consult the source](https://github.com/HarvardEconCS/turkserver-meteor).
+</template>
