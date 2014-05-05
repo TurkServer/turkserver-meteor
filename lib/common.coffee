@@ -2,6 +2,8 @@
 # This is exported so it doesn't need @
 TurkServer = TurkServer || {}
 
+TestUtils = TestUtils || {}
+
 # Backwards compat, and for cohesion while programming
 TurkServer.group = Partitioner.group
 TurkServer.partitionCollection = Partitioner.partitionCollection

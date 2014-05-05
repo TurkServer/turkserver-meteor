@@ -46,8 +46,12 @@ if Meteor.isServer
         $unset: experimentId: null
       }
 
-    Treatments.insert(name: "fooTreatment")
-    TurkServer.Experiment.create({name: "fooTreatment"}, _id: "fooGroup")
+    # These properties are checked below
+    Treatments.insert
+      name: "fooTreatment"
+      fooProperty: "bar"
+
+    TurkServer.Experiment.create({}, {name: "fooTreatment"}, _id: "fooGroup")
     next()
 
   Tinytest.addAsync "experiment - init - context", (test, next) ->
@@ -57,6 +61,7 @@ if Meteor.isServer
 
     test.isTrue treatment
     test.equal treatment.name, "fooTreatment"
+    test.equal treatment.fooProperty, "bar"
     test.equal group, "fooGroup"
     next()
 

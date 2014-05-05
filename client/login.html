@@ -1,0 +1,16 @@
+<template name="tsTestingLogin">
+    <p>TurkServer can create a fake user for testing purposes.</p>
+    <p>Select a batch to log in with the following credentials, or close this dialog.</p>
+    <br> HIT id: <b>{{hitId}}</b>
+    <br> Assignment id: <b>{{assignmentId}}</b>
+    <br> Worker id: <b>{{workerId}}</b>
+
+    <form class="form-inline">
+        <select name="batch" class="form-control">
+            {{#each batches}}
+            <option value="{{_id}}">{{name}}</option>
+            {{/each}}
+        </select>
+        <button class="btn btn-primary" type="submit">Login</button>
+    </form>
+</template>

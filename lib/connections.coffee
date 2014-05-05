@@ -220,7 +220,8 @@ TurkServer.handleConnection = (doc) ->
 # Assignment from lobby
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
-  treatmentId = _.sample getCurrentBatch(userIds[0]).treatmentIds
+  batch = getCurrentBatch(userIds[0])
+  treatmentId = _.sample batch.treatmentIds
   treatment = Treatments.findOne(treatmentId)
   newId = TurkServer.Experiment.create(batch, treatment)
   TurkServer.Experiment.setup(newId)

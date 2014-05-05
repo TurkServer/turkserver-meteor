@@ -1,5 +1,3 @@
-@TestUtils = {}
-
 if Meteor.isClient
   # Prevent router from complaining about missing path
   Router.map ->
@@ -8,8 +6,8 @@ if Meteor.isClient
 
 if Meteor.isServer
   # Set up a dummy batch
-  unless Batches.find().count()
-    Batches.insert(name: 'test')
+  unless (TestUtils.authBatchId = Batches.findOne())?
+    TestUtils.authBatchId = Batches.insert(name: 'test')
 
   # Set up a dummy HIT type and HIT
   unless HITTypes.find().count()

@@ -77,8 +77,10 @@ Package.on_use(function (api) {
     // Client
     api.add_files([
         'client/templates.html',
+        'client/login.html',
         'client/ts_client.styl',
         'client/ts_client.coffee',
+        'client/login.coffee',
         'client/logging_client.coffee',
         'client/timers_client.coffee',
         'client/helpers.coffee',
@@ -105,6 +107,7 @@ Package.on_use(function (api) {
     api.add_files('admin/admin.coffee', 'server');
 
     api.export(['TurkServer']);
+    api.export(['TestUtils'], { testOnly: true });
 });
 
 Package.on_test(function (api) {

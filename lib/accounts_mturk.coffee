@@ -13,9 +13,9 @@ Accounts.validateLoginAttempt (info) ->
       throw new Meteor.Error(403, "Your HIT session has expired.")
   return true
 
-TurkServer.authenticateWorker = (loginRequest) ->
+authenticateWorker = (loginRequest) ->
   # Has this worker already completed the HIT?
-  {hitId, assignmentId, workerId} = loginRequest
+  { hitId, assignmentId, workerId } = loginRequest
   if Assignments.findOne({
     hitId
     assignmentId
@@ -51,21 +51,19 @@ TurkServer.authenticateWorker = (loginRequest) ->
 
   # TODO check for the hitId in the current batch, in case the HIT is out of date
   if loginRequest.batchId?
-    {batchId} = loginRequest
+    { batchId } = loginRequest
   else
     hit = HITs.findOne
       HITId: hitId
     hitType = HITTypes.findOne
       HITTypeId: hit.HitTypeId
-    {batchId} = hitType
-  batch = Batches.findOne(batchId)
+    { batchId } = hitType
 
   predicate =
     workerId: loginRequest.workerId
     batchId: batchId
 
-  if Assignments.find(predicate).count() >=
-  TurkServer.config.experiment.limit.batch
+  if Assignments.find(predicate).count() >= TurkServer.config.experiment.limit.batch
     throw new Meteor.Error(403, ErrMsg.batchLimit)
 
   # Either no one has this assignment before or this worker replaced someone;
@@ -97,7 +95,7 @@ Accounts.registerLoginHandler (loginRequest) ->
     userId = user._id;
 
   # should we let this worker in or not?
-  TurkServer.authenticateWorker(loginRequest)
+  authenticateWorker(loginRequest)
 
   TurkServer.handleConnection
     hitId: loginRequest.hitId
@@ -110,3 +108,6 @@ Accounts.registerLoginHandler (loginRequest) ->
   return {
     userId: userId,
   }
+
+# Test exports
+TestUtils.authenticateWorker = authenticateWorker

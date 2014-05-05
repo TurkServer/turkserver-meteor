@@ -19,7 +19,7 @@ class TurkServer.Experiment
       startTime: Date.now()
       batchId: batch._id
       treatment: treatment.name
-      treatmentId: treatment._id
+
     return Experiments.insert(fields)
 
   # TODO: what is this being used for?

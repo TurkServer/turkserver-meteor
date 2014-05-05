@@ -16,9 +16,12 @@ withCleanup = TestUtils.getCleanupWrapper
     Assignments.remove({})
     Meteor.flush()
 
+# TODO add test that requires current batch
+
 Tinytest.add "auth - with unknown hit", withCleanup (test) ->
-  TurkServer.authenticateWorker
-    hitId: hitId,
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId
     assignmentId : assignmentId
     workerId: workerId
 
@@ -28,6 +31,7 @@ Tinytest.add "auth - with unknown hit", withCleanup (test) ->
 
   test.isTrue(record)
   test.equal(record.workerId, workerId, "workerId not saved")
+  test.equal(record.batchId, TestUtils.authBatchId)
 
 Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
   Assignments.insert
@@ -36,8 +40,9 @@ Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
     workerId: workerId
     status: "assigned"
 
-  TurkServer.authenticateWorker
-    hitId: hitId,
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId
     assignmentId : assignmentId
     workerId: workerId
 
@@ -50,8 +55,7 @@ Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
 
 Tinytest.add "auth - reconnect - with existing hit after batch retired", withCleanup (test) ->
   # TODO clean up batch hack in here
-  batchId = Batches.findOne(active: true)._id
-  Batches.update(batchId, $unset: active: false)
+  Batches.update(TestUtils.authBatchId, $unset: active: false)
 
   Assignments.insert
     hitId: hitId
@@ -59,8 +63,9 @@ Tinytest.add "auth - reconnect - with existing hit after batch retired", withCle
     workerId: workerId
     status: "assigned"
 
-  TurkServer.authenticateWorker
-    hitId: hitId,
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId
     assignmentId : assignmentId
     workerId: workerId
 
@@ -71,7 +76,7 @@ Tinytest.add "auth - reconnect - with existing hit after batch retired", withCle
 
   test.equal(record.status, "assigned")
 
-  Batches.update(batchId, $set: active: true)
+  Batches.update(TestUtils.authBatchId, $set: active: true)
 
 Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
   Assignments.insert
@@ -82,8 +87,9 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
     experimentId: experimentId
 
   # Authenticate with different worker
-  TurkServer.authenticateWorker
-    hitId: hitId,
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId
     assignmentId : assignmentId
     workerId: workerId2
 
@@ -110,8 +116,9 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     status: "completed"
 
   # Authenticate with different worker
-  TurkServer.authenticateWorker
-    hitId: hitId,
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId
     assignmentId : assignmentId
     workerId: workerId2
 
@@ -136,7 +143,8 @@ Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
     workerId: workerId
     status: "completed"
 
-  testFunc = -> TurkServer.authenticateWorker
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
     hitId: hitId,
     assignmentId : assignmentId
     workerId: workerId
@@ -151,7 +159,8 @@ Tinytest.add "auth - limit - concurrent across hits", withCleanup (test) ->
     workerId: workerId
     status: "assigned"
 
-  testFunc = -> TurkServer.authenticateWorker
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
     hitId: hitId2,
     assignmentId : assignmentId2
     workerId: workerId
@@ -167,7 +176,8 @@ Tinytest.add "auth - limit - concurrent across assts", withCleanup (test) ->
     workerId: workerId
     status: "assigned"
 
-  testFunc = -> TurkServer.authenticateWorker
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
     hitId: hitId,
     assignmentId : assignmentId2
     workerId: workerId
@@ -176,26 +186,23 @@ Tinytest.add "auth - limit - concurrent across assts", withCleanup (test) ->
     e.error is 403 and e.reason is ErrMsg.simultaneousLimit
 
 Tinytest.add "auth - limit - too many total", withCleanup (test) ->
-  batchId = Batches.findOne(active: true)._id
-
   Assignments.insert
-    batchId: batchId
+    batchId: TestUtils.authBatchId
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
     status: "completed"
   # Should not trigger concurrent limit
 
-  testFunc = -> TurkServer.authenticateWorker
-    hitId: hitId2,
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
+    hitId: hitId2
     assignmentId : assignmentId2
     workerId: workerId
 
   test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
 
 Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) ->
-  batchId = Batches.findOne(active: true)._id
-
   Assignments.insert
     batchId: "someOtherBatch"
     hitId: hitId
@@ -204,7 +211,8 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
     status: "completed"
     # Should not trigger concurrent limit
 
-  TurkServer.authenticateWorker
+  TestUtils.authenticateWorker
+    batchId: TestUtils.authBatchId
     hitId: hitId2,
     assignmentId : assignmentId2
     workerId: workerId
@@ -223,6 +231,6 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
   test.equal(prevRecord.batchId, "someOtherBatch")
 
   test.equal(newRecord.status, "assigned")
-  test.equal(newRecord.batchId, batchId)
+  test.equal(newRecord.batchId, TestUtils.authBatchId)
   
 
