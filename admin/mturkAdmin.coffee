@@ -26,6 +26,7 @@ Template.tsAdminNewHitType.events =
     e.preventDefault()
 
     id = HITTypes.insert
+      batchId: tmpl.find("select[name=batch]").value
       Title: tmpl.find("input[name=title]").value
       Description: tmpl.find("textarea[name=desc]").value
       Keywords: tmpl.find("input[name=keywords]").value
@@ -37,6 +38,8 @@ Template.tsAdminNewHitType.events =
     Session.set("_tsSelectedHITType", id)
 
 Template.tsAdminNewHitType.quals = quals
+
+Template.tsAdminNewHitType.batches = Batches.find()
 
 Template.tsAdminQuals.events =
   "click .-ts-delete-qual": ->

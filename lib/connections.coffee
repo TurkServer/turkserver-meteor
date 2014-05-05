@@ -123,6 +123,20 @@ UserStatus.events.on "connectionActive", (doc) ->
   Methods
 ###
 
+getCurrentAssignment = (userId) ->
+  userId = Meteor.userId() unless userId?
+  return unless userId?
+  user = Meteor.users.findOne(userId)
+  Assignments.findOne
+    workerId: user.workerId
+    status: "assigned"
+
+getCurrentBatch = (userId)->
+  assignment = getCurrentAssignment(userId)
+  return unless assignment?
+  Batches.findOne(assignment.batchId)
+
+
 Meteor.methods
   "ts-set-username": (username) ->
     # TODO may need validation here due to bad browsers/bad people
@@ -147,9 +161,7 @@ Meteor.methods
     throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
 
     # TODO what if this doesn't exist?
-    asst = Assignments.findOne
-      workerId: user.workerId
-      status: "assigned"
+    asst = getCurrentAssignment()
 
     # mark assignment as completed and save the data
     Assignments.update asst._id,
@@ -193,12 +205,12 @@ TurkServer.handleConnection = (doc) ->
     return
 
   # None of the above, throw them into the assignment mechanism
-  activeBatch = Batches.findOne(active: true)
-  throw new Meteor.Error(403, "No active batch configured on server") unless activeBatch?
+  batch = getCurrentBatch(doc.userId)
+  throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
 
-  if activeBatch.grouping is "groupSize" and activeBatch.lobby
+  if batch.grouping is "groupSize" and batch.lobby
     TurkServer.Lobby.addUser(doc.userId)
-  else if activeBatch.grouping is "groupCount"
+  else if batch.grouping is "groupCount"
     TurkServer.assignUserRoundRobin(doc.userId)
   else
     TurkServer.assignUserSequential(doc.userId)
@@ -208,9 +220,9 @@ TurkServer.handleConnection = (doc) ->
 # Assignment from lobby
 TurkServer.assignAllUsers = (userIds) ->
   # TODO don't just assign a random treatment
-  treatmentId = _.sample Batches.findOne(active: true).treatmentIds
+  treatmentId = _.sample getCurrentBatch(userIds[0]).treatmentIds
   treatment = Treatments.findOne(treatmentId)
-  newId = TurkServer.Experiment.create(treatment)
+  newId = TurkServer.Experiment.create(batch, treatment)
   TurkServer.Experiment.setup(newId)
 
   _.each userIds, (userId) ->
@@ -218,7 +230,7 @@ TurkServer.assignAllUsers = (userIds) ->
 
 # Assignment for fixed group count
 TurkServer.assignUserRoundRobin = (userId) ->
-  experimentIds = Batches.findOne(active: true).experimentIds
+  experimentIds = getCurrentBatch(userId).experimentIds
   exp = _.min Experiments.find(_id: $in: experimentIds).fetch(), (ex) ->
     Grouping.find(groupId: ex._id).count()
 
@@ -226,12 +238,12 @@ TurkServer.assignUserRoundRobin = (userId) ->
 
 # Assignment for no lobby fixed group size
 TurkServer.assignUserSequential = (userId) ->
-  activeBatch = Batches.findOne(active: true)
+  batch = getCurrentBatch(userId)
 
   assignedToExisting = false
   Experiments.find(assignable: true).forEach (exp) ->
     return if assignedToExisting # Break loop if already assigned
-    if Grouping.find(groupId: exp._id).count() < activeBatch.groupVal
+    if Grouping.find(groupId: exp._id).count() < batch.groupVal
       TurkServer.Experiment.addUser(exp._id, userId)
       assignedToExisting = true
 
@@ -239,9 +251,9 @@ TurkServer.assignUserSequential = (userId) ->
 
   # Create a new experiment
   # TODO find a treatment
-  treatmentId = _.sample Batches.findOne(active: true).treatmentIds
+  treatmentId = _.sample batch.treatmentIds
   treatment = Treatments.findOne(treatmentId)
-  newId = TurkServer.Experiment.create treatment,
+  newId = TurkServer.Experiment.create batch, treatment,
     assignable: true
   TurkServer.Experiment.setup(newId)
   TurkServer.Experiment.addUser(newId, userId)

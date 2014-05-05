@@ -15,10 +15,11 @@ Accounts.validateLoginAttempt (info) ->
 
 TurkServer.authenticateWorker = (loginRequest) ->
   # Has this worker already completed the HIT?
+  {hitId, assignmentId, workerId} = loginRequest
   if Assignments.findOne({
-    hitId: loginRequest.hitId
-    assignmentId: loginRequest.assignmentId
-    workerId: loginRequest.workerId
+    hitId
+    assignmentId
+    workerId
     status: "completed"
   })
     # makes the client auto-submit with this error
@@ -26,13 +27,13 @@ TurkServer.authenticateWorker = (loginRequest) ->
 
   # Is this already assigned to someone?
   existing = Assignments.findOne
-    hitId: loginRequest.hitId
-    assignmentId: loginRequest.assignmentId
+    hitId: hitId
+    assignmentId: assignmentId
     status: "assigned"
 
   if existing
     # Was a different account in progress?
-    if loginRequest.workerId is existing.workerId
+    if workerId is existing.workerId
       # Worker has already logged in to this HIT, no need to create record below
       return
     else
@@ -42,20 +43,26 @@ TurkServer.authenticateWorker = (loginRequest) ->
 
   # Check for limits before creating a new assignment
   if Assignments.find({
-    workerId: loginRequest.workerId,
+    workerId: workerId,
     status: { $ne: "completed" }
   }).count() >=
   TurkServer.config.experiment.limit.simultaneous
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
   # TODO check for the hitId in the current batch, in case the HIT is out of date
-  activeBatch = Batches.findOne(active: true)
+  if loginRequest.batchId?
+    {batchId} = loginRequest
+  else
+    hit = HITs.findOne
+      HITId: hitId
+    hitType = HITTypes.findOne
+      HITTypeId: hit.HitTypeId
+    {batchId} = hitType
+  batch = Batches.findOne(batchId)
 
   predicate =
     workerId: loginRequest.workerId
-
-  # TODO: allow for excluding other batches
-  predicate.batchId = activeBatch._id if activeBatch
+    batchId: batchId
 
   if Assignments.find(predicate).count() >=
   TurkServer.config.experiment.limit.batch
@@ -64,13 +71,12 @@ TurkServer.authenticateWorker = (loginRequest) ->
   # Either no one has this assignment before or this worker replaced someone;
   # Create a new record for this worker on this assignment
   save =
+    batchId: batchId
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
     workerId: loginRequest.workerId
     acceptTime: Date.now()
     status: "assigned"
-
-  save.batchId = activeBatch._id if activeBatch
 
   Assignments.insert(save)
   return

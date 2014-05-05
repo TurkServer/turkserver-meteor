@@ -53,8 +53,8 @@ loginCallback = (e) ->
     # TODO: make this a bit more robust
     # Log us out even if the resume token logged us in; copied from
     # https://github.com/meteor/meteor/blob/devel/packages/accounts-base/accounts_client.js#L195
-    Accounts.connection.setUserId(null);
-    Accounts.connection.onReconnect = null;
+    Accounts.connection.setUserId(null)
+    Accounts.connection.onReconnect = null
 
 mturkLogin = (args) ->
   Accounts.callLoginMethod
@@ -81,11 +81,13 @@ testLogin = ->
         <br> Assignment id: <b>#{asstId}</b>
         <br> Worker id: <b>#{workerId}</b>
     """
-  bootbox.confirm prompt, (result) ->
-    return unless result
+
+  doLogin = (batchId) ->
+    return unless batchId
     console.log "Trying login with fake credentials"
     # Save parameters and login
     loginParams = {
+      batchId: batchId
       hitId: hitId
       assignmentId: asstId
       workerId: workerId
@@ -93,6 +95,14 @@ testLogin = ->
     }
     Session.set("_loginParams", loginParams)
     mturkLogin(loginParams)
+
+  bootbox.prompt
+    title: 'Select batch'
+    message: prompt
+    inputType: 'select'
+    inputOptions: ({text: batch.name, value: batch._id} for batch in Batches.find().fetch())
+    callback: doLogin
+
   return
 
 # Remember our previous hit parameters unless they have been replaced

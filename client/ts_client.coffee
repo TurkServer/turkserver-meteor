@@ -24,6 +24,10 @@ TurkServer.isAdmin = ->
     "admin" : 1
   )?.admin
 
+TurkServer.batch = ->
+  experiment = Experiments.findOne({}, fields: {batchId: 1})
+  Batches.findOne(experiment.batchId) if experiment?
+
 TurkServer.treatment = -> Treatments.findOne()
 
 # Find current round, whether running or in break

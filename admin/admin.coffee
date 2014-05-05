@@ -81,15 +81,15 @@ Meteor.methods
   "ts-admin-activate-batch": (batchId) ->
     checkAdmin()
 
-    activeBatch = Batches.findOne(batchId)
-    if activeBatch.grouping is "groupCount"
+    batch = Batches.findOne(batchId)
+    if batch.grouping is "groupCount"
       # Make sure we have enough experiments in this batch
-      numExps = activeBatch?.experimentIds?.length || 0
-      while numExps++ < activeBatch.groupVal
+      numExps = batch?.experimentIds?.length || 0
+      while numExps++ < batch.groupVal
         # TODO pick treatments properly
-        treatmentId = _.sample activeBatch.treatmentIds
+        treatmentId = _.sample batch.treatmentIds
         treatment = Treatments.findOne(treatmentId).name
-        expId = TurkServer.Experiment.create(treatment)
+        expId = TurkServer.Experiment.create(batch, treatment)
         TurkServer.Experiment.setup(expId)
         Batches.update batchId,
           $addToSet: experimentIds: expId
@@ -110,6 +110,7 @@ Meteor.methods
     # Build up the params to register the HIT Type
     params = HITTypes.findOne(hitTypeId)
     delete params._id
+    delete params.batchId
 
     params.Reward =
       Amount: params.Reward
