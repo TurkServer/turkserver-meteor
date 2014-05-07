@@ -145,7 +145,7 @@ Meteor.methods
     params.HITTypeId = hitType.HITTypeId
     params.Question =
       """<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd">
-          <ExternalURL>#{TurkServer.config.mturk.externalUrl}</ExternalURL>
+          <ExternalURL>#{TurkServer.config.mturk.externalUrl}?batchId=#{hitType.batchId}</ExternalURL>
           <FrameHeight>#{TurkServer.config.mturk.frameHeight}</FrameHeight>
         </ExternalQuestion>
       """

@@ -25,8 +25,8 @@ TurkServer.isAdmin = ->
   )?.admin
 
 TurkServer.batch = ->
-  experiment = Experiments.findOne({}, fields: {batchId: 1})
-  Batches.findOne(experiment.batchId) if experiment?
+  batchId = Session.get('_loginParams')?.batchId
+  Batches.findOne(batchId) if batchId?
 
 TurkServer.treatment = -> Treatments.findOne()
 

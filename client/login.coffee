@@ -93,6 +93,7 @@ if params.hitId and params.assignmentId and params.workerId
     hitId: params.hitId
     assignmentId: params.assignmentId
     workerId: params.workerId
+    batchId: params.batchId
   })
   Meteor._debug "Captured login params"
 
