@@ -336,7 +336,7 @@
         <tbody>
         {{#each completedAssts}}
         <tr>
-            <td>{{> tsUserPill workerId=workerId }}<br>{{_tsRenderISOTime submitTime}}</td>
+            <td>{{> tsUserPill workerId=workerId }}<br>{{_tsRenderISOTime submitTime}}<br>{{tsTreatmentNameForExperiment experimentId}}</td>
             <td>{{> tsDescList exitdata}}</td>
         </tr>
         {{/each}}
