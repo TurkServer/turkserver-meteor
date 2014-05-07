@@ -89,3 +89,10 @@ TurkServer.startup = (func) ->
   Meteor.startup ->
     Partitioner.directOperation(func)
 
+TurkServer.ensureTreatmentExists = (props) ->
+  treatment = Treatments.findOne {name: props.name}
+  if treatment?
+    Treatments.update treatment._id, {$set: props}
+    treatment._id
+  else
+    Treatments.insert props
