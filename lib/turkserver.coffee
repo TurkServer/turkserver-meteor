@@ -82,6 +82,7 @@ Meteor.publish "tsCurrentExperiment", (group) ->
   ]
 
   # Current treatment data
+  # XXX Treatments will not be updated reactively if added/removed to the experiment
   if (treatments = Experiments.findOne(group)?.treatments)?
     cursors.push Treatments.find(name: $in: treatments)
 

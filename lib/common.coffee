@@ -13,6 +13,7 @@ TurkServer.partitionCollection = Partitioner.partitionCollection
 # TODO rename these instances
 @Experiments = new Meteor.Collection("ts.experiments")
 
+@LobbyStatus = new Meteor.Collection("ts.lobby")
 @Logs = new Meteor.Collection("ts.logs")
 
 @RoundTimers = new Meteor.Collection("ts.rounds")

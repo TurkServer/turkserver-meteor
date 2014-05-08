@@ -65,13 +65,14 @@ Package.on_use(function (api) {
         'lib/config.coffee',
         'lib/turkserver.coffee',
         'lib/mturk.coffee',
+        'lib/lobby_server.coffee',
+        'lib/batches.coffee',
         'lib/experiments.coffee',
         'lib/logging.coffee',
         'lib/assigners.coffee',
         'lib/connections.coffee',
         'lib/timers.coffee',
-        'lib/accounts_mturk.coffee',
-        'lib/lobby_server.coffee'
+        'lib/accounts_mturk.coffee'
     ], 'server');
 
     // Client

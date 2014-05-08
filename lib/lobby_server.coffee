@@ -1,24 +1,39 @@
-@LobbyStatus = new Meteor.Collection("ts.lobby")
+EventEmitter = Npm.require('events').EventEmitter
+
+# TODO add index on LobbyStatus if needed
 
 class TurkServer.Lobby
-  @addUser: (userId) ->
+  constructor: (@batchId) ->
+    @events = new EventEmitter()
+
+  addUser: (userId) ->
     # Insert or update status in lobby
     LobbyStatus.upsert userId,
       # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
-      $set: {status: false}
+      $set:
+        batchId: @batchId
+        status: false
 
     Meteor.users.update userId,
       $set:
         "turkserver.state": "lobby"
 
-  @toggleStatus: (userId) ->
+    Meteor.defer => @events.emit "user-join", userId
+
+  getUsers: -> LobbyStatus.find(batchId: @batchId).fetch()
+
+  toggleStatus: (userId) ->
     existing = LobbyStatus.findOne(userId)
     throw new Meteor.Error(403, ErrMsg.userNotInLobbyErr) unless existing
+    newStatus = not existing.status
     LobbyStatus.update userId,
-      $set: { status: not existing.status }
+      $set: { status: newStatus }
 
-  @removeUser: (userId) ->
-    LobbyStatus.remove(userId)
+    Meteor.defer => @events.emit "user-status", userId, newStatus
+
+  removeUser: (userId) ->
+    if LobbyStatus.remove(userId) > 0
+      Meteor.defer => @events.emit "user-leave", userId
 
   # Check for adding people in lobby to an experiment
   @checkState = ->
@@ -36,8 +51,9 @@ class TurkServer.Lobby
     LobbyStatus.remove {_id : $in: userIds }
     TurkServer.assignAllUsers userIds
 
-# Publish lobby contents
-Meteor.publish "lobby", -> LobbyStatus.find()
+# Publish lobby contents for a particular batch
+Meteor.publish "lobby", (batchId) ->
+  LobbyStatus.find( {batchId} )
 
 # Publish lobby config information for active batches with lobby and grouping
 # TODO publish this based on the batch of the active user

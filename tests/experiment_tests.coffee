@@ -53,6 +53,11 @@ if Meteor.isServer
 
     instance = TurkServer.Experiment.createInstance({}, [ "fooTreatment" ], {_id: "fooGroup"})
     test.isTrue(instance instanceof TurkServer.Instance)
+
+    # Getting the instance again should get the same one
+    inst2 = TurkServer.Experiment.getInstance("fooGroup")
+    test.equal inst2, instance
+
     next()
 
   Tinytest.addAsync "experiment - instance - init context", (test, next) ->

@@ -1,26 +1,19 @@
 if Meteor.isServer
+  # Create a batch to test the lobby on
+  batchId = "lobbyBatchTest"
+  Batches.upsert batchId, $set: {}
+
+  lobby = TurkServer.getBatch(batchId).lobby
+
   Meteor.methods
-    setupLobby: -> Batches.update {active: true},
-      $set:
-        lobby: true
-        grouping: "groupSize"
-        groupVal: 3
     joinLobby: ->
-      TurkServer.Lobby.addUser Meteor.userId()
+      lobby.addUser Meteor.userId()
     getLobby: ->
-      LobbyStatus.find().fetch()
+      lobby.getUsers()
     leaveLobby: ->
-      TurkServer.Lobby.removeUser Meteor.userId()
-    teardownLobby: -> Batches.update {active: true},
-      $unset:
-        lobby: null
-        grouping: null
-        groupVal: null
+      lobby.removeUser Meteor.userId()
 
 if Meteor.isClient
-  Tinytest.addAsync "lobby - set up", (test, next) ->
-    Meteor.call "setupLobby", next
-
   Tinytest.addAsync "lobby - verify config", (test, next) ->
     groupSize = null
 
@@ -51,10 +44,5 @@ if Meteor.isClient
 
   Tinytest.addAsync "lobby - user leave", (test, next) ->
     Meteor.call "leaveLobby", (err, res) ->
-      test.isFalse err
-      next()
-
-  Tinytest.addAsync "lobby - tear down", (test, next) ->
-    Meteor.call "teardownLobby", (err, res) ->
       test.isFalse err
       next()

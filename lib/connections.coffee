@@ -112,21 +112,56 @@ UserStatus.events.on "connectionActive", (doc) ->
         Meteor._debug "Exception in user active callback: " + e
 
 ###
-  Methods
+  An assignment captures the lifecycle of a user assigned to a HIT.
+  In the future, it can be generalized to represent the entire connection
+  of a user from whatever source
 ###
 
-getCurrentAssignment = (userId) ->
-  userId = Meteor.userId() unless userId?
-  return unless userId?
-  user = Meteor.users.findOne(userId)
-  Assignments.findOne
-    workerId: user.workerId
-    status: "assigned"
+class TurkServer.Assignment
+  # Map of all assignments by id
+  _assignments = {}
 
-getCurrentBatch = (userId)->
-  assignment = getCurrentAssignment(userId)
-  return unless assignment?
-  Batches.findOne(assignment.batchId)
+  @createAssignment: (data) ->
+    asstId = Assignments.insert(data)
+    return new TurkServer.Assignment(asstId)
+
+  @getAssignment: (asstId) ->
+    if (asst = _assignments[asstId])?
+      return asst
+    else
+      throw new Error("Assignment doesn't exist") unless Assignments.findOne(asstId)?
+      return new TurkServer.Assignment(asstId)
+
+  @getCurrentUserAssignment: (userId) ->
+    user = Meteor.users.findOne(userId)
+    return unless user.workerId?
+    asst = Assignments.findOne
+      workerId: user.workerId
+      status: "assigned"
+    return @getAssignment(asst._id) if asst?
+
+  constructor: (@asstId) ->
+    _assignments[@asstId] = this
+
+  getBatch: ->
+    TurkServer.getBatch Assignments.findOne(@asstId).batchId
+
+  setCompleted: (doc) ->
+    Assignments.update @asstId,
+      $set: {
+        status: "completed"
+        submitTime: Date.now()
+        exitdata: doc
+      }
+
+TurkServer.currentAssignment = ->
+  userId = Meteor.userId()
+  return unless userId?
+  return TurkServer.Assignment.getCurrentUserAssignment(userId)
+
+###
+  Methods
+###
 
 Meteor.methods
   "ts-set-username": (username) ->
@@ -152,15 +187,10 @@ Meteor.methods
     throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
 
     # TODO what if this doesn't exist?
-    asst = getCurrentAssignment()
+    asst = TurkServer.currentAssignment()
 
     # mark assignment as completed and save the data
-    Assignments.update asst._id,
-      $set: {
-        status: "completed"
-        submitTime: Date.now()
-        exitdata: doc
-      }
+    asst.setCompleted(doc)
 
     # TODO schedule this worker's resume token to be scavenged in the future
 

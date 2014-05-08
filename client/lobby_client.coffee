@@ -1,4 +1,3 @@
-@LobbyStatus = new Meteor.Collection("ts.lobby")
 
 # Paths for lobby
 Router.map ->

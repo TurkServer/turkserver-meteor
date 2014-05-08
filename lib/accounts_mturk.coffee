@@ -68,7 +68,7 @@ authenticateWorker = (loginRequest) ->
 
   # Either no one has this assignment before or this worker replaced someone;
   # Create a new record for this worker on this assignment
-  save =
+  TurkServer.Assignment.createAssignment
     batchId: batchId
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
@@ -76,7 +76,6 @@ authenticateWorker = (loginRequest) ->
     acceptTime: Date.now()
     status: "assigned"
 
-  Assignments.insert(save)
   return
 
 Accounts.registerLoginHandler (loginRequest) ->

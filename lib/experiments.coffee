@@ -41,7 +41,7 @@ class TurkServer.Instance
 
   batch: ->
     instance = Experiments.findOne(@groupId)
-    return Batches.findOne(instance.batchId) if instance?
+    return TurkServer.getBatch(instance.batchId) if instance?
 
   treatments: ->
     instance = Experiments.findOne(@groupId)
@@ -57,6 +57,7 @@ class TurkServer.Instance
 
     _.each users, (userId) ->
       Partitioner.clearUserGroup(userId)
+      # TODO add it for the batch lobby
       Meteor.users.update userId,
         $set: { "turkserver.state": "lobby" }
 
@@ -80,7 +81,7 @@ class TurkServer.Experiment
     if (instance = @instances[groupId])?
       return instance
     else
-      throw new Error("Instance does not exist") unless Experiments.findOne(groupId)?
+      throw new Error("Instance does not exist: " + groupId) unless Experiments.findOne(groupId)?
       return @instances[groupId] = new TurkServer.Instance(groupId)
 
   @currentInstance: ->
