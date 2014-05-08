@@ -6,6 +6,7 @@ class TurkServer.Lobby
   constructor: (@batchId) ->
     @events = new EventEmitter()
 
+  # TODO move status updates into specific assigners
   addUser: (userId) ->
     # Insert or update status in lobby
     LobbyStatus.upsert userId,

@@ -1,3 +1,5 @@
+hitType = "authHitType"
+
 hitId = "authHitId"
 hitId2 = "authHitId2"
 
@@ -19,14 +21,14 @@ authBatchId = "authBatch"
 unless Batches.findOne(authBatchId)?
   Batches.insert(_id: authBatchId)
 
-# Set up a dummy HIT type and HIT
-unless HITTypes.find().count()
-  hitTypeId = HITTypes.insert
+# Set up a dummy HIT type and HITs
+HITTypes.upsert HITTypeId: hitType,
+  $set:
     batchId: authBatchId
-  hitId = "authHitId"
-  HITs.insert
-    HITId: hitId
-    HitTypeId: hitTypeId
+HITs.upsert HITId: hitId,
+  $set: HITTypeId: hitType
+HITs.upsert HITId: hitId2,
+  $set: HITTypeId: hitType
 
 # We can use the after wrapper here because the tests are synchronous
 withCleanup = TestUtils.getCleanupWrapper
@@ -35,15 +37,21 @@ withCleanup = TestUtils.getCleanupWrapper
     Assignments.remove({})
     Meteor.flush()
 
-# TODO add test that requires current batch
-
-Tinytest.add "auth - with unknown hit", withCleanup (test) ->
-  TestUtils.authenticateWorker
+Tinytest.add "auth - with first time hit assignment", withCleanup (test) ->
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: hitId
-    assignmentId : assignmentId
+    assignmentId: assignmentId
     workerId: workerId
 
+  # Test in-memory stored values
+  test.equal asst.batchId, authBatchId
+  test.equal asst.hitId, hitId
+  test.equal asst.assignmentId, assignmentId
+  test.equal asst.workerId, workerId
+  test.equal asst.userId, "authUser1"
+
+  # Test database storage
   record = Assignments.findOne
     hitId: hitId
     assignmentId: assignmentId
@@ -52,7 +60,17 @@ Tinytest.add "auth - with unknown hit", withCleanup (test) ->
   test.equal(record.workerId, workerId, "workerId not saved")
   test.equal(record.batchId, authBatchId)
 
-Tinytest.add "auth - reconnect - with existing hit", withCleanup (test) ->
+Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: "someOtherBatch"
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+
+  test.throws testFunc, (e) ->
+    e.error is 403 # TODO and reason?
+
+Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (test) ->
   Assignments.insert
     batchId: authBatchId
     hitId: hitId
@@ -258,5 +276,22 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
 
   test.equal(newRecord.status, "assigned")
   test.equal(newRecord.batchId, authBatchId)
-  
 
+Meteor.users.upsert "testWorker", $set: {workerId: "testingWorker"}
+
+Tinytest.add "auth - testing HIT login doesn't require existing HIT", withCleanup (test) ->
+  TestUtils.authenticateWorker
+    batchId: authBatchId
+    hitId: "testingHIT"
+    assignmentId: "testingAsst"
+    workerId: "testingWorker"
+    test: true
+
+  # Test database storage
+  record = Assignments.findOne
+    hitId: "testingHIT"
+    assignmentId: "testingAsst"
+
+  test.isTrue(record)
+  test.equal(record.workerId, "testingWorker")
+  test.equal(record.batchId, authBatchId)

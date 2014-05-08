@@ -14,8 +14,17 @@ Accounts.validateLoginAttempt (info) ->
   return true
 
 authenticateWorker = (loginRequest) ->
+  { batchId, hitId, assignmentId, workerId } = loginRequest
+
+  # check if batchId is correct except for testing logins
+  unless loginRequest.test
+    hit = HITs.findOne
+      HITId: hitId
+    hitType = HITTypes.findOne
+      HITTypeId: hit.HITTypeId
+    throw new Meteor.Error(403, "Unexpected batchId") unless batchId is hitType.batchId
+
   # Has this worker already completed the HIT?
-  { hitId, assignmentId, workerId } = loginRequest
   if Assignments.findOne({
     hitId
     assignmentId
@@ -47,16 +56,6 @@ authenticateWorker = (loginRequest) ->
     status: { $ne: "completed" }
   }).count() >= TurkServer.config.experiment.limit.simultaneous
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
-
-  # TODO check for the hitId in the current batch, in case the HIT is out of date
-  if loginRequest.batchId?
-    { batchId } = loginRequest
-  else
-    hit = HITs.findOne
-      HITId: hitId
-    hitType = HITTypes.findOne
-      HITTypeId: hit.HitTypeId
-    { batchId } = hitType
 
   predicate =
     workerId: loginRequest.workerId
@@ -93,6 +92,7 @@ Accounts.registerLoginHandler (loginRequest) ->
   # should we let this worker in or not?
   asst = authenticateWorker(loginRequest)
 
+  # This does the work of triggering what happens next.
   Meteor.defer -> asst._connected()
 
   # TODO: set the login token ourselves so that the expiration interval is shorter.
