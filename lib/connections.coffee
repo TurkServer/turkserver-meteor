@@ -1,3 +1,87 @@
+###
+  An assignment captures the lifecycle of a user assigned to a HIT.
+  In the future, it can be generalized to represent the entire connection
+  of a user from whatever source
+###
+
+class TurkServer.Assignment
+  # Map of all assignments by id
+  _assignments = {}
+
+  @createAssignment: (data) ->
+    asstId = Assignments.insert(data)
+    return new TurkServer.Assignment(asstId, data)
+
+  @getAssignment: (asstId) ->
+    if (asst = _assignments[asstId])?
+      return asst
+    else
+      data = Assignments.findOne(asstId)
+      throw new Error("Assignment doesn't exist") unless data?
+      return new TurkServer.Assignment(asstId, data)
+
+  @getCurrentUserAssignment: (userId) ->
+    user = Meteor.users.findOne(userId)
+    return unless user.workerId?
+    asst = Assignments.findOne
+      workerId: user.workerId
+      status: "assigned"
+    return @getAssignment(asst._id) if asst?
+
+  constructor: (@asstId, properties) ->
+    check(@asstId, String)
+    _assignments[@asstId] = this
+    # The below properties are invariant for any assignment
+    { @batchId, @hitId, @assignmentId, @workerId } = properties || Assignments.findOne(@asstId)
+    check(@batchId, String)
+    check(@hitId, String)
+    check(@assignmentId, String)
+    check(@workerId, String)
+    # Grab the userId
+    @userId = Meteor.users.findOne(workerId: @workerId)._id
+
+  getBatch: -> TurkServer.Batch.getBatch(@batchId)
+
+  setCompleted: (doc) ->
+    Assignments.update @asstId,
+      $set: {
+        status: "completed"
+        submitTime: Date.now()
+        exitdata: doc
+      }
+
+  updateWorkerData: (panel) ->
+    Workers.upsert @workerId, { $set: panel }
+
+  # Handle a connection or reconnection by this user
+  _connected: ->
+    # Is worker in part of an active group (experiment)?
+    # This is okay even if batch is not active
+    if Partitioner.getUserGroup(@userId)
+      Meteor._debug @userId + " is reconnecting to an existing group"
+      return
+
+    # Is the worker reconnecting to an exit survey?
+    if Meteor.users.findOne(@userId)?.turkserver?.state is "exitsurvey"
+      Meteor._debug @userId + " is reconnecting to the exit survey"
+      # Wait for them to fill it out
+      return
+
+    # None of the above, throw them into the lobby/assignment mechanism
+    batch = @getBatch()
+    throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
+    batch.lobby.addUser(@userId)
+
+    # Handle a disconnection by this user
+  _disconnected: ->
+    # Remove from lobby if present
+    @getBatch().lobby.removeUser(@userId)
+
+TurkServer.currentAssignment = ->
+  userId = Meteor.userId()
+  return unless userId?
+  return TurkServer.Assignment.getCurrentUserAssignment(userId)
+
 getUserGroup = (userId) ->
   return unless userId
   # No side effects from admin, please
@@ -46,13 +130,12 @@ TurkServer.onConnect = (func) ->
   Disconnect callbacks
 ###
 
-UserStatus.events.on "connectionLogout", (doc) ->
-  # Remove disconnected users from lobby, if they are there
-  TurkServer.Lobby.removeUser(doc.userId)
-
 disconnectCallbacks = []
 
 UserStatus.events.on "connectionLogout", (doc) ->
+  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
+  asst?._disconnected()
+
   return unless (groupId = getUserGroup(doc.userId))?
   Partitioner.bindGroup groupId, ->
     TurkServer.log
@@ -112,54 +195,6 @@ UserStatus.events.on "connectionActive", (doc) ->
         Meteor._debug "Exception in user active callback: " + e
 
 ###
-  An assignment captures the lifecycle of a user assigned to a HIT.
-  In the future, it can be generalized to represent the entire connection
-  of a user from whatever source
-###
-
-class TurkServer.Assignment
-  # Map of all assignments by id
-  _assignments = {}
-
-  @createAssignment: (data) ->
-    asstId = Assignments.insert(data)
-    return new TurkServer.Assignment(asstId)
-
-  @getAssignment: (asstId) ->
-    if (asst = _assignments[asstId])?
-      return asst
-    else
-      throw new Error("Assignment doesn't exist") unless Assignments.findOne(asstId)?
-      return new TurkServer.Assignment(asstId)
-
-  @getCurrentUserAssignment: (userId) ->
-    user = Meteor.users.findOne(userId)
-    return unless user.workerId?
-    asst = Assignments.findOne
-      workerId: user.workerId
-      status: "assigned"
-    return @getAssignment(asst._id) if asst?
-
-  constructor: (@asstId) ->
-    _assignments[@asstId] = this
-
-  getBatch: ->
-    TurkServer.getBatch Assignments.findOne(@asstId).batchId
-
-  setCompleted: (doc) ->
-    Assignments.update @asstId,
-      $set: {
-        status: "completed"
-        submitTime: Date.now()
-        exitdata: doc
-      }
-
-TurkServer.currentAssignment = ->
-  userId = Meteor.userId()
-  return unless userId?
-  return TurkServer.Assignment.getCurrentUserAssignment(userId)
-
-###
   Methods
 ###
 
@@ -195,90 +230,13 @@ Meteor.methods
     # TODO schedule this worker's resume token to be scavenged in the future
 
     # Update worker contact info
-    # TODO generalize this
-    if panel
-      Workers.upsert user.workerId,
-        $set:
-          contact: panel.contact
-          times: panel.times
+    asst.updateWorkerData(panel) if panel
 
     Meteor.users.update userId,
       $unset: {"turkserver.state": null}
 
     # return true to auto submit the HIT
     return true
-
-TurkServer.handleConnection = (doc) ->
-
-  # TODO Does the worker need to take quiz/tutorial?
-
-  # Is worker in part of an active group (experiment)?
-  # This is okay even if no active batch
-  if Partitioner.getUserGroup(doc.userId)
-    Meteor._debug doc.userId + " is reconnecting to an existing group"
-    # other reconnection info recorded above
-    return
-
-  # Is the worker reconnecting to an exit survey?
-  if Meteor.users.findOne(doc.userId)?.turkserver?.state is "exitsurvey"
-    Meteor._debug doc.userId + " is reconnecting to the exit survey"
-    # Wait for them to fill it out
-    return
-
-  # None of the above, throw them into the assignment mechanism
-  batch = getCurrentBatch(doc.userId)
-  throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
-
-  if batch.grouping is "groupSize" and batch.lobby
-    TurkServer.Lobby.addUser(doc.userId)
-  else if batch.grouping is "groupCount"
-    TurkServer.assignUserRoundRobin(doc.userId)
-  else
-    TurkServer.assignUserSequential(doc.userId)
-
-# TODO fix up the stuff below to assign treatments properly
-
-# Assignment from lobby
-TurkServer.assignAllUsers = (userIds) ->
-  # TODO don't just assign a random treatment
-  batch = getCurrentBatch(userIds[0])
-  treatmentId = _.sample batch.treatmentIds
-  treatment = Treatments.findOne(treatmentId)
-  newId = TurkServer.Experiment.create(batch, treatment)
-  TurkServer.Experiment.setup(newId)
-
-  _.each userIds, (userId) ->
-    TurkServer.Experiment.addUser(newId, userId)
-
-# Assignment for fixed group count
-TurkServer.assignUserRoundRobin = (userId) ->
-  experimentIds = getCurrentBatch(userId).experimentIds
-  exp = _.min Experiments.find(_id: $in: experimentIds).fetch(), (ex) ->
-    Grouping.find(groupId: ex._id).count()
-
-  TurkServer.Experiment.addUser(exp._id, userId)
-
-# Assignment for no lobby fixed group size
-TurkServer.assignUserSequential = (userId) ->
-  batch = getCurrentBatch(userId)
-
-  assignedToExisting = false
-  Experiments.find(assignable: true).forEach (exp) ->
-    return if assignedToExisting # Break loop if already assigned
-    if Grouping.find(groupId: exp._id).count() < batch.groupVal
-      TurkServer.Experiment.addUser(exp._id, userId)
-      assignedToExisting = true
-
-  return if assignedToExisting
-
-  # Create a new experiment
-  # TODO find a treatment
-  treatmentId = _.sample batch.treatmentIds
-  treatment = Treatments.findOne(treatmentId)
-  newId = TurkServer.Experiment.create batch, treatment,
-    assignable: true
-  TurkServer.Experiment.setup(newId)
-  TurkServer.Experiment.addUser(newId, userId)
 
 
 

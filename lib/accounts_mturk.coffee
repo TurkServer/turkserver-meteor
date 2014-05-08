@@ -45,8 +45,7 @@ authenticateWorker = (loginRequest) ->
   if Assignments.find({
     workerId: workerId,
     status: { $ne: "completed" }
-  }).count() >=
-  TurkServer.config.experiment.limit.simultaneous
+  }).count() >= TurkServer.config.experiment.limit.simultaneous
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
   # TODO check for the hitId in the current batch, in case the HIT is out of date
@@ -68,7 +67,7 @@ authenticateWorker = (loginRequest) ->
 
   # Either no one has this assignment before or this worker replaced someone;
   # Create a new record for this worker on this assignment
-  TurkServer.Assignment.createAssignment
+  return TurkServer.Assignment.createAssignment
     batchId: batchId
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
@@ -76,31 +75,25 @@ authenticateWorker = (loginRequest) ->
     acceptTime: Date.now()
     status: "assigned"
 
-  return
-
 Accounts.registerLoginHandler (loginRequest) ->
   # Don't handle unless we have an mturk login
   return unless loginRequest.hitId and loginRequest.assignmentId and loginRequest.workerId
 
-  # TODO: Do we need Partitioner.directOperation here?
   # Probably only if user is already logged in, which would be an error.
   user = Meteor.users.findOne
     workerId: loginRequest.workerId
 
   unless user
-    userId = Meteor.users.insert
+    # Use the provided method of creating users
+    userId = Accounts.insertUserDoc {},
       workerId: loginRequest.workerId
   else
     userId = user._id;
 
   # should we let this worker in or not?
-  authenticateWorker(loginRequest)
+  asst = authenticateWorker(loginRequest)
 
-  TurkServer.handleConnection
-    hitId: loginRequest.hitId
-    assignmentId: loginRequest.assignmentId
-    workerId: loginRequest.workerId
-    userId: userId
+  Meteor.defer -> asst._connected()
 
   # TODO: set the login token ourselves so that the expiration interval is shorter.
 

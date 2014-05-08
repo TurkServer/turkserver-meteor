@@ -20,7 +20,10 @@ class TurkServer.Lobby
 
     Meteor.defer => @events.emit "user-join", userId
 
-  getUsers: -> LobbyStatus.find(batchId: @batchId).fetch()
+  getUsers: (selector) ->
+    selector = _.extend selector || {},
+      batchId: @batchId
+    LobbyStatus.find(selector).fetch()
 
   toggleStatus: (userId) ->
     existing = LobbyStatus.findOne(userId)
@@ -31,25 +34,13 @@ class TurkServer.Lobby
 
     Meteor.defer => @events.emit "user-status", userId, newStatus
 
+  # Takes a group of users from the lobby without triggering the user-leave event.
+  pluckUsers: (userIds) ->
+    LobbyStatus.remove {_id : $in: userIds }
+
   removeUser: (userId) ->
     if LobbyStatus.remove(userId) > 0
       Meteor.defer => @events.emit "user-leave", userId
-
-  # Check for adding people in lobby to an experiment
-  @checkState = ->
-    activeBatch = Batches.findOne
-      active: true
-      grouping: "groupSize"
-      lobby: true
-      groupVal: {$exists: 1}
-    return unless activeBatch?
-
-    users = LobbyStatus.find({ status: true }, { limit: activeBatch.groupVal }).fetch()
-    return if users.length < activeBatch.groupVal
-
-    userIds = _.pluck(users, "_id")
-    LobbyStatus.remove {_id : $in: userIds }
-    TurkServer.assignAllUsers userIds
 
 # Publish lobby contents for a particular batch
 Meteor.publish "lobby", (batchId) ->

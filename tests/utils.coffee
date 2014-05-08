@@ -5,20 +5,6 @@ if Meteor.isClient
       onBeforeAction: (pause) -> pause()
 
 if Meteor.isServer
-  # Set up a dummy batch
-  unless (TestUtils.authBatchId = Batches.findOne())?
-    TestUtils.authBatchId = Batches.insert(name: 'test')
-
-  # Set up a dummy HIT type and HIT
-  unless HITTypes.find().count()
-    batch = Batches.findOne()
-    hitTypeId = HITTypes.insert
-      batchId: batch._id
-    hitId = "authHitId"
-    HITs.insert
-      HITId: hitId
-      HitTypeId: hitTypeId
-
   # Get a wrapper that runs a before and after function wrapping some test function.
   TestUtils.getCleanupWrapper = (settings) ->
     before = settings.before

@@ -7,10 +7,23 @@ TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
 TurkServer.finishExperiment = ->
-  TurkServer.Experiment.currentInstance()?.teardown()
+  TurkServer.Instance.currentInstance()?.teardown()
 
 # Represents a group or slice on the server, containing some users
 class TurkServer.Instance
+  # map of groupId to instance objects
+  _instances = {}
+
+  @getInstance: (groupId) ->
+    if (instance = _instances[groupId])?
+      return instance
+    else
+      throw new Error("Instance does not exist: " + groupId) unless Experiments.findOne(groupId)?
+      return _instances[groupId] = new TurkServer.Instance(groupId)
+
+  @currentInstance: ->
+    @getInstance Partitioner.group()
+
   constructor: (@groupId) ->
 
   # Run the initialize handlers for this instance
@@ -55,34 +68,10 @@ class TurkServer.Instance
       $set:
         endTime: Date.now()
 
+    batch = @batch()
     _.each users, (userId) ->
       Partitioner.clearUserGroup(userId)
-      # TODO add it for the batch lobby
-      Meteor.users.update userId,
-        $set: { "turkserver.state": "lobby" }
+      batch.lobby.addUser(userId)
 
     Meteor.flush()
 
-# Global class controlling instances across experiments
-class TurkServer.Experiment
-  # map of groupId to instance objects
-  @instances = {}
-
-  @createInstance: (batch, treatmentNames, fields) ->
-    fields = _.extend fields || {},
-      startTime: Date.now()
-      batchId: batch._id
-      treatments: treatmentNames
-
-    groupId = Experiments.insert(fields)
-    return new TurkServer.Instance(groupId)
-
-  @getInstance: (groupId) ->
-    if (instance = @instances[groupId])?
-      return instance
-    else
-      throw new Error("Instance does not exist: " + groupId) unless Experiments.findOne(groupId)?
-      return @instances[groupId] = new TurkServer.Instance(groupId)
-
-  @currentInstance: ->
-    @getInstance Partitioner.group()

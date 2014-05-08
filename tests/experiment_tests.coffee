@@ -22,6 +22,9 @@ if Meteor.isServer
   TurkServer.initialize contextHandler
   TurkServer.initialize insertHandler
 
+  # Ensure batch exists
+  Batches.upsert "expBatch", $set: {}
+
   # Create a dummy assignment
   expTestUserId = "expUser"
   expTestWorkerId = "expWorker"
@@ -42,20 +45,22 @@ if Meteor.isServer
     Partitioner.clearUserGroup(expTestUserId)
 
     Assignments.upsert {
+        batchId: "expBatch"
         hitId: "expHIT"
         assignmentId: "expAsst"
         workerId: expTestWorkerId
       }, {
-        $set:
-          status: "assigned"
-          instances: []
+        $set: status: "assigned"
+        $unset: instances: null
       }
 
-    instance = TurkServer.Experiment.createInstance({}, [ "fooTreatment" ], {_id: "fooGroup"})
+    batch = TurkServer.Batch.getBatch("expBatch")
+
+    instance = batch.createInstance([ "fooTreatment" ], {_id: "fooGroup"})
     test.isTrue(instance instanceof TurkServer.Instance)
 
     # Getting the instance again should get the same one
-    inst2 = TurkServer.Experiment.getInstance("fooGroup")
+    inst2 = TurkServer.Instance.getInstance("fooGroup")
     test.equal inst2, instance
 
     next()
@@ -63,7 +68,7 @@ if Meteor.isServer
   Tinytest.addAsync "experiment - instance - init context", (test, next) ->
     treatment = undefined
     group = undefined
-    instance = TurkServer.Experiment.getInstance("fooGroup")
+    instance = TurkServer.Instance.getInstance("fooGroup")
     instance.setup()
 
     # TODO check instance batch
@@ -88,7 +93,7 @@ if Meteor.isServer
     next()
 
   Tinytest.addAsync "experiment - instance - addUser records instance id", (test, next) ->
-    instance = TurkServer.Experiment.getInstance("fooGroup")
+    instance = TurkServer.Instance.getInstance("fooGroup")
     instance.addUser(expTestUserId)
 
     user = Meteor.users.findOne(expTestUserId)
@@ -105,14 +110,14 @@ if Meteor.isServer
 
   Tinytest.addAsync "experiment - instance - throws error if doesn't exist", (test, next) ->
     test.throws ->
-      TurkServer.Experiment.getInstance("yabbadabbadoober")
+      TurkServer.Instance.getInstance("yabbadabbadoober")
     next()
 
   # Add a user to this group upon login, for client tests below
   Accounts.onLogin (info) ->
     userId = info.user._id
     Partitioner.clearUserGroup(userId)
-    TurkServer.Experiment.getInstance("fooGroup").addUser(userId)
+    TurkServer.Instance.getInstance("fooGroup").addUser(userId)
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - received experiment and treatment", (test, next) ->

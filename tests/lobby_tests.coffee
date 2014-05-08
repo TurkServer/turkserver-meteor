@@ -3,7 +3,7 @@ if Meteor.isServer
   batchId = "lobbyBatchTest"
   Batches.upsert batchId, $set: {}
 
-  lobby = TurkServer.getBatch(batchId).lobby
+  lobby = TurkServer.Batch.getBatch(batchId).lobby
 
   Meteor.methods
     joinLobby: ->
