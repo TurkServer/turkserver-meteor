@@ -23,10 +23,10 @@ if Meteor.isServer
   TurkServer.initialize insertHandler
 
   # Create a dummy assignment
-  userId = "expUser"
-  workerId = "expWorker"
-  Meteor.users.upsert { _id: userId },
-    $set: workerId: workerId
+  expTestUserId = "expUser"
+  expTestWorkerId = "expWorker"
+  Meteor.users.upsert expTestUserId,
+    $set: { workerId: expTestWorkerId }
 
   # Set up a treatment for testing
   Treatments.upsert {name: "fooTreatment"},
@@ -39,15 +39,16 @@ if Meteor.isServer
       Doobie.remove {}
 
     Experiments.remove "fooGroup"
-    Partitioner.clearUserGroup(userId)
+    Partitioner.clearUserGroup(expTestUserId)
 
     Assignments.upsert {
         hitId: "expHIT"
         assignmentId: "expAsst"
-        workerId: workerId
+        workerId: expTestWorkerId
       }, {
-        $set: status: "assigned"
-        $unset: experimentId: null
+        $set:
+          status: "assigned"
+          instances: []
       }
 
     instance = TurkServer.Experiment.createInstance({}, [ "fooTreatment" ], {_id: "fooGroup"})
@@ -81,15 +82,16 @@ if Meteor.isServer
     test.equal stuff[1]._groupId, "fooGroup"
     next()
 
-  Tinytest.addAsync "experiment - instance - addUser records experiment ID", (test, next) ->
+  Tinytest.addAsync "experiment - instance - addUser records instance id", (test, next) ->
     instance = TurkServer.Experiment.getInstance("fooGroup")
-    instance.addUser(userId)
+    instance.addUser(expTestUserId)
 
-    user = Meteor.users.findOne(userId)
-    asst = Assignments.findOne(workerId: workerId, status: "assigned")
+    user = Meteor.users.findOne(expTestUserId)
+    asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
-    test.isTrue userId in instance.users()
+    test.isTrue expTestUserId in instance.users()
     test.equal user.turkserver.state, "experiment"
+    test.isTrue(asst.instances instanceof Array)
     test.isTrue("fooGroup" in asst.instances)
 
     next()
@@ -109,17 +111,28 @@ if Meteor.isServer
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - received experiment and treatment", (test, next) ->
-    Deps.autorun (c) ->
-      treatment = TurkServer.treatment()
+    treatment = null
+
+    verify = ->
       console.info "Got treatment ", treatment
 
-      if treatment
-        c.stop()
-        test.isTrue Experiments.findOne()
-        test.isTrue treatment
+      test.isTrue Experiments.findOne()
+      test.isTrue treatment
 
-        # No _id or name sent over the wire
-        test.isFalse treatment._id
-        test.isFalse treatment.name
-        test.equal treatment.fooProperty, "bar"
-        next()
+      # No _id or name sent over the wire
+      test.isFalse treatment._id
+      test.isFalse treatment.name
+      test.equal treatment.fooProperty, "bar"
+      next()
+
+    fail = ->
+      test.fail()
+      next()
+
+    # Poll until treatment data arrives
+    simplePoll (->
+      treatment = TurkServer.treatment()
+      return true if treatment.treatments.length
+    ), verify, fail, 2000
+
+

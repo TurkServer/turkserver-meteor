@@ -22,14 +22,18 @@ if Meteor.isClient
     Meteor.call "setupLobby", next
 
   Tinytest.addAsync "lobby - verify config", (test, next) ->
-    Deps.autorun (c) ->
-      groupSize = TSConfig.findOne("lobbyThreshold")
-      return unless groupSize?
+    groupSize = null
 
-      c.stop()
+    verify = ->
       test.isTrue groupSize
       test.equal groupSize.value, 3
       next()
+
+    fail = ->
+      test.fail()
+      next()
+
+    simplePoll (-> (groupSize = TSConfig.findOne("lobbyThreshold"))? ), verify, fail, 2000
 
   # Basic tests just to make sure joining/leaving works as intended
   Tinytest.addAsync "lobby - user join", (test, next) ->
