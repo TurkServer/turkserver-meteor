@@ -68,7 +68,7 @@ Assignments._ensureIndex
 
 # Publish turkserver user fields to a user
 Meteor.publish null, ->
-  return unless @userId
+  return null unless @userId
 
   return Meteor.users.find @userId,
     fields: { turkserver: 1 }
@@ -76,11 +76,16 @@ Meteor.publish null, ->
 # Publish current experiment for a user, if it exists
 Meteor.publish "tsCurrentExperiment", (group) ->
   return unless @userId
-  return [
+  cursors = [
     Experiments.find(group),
-    Treatments.find(name: Experiments.findOne(group)?.treatment) # Current treatment data
     RoundTimers.find() # Partitioned by group
   ]
+
+  # Current treatment data
+  if (treatments = Experiments.findOne(group)?.treatments)?
+    cursors.push Treatments.find(name: $in: treatments)
+
+  return cursors
 
 # For test logins, need to publish the list of batches.
 Meteor.publish null, -> Batches.find()

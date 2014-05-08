@@ -40,6 +40,7 @@ class TurkServer.Lobby
 Meteor.publish "lobby", -> LobbyStatus.find()
 
 # Publish lobby config information for active batches with lobby and grouping
+# TODO publish this based on the batch of the active user
 Meteor.publish null, ->
   sub = this
   subHandle = Batches.find({

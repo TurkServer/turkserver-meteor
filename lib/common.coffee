@@ -10,6 +10,7 @@ TurkServer.partitionCollection = Partitioner.partitionCollection
 
 @Batches = new Meteor.Collection("ts.batches")
 @Treatments = new Meteor.Collection("ts.treatments")
+# TODO rename these instances
 @Experiments = new Meteor.Collection("ts.experiments")
 
 @Logs = new Meteor.Collection("ts.logs")

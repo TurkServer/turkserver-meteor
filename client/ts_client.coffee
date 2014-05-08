@@ -28,7 +28,14 @@ TurkServer.batch = ->
   batchId = Session.get('_loginParams')?.batchId
   Batches.findOne(batchId) if batchId?
 
-TurkServer.treatment = -> Treatments.findOne()
+# Merge all treatments into one document
+TurkServer.treatment = ->
+  fields =
+    treatments: []
+  Treatments.find({}).forEach (treatment) ->
+    fields.treatments.push treatment.name
+    _.extend(fields, _.omit(treatment, "_id", "name"))
+  return fields
 
 # Find current round, whether running or in break
 # TODO this polls every second, which can be quite inefficient

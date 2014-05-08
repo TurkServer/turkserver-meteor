@@ -25,17 +25,21 @@ if Meteor.isServer
   # Create a dummy assignment
   userId = "expUser"
   workerId = "expWorker"
+  Meteor.users.upsert { _id: userId },
+    $set: workerId: workerId
 
-  Tinytest.addAsync "experiment - init - setup test", (test, next) ->
+  # Set up a treatment for testing
+  Treatments.upsert {name: "fooTreatment"},
+    $set:
+      fooProperty: "bar"
+
+  Tinytest.addAsync "experiment - instance - setup test", (test, next) ->
     Partitioner.directOperation ->
       # initial cleanup for this test
       Doobie.remove {}
 
     Experiments.remove "fooGroup"
-    Treatments.remove(name: "fooTreatment")
     Partitioner.clearUserGroup(userId)
-    Meteor.users.upsert { _id: userId },
-        $set: workerId: workerId
 
     Assignments.upsert {
         hitId: "expHIT"
@@ -46,27 +50,28 @@ if Meteor.isServer
         $unset: experimentId: null
       }
 
-    # These properties are checked below
-    Treatments.insert
-      name: "fooTreatment"
-      fooProperty: "bar"
-
-    TurkServer.Experiment.create({}, {name: "fooTreatment"}, _id: "fooGroup")
+    instance = TurkServer.Experiment.createInstance({}, [ "fooTreatment" ], {_id: "fooGroup"})
+    test.isTrue(instance instanceof TurkServer.Instance)
     next()
 
-  Tinytest.addAsync "experiment - init - context", (test, next) ->
+  Tinytest.addAsync "experiment - instance - init context", (test, next) ->
     treatment = undefined
     group = undefined
-    TurkServer.Experiment.setup("fooGroup")
+    instance = TurkServer.Experiment.getInstance("fooGroup")
+    instance.setup()
+
+    # TODO check instance batch
 
     test.isTrue treatment
-    test.equal treatment.name, "fooTreatment"
-    test.equal treatment.fooProperty, "bar"
+    test.equal treatment[0].name, "fooTreatment"
+    test.equal treatment[0].fooProperty, "bar"
     test.equal group, "fooGroup"
     next()
 
-  Tinytest.addAsync "experiment - init - global group", (test, next) ->
-    stuff = Partitioner.directOperation -> Doobie.find().fetch()
+  Tinytest.addAsync "experiment - instance - global group", (test, next) ->
+    stuff = Partitioner.directOperation ->
+      Doobie.find().fetch()
+
     test.length stuff, 2
 
     test.equal stuff[0].foo, "bar"
@@ -76,28 +81,45 @@ if Meteor.isServer
     test.equal stuff[1]._groupId, "fooGroup"
     next()
 
-  Tinytest.addAsync "experiment - addUser - records experiment ID", (test, next) ->
-    TurkServer.Experiment.addUser("fooGroup", userId)
+  Tinytest.addAsync "experiment - instance - addUser records experiment ID", (test, next) ->
+    instance = TurkServer.Experiment.getInstance("fooGroup")
+    instance.addUser(userId)
+
+    user = Meteor.users.findOne(userId)
     asst = Assignments.findOne(workerId: workerId, status: "assigned")
-    test.equal asst.experimentId, "fooGroup"
+
+    test.isTrue userId in instance.users()
+    test.equal user.turkserver.state, "experiment"
+    test.isTrue("fooGroup" in asst.instances)
+
     next()
 
   # TODO clean up assignments if they affect other tests
+
+  Tinytest.addAsync "experiment - instance - throws error if doesn't exist", (test, next) ->
+    test.throws ->
+      TurkServer.Experiment.getInstance("yabbadabbadoober")
+    next()
 
   # Add a user to this group upon login, for client tests below
   Accounts.onLogin (info) ->
     userId = info.user._id
     Partitioner.clearUserGroup(userId)
-    TurkServer.Experiment.addUser "fooGroup", userId
+    TurkServer.Experiment.getInstance("fooGroup").addUser(userId)
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - received experiment and treatment", (test, next) ->
     Deps.autorun (c) ->
       treatment = TurkServer.treatment()
       console.info "Got treatment ", treatment
+
       if treatment
         c.stop()
         test.isTrue Experiments.findOne()
         test.isTrue treatment
-        test.equal treatment.name, "fooTreatment"
+
+        # No _id or name sent over the wire
+        test.isFalse treatment._id
+        test.isFalse treatment.name
+        test.equal treatment.fooProperty, "bar"
         next()

@@ -27,7 +27,6 @@ connectCallbacks = []
 
 UserStatus.events.on "connectionLogin", (doc) ->
   return unless (groupId = getUserGroup(doc.userId))?
-  treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -37,7 +36,6 @@ UserStatus.events.on "connectionLogin", (doc) ->
       try
         cb.call
           userId: doc.userId
-          treatment: treatment
       catch e
         Meteor._debug "Exception in user connect callback: " + e
 
@@ -56,7 +54,6 @@ disconnectCallbacks = []
 
 UserStatus.events.on "connectionLogout", (doc) ->
   return unless (groupId = getUserGroup(doc.userId))?
-  treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -66,7 +63,6 @@ UserStatus.events.on "connectionLogout", (doc) ->
       try
         cb.call
           userId: doc.userId
-          treatment: treatment
       catch e
         Meteor._debug "Exception in user disconnect callback: " + e
 
@@ -87,7 +83,6 @@ TurkServer.onActive = (func) -> idleCallbacks.push(func)
 
 UserStatus.events.on "connectionIdle", (doc) ->
   return unless (groupId = getUserGroup(doc.userId))?
-  treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -98,13 +93,11 @@ UserStatus.events.on "connectionIdle", (doc) ->
       try
         cb.call
           userId: doc.userId
-          treatment: treatment
       catch e
         Meteor._debug "Exception in user idle callback: " + e
 
 UserStatus.events.on "connectionActive", (doc) ->
   return unless (groupId = getUserGroup(doc.userId))?
-  treatment = TurkServer.Experiment.getTreatment(groupId)
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -115,7 +108,6 @@ UserStatus.events.on "connectionActive", (doc) ->
       try
         cb.call
           userId: doc.userId
-          treatment: treatment
       catch e
         Meteor._debug "Exception in user active callback: " + e
 
@@ -135,7 +127,6 @@ getCurrentBatch = (userId)->
   assignment = getCurrentAssignment(userId)
   return unless assignment?
   Batches.findOne(assignment.batchId)
-
 
 Meteor.methods
   "ts-set-username": (username) ->
