@@ -32,3 +32,7 @@ class TurkServer.Batch
     @assigner = assigner
     assigner.initialize(this)
 
+TurkServer.ensureTreatmentExists = (props) ->
+  throw new Meteor.Error(403, "Treatment must have a name") unless props.name?
+  Treatments.upsert {name: props.name},
+    $set: _.omit(props, "name")

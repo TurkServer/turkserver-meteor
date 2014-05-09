@@ -3,9 +3,9 @@ if Meteor.isServer
   Batches.upsert "expClientBatch", $set: {}
 
   # Set up a treatment for testing
-  Treatments.upsert {name: "expClientTreatment"},
-    $set:
-      fooProperty: "bar"
+  TurkServer.ensureTreatmentExists
+    name: "expClientTreatment"
+    fooProperty: "bar"
 
     # Add a user to this group upon login, for client tests below
   Accounts.onLogin (info) ->

@@ -31,9 +31,9 @@ Meteor.users.upsert expTestUserId,
   $set: { workerId: expTestWorkerId }
 
 # Set up a treatment for testing
-Treatments.upsert {name: "fooTreatment"},
-  $set:
-    fooProperty: "bar"
+TurkServer.ensureTreatmentExists
+  name: "fooTreatment"
+  fooProperty: "bar"
 
 withCleanup = TestUtils.getCleanupWrapper
   before: ->

@@ -66,6 +66,10 @@ Assignments._ensureIndex
   batchId: 1
   acceptTime: 1
 
+###
+  Data publications
+###
+
 # Publish turkserver user fields to a user
 Meteor.publish null, ->
   return null unless @userId
@@ -95,10 +99,3 @@ TurkServer.startup = (func) ->
   Meteor.startup ->
     Partitioner.directOperation(func)
 
-TurkServer.ensureTreatmentExists = (props) ->
-  treatment = Treatments.findOne {name: props.name}
-  if treatment?
-    Treatments.update treatment._id, {$set: props}
-    treatment._id
-  else
-    Treatments.insert props
