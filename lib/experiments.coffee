@@ -54,7 +54,7 @@ class TurkServer.Instance
 
   batch: ->
     instance = Experiments.findOne(@groupId)
-    return TurkServer.getBatch(instance.batchId) if instance?
+    return TurkServer.Batch.getBatch(instance.batchId) if instance?
 
   treatments: ->
     instance = Experiments.findOne(@groupId)

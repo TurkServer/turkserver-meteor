@@ -139,7 +139,8 @@ Package.on_test(function (api) {
     api.add_files('tests/lobby_tests.coffee');
     api.add_files('tests/auth_tests.coffee', 'server');
     api.add_files('tests/connection_tests.coffee', 'server');
-    api.add_files('tests/experiment_tests.coffee');
+    api.add_files('tests/experiment_tests.coffee', 'server');
+    api.add_files('tests/experiment_client_tests.coffee');
     api.add_files('tests/timer_tests.coffee', 'server');
     api.add_files('tests/logging_tests.coffee');
 });

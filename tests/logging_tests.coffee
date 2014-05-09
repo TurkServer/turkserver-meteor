@@ -6,11 +6,15 @@ if Meteor.isServer
   Meteor.methods
     # Clear anything in logs for the given group
     clearLogs: ->
-      Logs.remove
-        _groupId: Partitioner.group()
+      throw new Meteor.Error(403, "no group assigned") unless (group = Partitioner.group())?
+      Logs.remove # Should be same as {}, but more explicit
+        _groupId: group
       return
     getLogs: (selector) ->
-      return Logs.find(selector || {}).fetch()
+      throw new Meteor.Error(403, "no group assigned") unless (group = Partitioner.group())?
+      selector = _.extend (selector || {}),
+        _groupId: group
+      return Logs.find(selector).fetch()
 
   Tinytest.add "logging - server group binding", (test) ->
     Partitioner.bindGroup testGroup, ->

@@ -23,7 +23,7 @@ TurkServer.log = (doc, callback) ->
 
 Meteor.methods
   "ts-log": (doc) ->
-    Meteor._debug("Warning; received log request for not logged in user") unless Meteor.userId()
+    Meteor._debug("Warning; received log request for anonymous user: ", doc) unless Meteor.userId()
     Logs.insert(doc)
     return
 
