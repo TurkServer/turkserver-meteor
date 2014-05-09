@@ -45,10 +45,10 @@ class TurkServer.Instance
     Meteor.users.update userId,
       $set: { "turkserver.state": "experiment" }
 
-    # Record experimentId in Assignment collection
-    workerId = Meteor.users.findOne(userId).workerId
-    Assignments.update { workerId: workerId, status: "assigned" },
-      $push: { instances: @groupId }
+    # Record instance Id in Assignment
+    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
+    asst.addInstance(@groupId)
+    return
 
   users: -> Experiments.findOne(@groupId).users
 

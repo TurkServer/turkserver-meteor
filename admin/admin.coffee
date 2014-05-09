@@ -81,19 +81,6 @@ Meteor.methods
   "ts-admin-activate-batch": (batchId) ->
     checkAdmin()
 
-    batch = Batches.findOne(batchId)
-    if batch.grouping is "groupCount"
-      # Make sure we have enough experiments in this batch
-      numExps = batch?.experimentIds?.length || 0
-      while numExps++ < batch.groupVal
-        # TODO pick treatments properly
-        treatmentId = _.sample batch.treatmentIds
-        treatment = Treatments.findOne(treatmentId).name
-        expId = TurkServer.Experiment.create(batch, treatment)
-        TurkServer.Experiment.setup(expId)
-        Batches.update batchId,
-          $addToSet: experimentIds: expId
-
     Batches.update batchId, $set:
       active: true
     return

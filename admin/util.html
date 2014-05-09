@@ -2,8 +2,12 @@
     <dl class="dl-horizontal ts-compact">
         <dt>Group:</dt>
         <dd>{{_id}}</dd>
-        <dt>Treatment:</dt>
-        <dd><span class="badge badge-inverse">{{treatment}}</span></dd>
+        <dt>Treatments:</dt>
+        <dd>
+            {{#each treatments}}
+            <span class="badge badge-inverse">{{this}}</span>
+            {{/each}}
+        </dd>
         <dt>Users:</dt>
         <dd>
             {{#each users}}

@@ -21,7 +21,7 @@
         <tr>
             <th>Start Time</th>
             <th>Duration</th>
-            <th>Treatment</th>
+            <th>Treatments</th>
             <th style="width: 50px">Size</th>
             <th>Users</th>
             <th style="width: 190px"></th>
@@ -32,7 +32,11 @@
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
             <td>{{_tsRenderTimeSince startTime}}</td>
-            <td><span class="badge badge-inverse">{{treatment}}</span></td>
+            <td>
+                {{#each treatments}}
+                <span class="badge badge-inverse">{{this}}</span>
+                {{/each}}
+            </td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each users}}
                 {{> tsUserPill userId=this}}
@@ -64,7 +68,7 @@
         <tr>
             <th>Start Time</th>
             <th>Duration</th>
-            <th>Treatment</th>
+            <th>Treatments</th>
             <th style="width: 50px">Size</th>
             <th>Users</th>
             <th style="width: 80px"></th>
@@ -75,7 +79,11 @@
         <tr>
             <td>{{_tsRenderTime startTime}}</td>
             <td>{{ duration }}</td>
-            <td><span class="badge badge-inverse">{{treatment}}</span></td>
+            <td>
+                {{#each treatments}}
+                <span class="badge badge-inverse">{{this}}</span>
+                {{/each}}
+            </td>
             <td><b>{{numUsers}}</b></td>
             <td>{{#each this.users}}
                 {{> tsUserPill userId=this}}

@@ -42,6 +42,10 @@ class TurkServer.Assignment
 
   getBatch: -> TurkServer.Batch.getBatch(@batchId)
 
+  addInstance: (instanceId) ->
+    Assignments.update @asstId,
+      $push: { instances: instanceId }
+
   setCompleted: (doc) ->
     Assignments.update @asstId,
       $set: {

@@ -7,10 +7,25 @@ if Meteor.isServer
     name: "expClientTreatment"
     fooProperty: "bar"
 
+  hitId = "expClientHitId"
+  assignmentId = "expClientAssignmentId"
+  workerId = "expClientWorkerId"
+
     # Add a user to this group upon login, for client tests below
   Accounts.onLogin (info) ->
     userId = info.user._id
     Partitioner.clearUserGroup(userId) # Remove any previous user group
+
+    # Store workerId for this user
+    Meteor.users.update userId,
+      $set: { workerId }
+
+    # Reset assignment for this worker
+    Assignments.upsert {hitId, assignmentId, workerId},
+      $set:
+        batchId: "expClientBatch"
+        status: "assigned"
+      $unset: instances: null
 
     batch = TurkServer.Batch.getBatch("expClientBatch")
     batch.createInstance(["expClientTreatment"]).addUser(userId)

@@ -99,3 +99,18 @@ TurkServer.startup = (func) ->
   Meteor.startup ->
     Partitioner.directOperation(func)
 
+# Backwards compatibility fixes
+# XXX Remove these in the future
+Meteor.startup ->
+  # Move "treatment" field in experiment instances to "treatments" array
+  Experiments.find({treatment: $exists: true}).forEach (instance) ->
+    Experiments.update instance._id,
+      $addToSet: treatments: instance.treatment
+      $unset: treatment: null
+
+  # Move "experimentId" fields in assignments to "instances" array
+  Assignments.find({experimentId: $exists: true}).forEach (asst) ->
+    Assignments.update asst._id,
+      $push: instances: asst.experimentId
+      $unset: experimentId: null
+

@@ -48,12 +48,16 @@ class Assigners.ThresholdAssigner extends Assigner
 ###
 class Assigners.RoundRobinAssigner extends Assigner
   constructor: (@instanceIds) ->
+    # TODO: @instanceIds can be fetched from @batch
+
     @instances = []
     # Create instances if they don't exist
     for instanceId in @instanceIds
       try
         instance = TurkServer.Instance.getInstance(instanceId)
       catch
+        # TODO pick treatments when creating instances
+        # treatment = _.sample batch.treatments
         instance = @batch.createInstance()
 
       @instances.push instance

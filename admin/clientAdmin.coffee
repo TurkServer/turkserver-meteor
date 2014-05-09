@@ -32,6 +32,9 @@ Router.map ->
   @route "turkserver/workers",
     controller: TSAdminController
     template: "tsAdminWorkers"
+  @route "turkserver/assignments",
+    controller: TSAdminController
+    template: "tsAdminAssignments"
   @route "turkserver/connections",
     controller: TSAdminController
     template: "tsAdminConnections"
