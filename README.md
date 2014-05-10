@@ -19,7 +19,7 @@ The Meteor version of TurkServer was based on the [original Java-based TurkServe
 1. Install Meteor: `curl https://install.meteor.com | /bin/sh`
 2. Create a Meteor app: `meteor create my_experiment`
 3. `cd my_experiment`
-4. Install TurkServer: `git clone --recursive https://github.com:HarvardEconCS/turkserver-meteor.git packages/turkserver`. (Soon, you will be able to do this with Meteor's packaging system.)
+4. Install TurkServer: `git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git packages/turkserver`. (Soon, you will be able to do this with Meteor's packaging system.)
 5. `mrt update turkserver` to install dependent packages with [Meteorite](https://github.com/oortcloud/meteorite).
 6. `meteor` to start your app.
 7. Navigate to `/turkserver` to log into the administration interface, and develop your experiment!
