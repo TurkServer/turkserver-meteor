@@ -22,6 +22,20 @@ UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)
   return m.format("l T") + " (" + m.fromNow() + ")"
 
+Template.tsInstancePill.instance = -> Experiments.findOne(""+@)
+
+Template.tsInstancePill.rendered = ->
+  container = @$(".ts-instance-pill-container")
+  container.popover
+    html: true
+    placement: "auto right"
+    trigger: "hover"
+    container: container
+    content: =>
+      # FIXME: Workaround as popover doesn't update with changed data
+      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
+      UI.toHTML Template.tsAdminGroupInfo.extend data: UI.getElementData(container[0])
+
 Template.tsUserPill.user = ->
   switch
     when @userId then Meteor.users.findOne(@userId)

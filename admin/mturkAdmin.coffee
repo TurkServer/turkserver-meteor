@@ -147,6 +147,3 @@ Template.tsAdminPanel.workerTotal = -> Workers.find().count()
 
 Template.tsAdminAssignments.completedAssts = -> Assignments.find { status: "completed" },
     { sort: submitTime: -1 }
-
-Template.tsAdminAssignments.tsTreatmentNameForExperiment = (experimentId) ->
-  Experiments.findOne(experimentId, {fields: {treatment: 1}})?.treatment

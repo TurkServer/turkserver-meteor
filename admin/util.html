@@ -17,6 +17,17 @@
     </dl>
 </template>
 
+<template name="tsInstancePill">
+    {{#with instance}}
+    <div class="ts-instance-pill-container">
+        <span class="label label-primary">
+            <span class="glyphicon glyphicon-tasks"></span>
+            {{users.length}}
+        </span>
+    </div>
+    {{/with}}
+</template>
+
 <template name="tsUserPill">
     {{#with user}}
     <div class="ts-user-pill-container">

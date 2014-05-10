@@ -328,13 +328,21 @@
         <thead>
         <tr>
             <th style="width: 100px">Worker ID</th>
+            <th style="width: 90px">Experiment Instances</th>
+            <th style="width: 170px">Completion Time</th>
             <th>Exit Data</th>
         </tr>
         </thead>
         <tbody>
         {{#each completedAssts}}
         <tr>
-            <td>{{> tsUserPill workerId=workerId }}<br>{{_tsRenderISOTime submitTime}}<br>{{tsTreatmentNameForExperiment experimentId}}</td>
+            <td>{{> tsUserPill workerId=workerId }}</td>
+            <td>
+                {{#each instances}}
+                {{> tsInstancePill}}
+                {{/each}}
+            </td>
+            <td>{{_tsRenderTime submitTime}}</td>
             <td>{{> tsDescList exitdata}}</td>
         </tr>
         {{/each}}
