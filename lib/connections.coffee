@@ -3,14 +3,13 @@
   In the future, it can be generalized to represent the entire connection
   of a user from whatever source
 ###
-
 class TurkServer.Assignment
   # Map of all assignments by id
   _assignments = {}
 
   @createAssignment: (data) ->
     asstId = Assignments.insert(data)
-    return new TurkServer.Assignment(asstId, data)
+    return _assignments[asstId] = new _Assignment(asstId, data)
 
   @getAssignment: (asstId) ->
     if (asst = _assignments[asstId])?
@@ -18,19 +17,24 @@ class TurkServer.Assignment
     else
       data = Assignments.findOne(asstId)
       throw new Error("Assignment doesn't exist") unless data?
-      return new TurkServer.Assignment(asstId, data)
+      return new _Assignment(asstId, data)
 
   @getCurrentUserAssignment: (userId) ->
     user = Meteor.users.findOne(userId)
     return unless user.workerId?
-    asst = Assignments.findOne
+    asstRecord = Assignments.findOne
       workerId: user.workerId
       status: "assigned"
-    return @getAssignment(asst._id) if asst?
+    return @getAssignment(asstRecord._id) if asstRecord?
 
+  @currentAssignment: ->
+    userId = Meteor.userId()
+    return unless userId?
+    return TurkServer.Assignment.getCurrentUserAssignment(userId)
+
+class _Assignment
   constructor: (@asstId, properties) ->
     check(@asstId, String)
-    _assignments[@asstId] = this
     # The below properties are invariant for any assignment
     { @batchId, @hitId, @assignmentId, @workerId } = properties || Assignments.findOne(@asstId)
     check(@batchId, String)
@@ -76,15 +80,10 @@ class TurkServer.Assignment
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
     batch.lobby.addUser(@userId)
 
-    # Handle a disconnection by this user
+  # Handle a disconnection by this user
   _disconnected: ->
     # Remove from lobby if present
     @getBatch().lobby.removeUser(@userId)
-
-TurkServer.currentAssignment = ->
-  userId = Meteor.userId()
-  return unless userId?
-  return TurkServer.Assignment.getCurrentUserAssignment(userId)
 
 getUserGroup = (userId) ->
   return unless userId
@@ -226,7 +225,7 @@ Meteor.methods
     throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
 
     # TODO what if this doesn't exist?
-    asst = TurkServer.currentAssignment()
+    asst = TurkServer.Assignment.currentAssignment()
 
     # mark assignment as completed and save the data
     asst.setCompleted(doc)

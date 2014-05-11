@@ -40,6 +40,11 @@ withCleanup = TestUtils.getCleanupWrapper
       $unset:
         "turkserver.state": null
 
+Tinytest.add "connection - assignment object preserved in memory", withCleanup (test) ->
+  asst2 = TurkServer.Assignment.getAssignment asst.asstId
+
+  test.equal asst2, asst
+
 Tinytest.add "connection - user added to lobby", withCleanup (test) ->
   asst._connected()
 

@@ -52,9 +52,17 @@ withCleanup = TestUtils.getCleanupWrapper
       }
     # Clear user group
     Partitioner.clearUserGroup(expTestUserId)
-after: -> # Can't use this for async
+  after: -> # Can't use this for async
 
 serverInstanceId = null
+
+Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) ->
+  # First get should create, second get should return same object
+  # TODO: this test will only run as intended on the first try
+  batch = TurkServer.Batch.getBatch("expBatch")
+  batch2 = TurkServer.Batch.getBatch("expBatch")
+
+  test.equal batch2, batch
 
 Tinytest.addAsync "experiment - instance - create", withCleanup (test, next) ->
   batch = TurkServer.Batch.getBatch("expBatch")
