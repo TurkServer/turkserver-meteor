@@ -8,15 +8,27 @@ if Meteor.isServer
   userId = "lobbyUser"
 
   Meteor.users.upsert userId,
-    $set: {}
+    $set: {
+      workerId: "lobbyTestWorker"
+    }
+
+  Assignments.upsert {
+    batchId
+    hitId: "lobbyTestHIT"
+    assignmentId: "lobbyTestAsst"
+  }, $set:
+    workerId: "lobbyTestWorker"
+    status: "assigned"
+
+  asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
 
   joinedUserId = null
   changedUserId = null
   leftUserId = null
 
-  lobby.events.on "user-join", (id) -> joinedUserId = id
-  lobby.events.on "user-status", (id) -> changedUserId = id
-  lobby.events.on "user-leave", (id) -> leftUserId = id
+  lobby.events.on "user-join", (asst) -> joinedUserId = asst.userId
+  lobby.events.on "user-status", (asst) -> changedUserId = asst.userId
+  lobby.events.on "user-leave", (asst) -> leftUserId = asst.userId
 
   withCleanup = TestUtils.getCleanupWrapper
     before: ->
@@ -28,15 +40,15 @@ if Meteor.isServer
 
   # Basic tests just to make sure joining/leaving works as intended
   Tinytest.addAsync "lobby - add user", withCleanup (test, next) ->
-    lobby.addUser(userId)
+    lobby.addUser(asst)
 
     Meteor.defer ->
       test.equal joinedUserId, userId
       next()
 
   Tinytest.addAsync "lobby - change state", withCleanup (test, next) ->
-    lobby.addUser(userId)
-    lobby.toggleStatus(userId)
+    lobby.addUser(asst)
+    lobby.toggleStatus(asst)
 
     lobbyUsers = lobby.getUsers()
     test.length lobbyUsers, 1
@@ -48,8 +60,8 @@ if Meteor.isServer
       next()
 
   Tinytest.addAsync "lobby - remove user", withCleanup (test, next) ->
-    lobby.addUser(userId)
-    lobby.removeUser(userId)
+    lobby.addUser(asst)
+    lobby.removeUser(asst)
 
     lobbyUsers = lobby.getUsers()
     test.length lobbyUsers, 0

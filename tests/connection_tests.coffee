@@ -30,7 +30,7 @@ withCleanup = TestUtils.getCleanupWrapper
     }
   after: ->
     # Remove user from lobby
-    batch.lobby.removeUser(userId)
+    batch.lobby.removeUser(asst)
     # Clear user group
     Partitioner.clearUserGroup(userId)
     # Clear any assignments

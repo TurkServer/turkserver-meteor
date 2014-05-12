@@ -38,6 +38,8 @@ TurkServer.ensureTreatmentExists
 withCleanup = TestUtils.getCleanupWrapper
   before: ->
     # Clear contents of collection
+    # TODO should be able to use .direct.remove here but it seems to be currently broken:
+    # https://github.com/matb33/meteor-collection-hooks/issues/3#issuecomment-42878962
     Partitioner.directOperation ->
       Doobie.remove {}
     # Reset assignments
