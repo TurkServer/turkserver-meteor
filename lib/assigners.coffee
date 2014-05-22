@@ -1,7 +1,7 @@
 @Assigners = {}
 
 # Default top level class
-class Assigner
+class TurkServer.Assigner
   initialize: (batch) ->
     @batch = batch
     @lobby = batch.lobby
@@ -22,12 +22,12 @@ class Assigner
   userLeft: ->
 
 # Puts everyone who joins into a single group.
-class Assigners.TestAssigner extends Assigner
+class Assigners.TestAssigner extends TurkServer.Assigner
 
 ###
    Allows people to opt in after reaching a certain threshold.
 ###
-class Assigners.ThresholdAssigner extends Assigner
+class Assigners.ThresholdAssigner extends TurkServer.Assigner
   constructor: (@groupSize) ->
 
   userStatusChanged: =>
@@ -46,7 +46,7 @@ class Assigners.ThresholdAssigner extends Assigner
   Assigns users to groups in a randomized, round-robin fashion
   as soon as the join the lobby
 ###
-class Assigners.RoundRobinAssigner extends Assigner
+class Assigners.RoundRobinAssigner extends TurkServer.Assigner
   constructor: (@instanceIds) ->
     # TODO: @instanceIds can be fetched from @batch
 
@@ -62,29 +62,29 @@ class Assigners.RoundRobinAssigner extends Assigner
 
       @instances.push instance
 
-  userJoined: (userId) =>
+  userJoined: (asst) =>
     # By default, assign this to the instance with the least number of users
     minUserInstance = _.min @instances, (instance) -> instance.users().length
 
-    @lobby.pluckUsers [userId]
-    minUserInstance.addUser(userId)
+    @lobby.pluckUsers [asst.userId]
+    minUserInstance.addUser(asst.userId)
 
 ###
   Assign users to fixed size experiments sequentially, as they arrive
 ###
-class Assigners.SequentialAssigner extends Assigner
+class Assigners.SequentialAssigner extends TurkServer.Assigner
   constructor: (@groupSize, @instance) ->
 
   # Assignment for no lobby fixed group size
-  userJoined: (userId) =>
+  userJoined: (asst) =>
     if @instance.users().length >= @groupSize
       # Create a new instance, replacing the one we are holding
       treatment = _.sample @batch.getTreatments()
       @instance = @batch.createInstance [treatment]
       @instance.setup()
 
-    @lobby.pluckUsers [userId]
-    @instance.addUser(userId)
+    @lobby.pluckUsers [asst.userId]
+    @instance.addUser(asst.userId)
 
 
 

@@ -71,7 +71,7 @@ class TurkServer.Instance
     batch = @batch()
     _.each users, (userId) ->
       Partitioner.clearUserGroup(userId)
-      batch.lobby.addUser(userId)
+      batch.lobby.addUser TurkServer.getCurrentUserAssignment(userId)
 
     Meteor.flush()
 

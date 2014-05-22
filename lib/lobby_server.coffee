@@ -7,41 +7,44 @@ class TurkServer.Lobby
     @events = new EventEmitter()
 
   # TODO move status updates into specific assigners
-  addUser: (userId) ->
+  addUser: (asst) ->
+    throw new Error("unexpected batchId") if asst.batchId isnt @batchId
+
     # Insert or update status in lobby
-    LobbyStatus.upsert userId,
+    LobbyStatus.upsert asst.userId,
       # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
       $set:
         batchId: @batchId
         status: false
 
-    Meteor.users.update userId,
+    Meteor.users.update asst.userId,
       $set:
         "turkserver.state": "lobby"
 
-    Meteor.defer => @events.emit "user-join", userId
+    Meteor.defer => @events.emit "user-join", asst
 
   getUsers: (selector) ->
     selector = _.extend selector || {},
       batchId: @batchId
     LobbyStatus.find(selector).fetch()
 
-  toggleStatus: (userId) ->
-    existing = LobbyStatus.findOne(userId)
+  toggleStatus: (asst) ->
+    existing = LobbyStatus.findOne(asst.userId)
     throw new Meteor.Error(403, ErrMsg.userNotInLobbyErr) unless existing
     newStatus = not existing.status
-    LobbyStatus.update userId,
+    LobbyStatus.update asst.userId,
       $set: { status: newStatus }
 
-    Meteor.defer => @events.emit "user-status", userId, newStatus
+    Meteor.defer => @events.emit "user-status", asst, newStatus
 
   # Takes a group of users from the lobby without triggering the user-leave event.
   pluckUsers: (userIds) ->
     LobbyStatus.remove {_id : $in: userIds }
 
-  removeUser: (userId) ->
-    if LobbyStatus.remove(userId) > 0
-      Meteor.defer => @events.emit "user-leave", userId
+  removeUser: (asst) ->
+    # TODO check for batchId here
+    if LobbyStatus.remove(asst.userId) > 0
+      Meteor.defer => @events.emit "user-leave", asst
 
 # Publish lobby contents for a particular batch
 Meteor.publish "lobby", (batchId) ->

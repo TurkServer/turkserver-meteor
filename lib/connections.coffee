@@ -58,6 +58,14 @@ class _Assignment
         exitdata: doc
       }
 
+  getData: (field) ->
+    Assignments.findOne(@asstId)[field]
+
+  setData: (field, value) ->
+    doc = {}
+    doc[field] = value
+    Assignments.update @asstId, $set: doc
+
   updateWorkerData: (panel) ->
     Workers.upsert @workerId, { $set: panel }
 
@@ -78,12 +86,12 @@ class _Assignment
     # None of the above, throw them into the lobby/assignment mechanism
     batch = @getBatch()
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
-    batch.lobby.addUser(@userId)
+    batch.lobby.addUser(@)
 
   # Handle a disconnection by this user
   _disconnected: ->
     # Remove from lobby if present
-    @getBatch().lobby.removeUser(@userId)
+    @getBatch().lobby.removeUser(@)
 
 getUserGroup = (userId) ->
   return unless userId
