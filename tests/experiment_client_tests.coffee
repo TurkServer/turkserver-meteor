@@ -15,6 +15,7 @@ if Meteor.isServer
   # users that login below, so that IP address is stored in the assignment
   # in the onLogin callback
   Accounts.validateLoginAttempt (info) ->
+    return unless info.allowed # Don't handle if login is being rejected
     userId = info.user._id
     Partitioner.clearUserGroup(userId) # Remove any previous user group
 
@@ -32,7 +33,7 @@ if Meteor.isServer
     batch = TurkServer.Batch.getBatch("expClientBatch")
     batch.createInstance(["expClientTreatment"]).addUser(userId)
 
-    Meteor._debug "remote client logged in"
+    Meteor._debug "created assignment for remote client"
     return true
 
   Meteor.methods
@@ -40,7 +41,9 @@ if Meteor.isServer
       userId = Meteor.userId()
       throw new Meteor.Error(500, "Not logged in") unless userId
       workerId = Meteor.users.findOne(userId).workerId
-      Assignments.findOne({workerId, status: "assigned"})
+      asstData = Assignments.findOne({workerId, status: "assigned"})
+      console.log asstData
+      return asstData
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - wait for login", (test, next) ->

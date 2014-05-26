@@ -18,19 +18,22 @@ Accounts.validateLoginAttempt (info) ->
   trigger initial assignment
 ###
 Accounts.onLogin (info) ->
-  # User object should always exist here
+  # User object should always exist here, since account was already created
   return if info.user.admin
 
+  # However, user data (workerId) may not be up to date, so use our own
+  # method to grab the assignment for this user
+  # This is especially pertinent in testing
   # TODO verify this is valid as we reject multiple connections on login
-  Assignments.update {
-    workerId: info.user.workerId
-    status: "assigned"
-  }, {
-    $set: {ipAddr: info.connection.clientAddress}
-  }
+  asst = TurkServer.Assignment.getCurrentUserAssignment(info.user._id)
 
-  Meteor._debug "saved IP address"
+  unless asst?
+    Meteor._debug "Nonexistent assignment for user " + info.user._id
+    return
 
+  asst.setData { ipAddr: info.connection.clientAddress }
+
+  # console.log "saved IP address for connection ", info.connection.clientAddress
   return
 
 authenticateWorker = (loginRequest) ->
