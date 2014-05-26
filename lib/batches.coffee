@@ -6,14 +6,14 @@ class TurkServer.Batch
       return batch
     else
       throw new Error("Batch does not exist") unless Batches.findOne(batchId)?
-      return _batches[batchId] = new _Batch(batchId)
+      return _batches[batchId] = new Batch(batchId)
 
   @currentBatch: ->
     return unless (userId = Meteor.userId())?
     return TurkServer.Assignment.getCurrentUserAssignment(userId).getBatch()
 
-class _Batch
   constructor: (@batchId) ->
+    throw new Error("Batch already exists; use getBatch") if _batches[@batchId]?
     @lobby = new TurkServer.Lobby(@batchId)
 
   createInstance: (treatmentNames, fields) ->

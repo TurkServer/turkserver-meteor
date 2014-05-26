@@ -9,7 +9,7 @@ class TurkServer.Assignment
 
   @createAssignment: (data) ->
     asstId = Assignments.insert(data)
-    return _assignments[asstId] = new _Assignment(asstId, data)
+    return _assignments[asstId] = new Assignment(asstId, data)
 
   @getAssignment: (asstId) ->
     if (asst = _assignments[asstId])?
@@ -17,7 +17,7 @@ class TurkServer.Assignment
     else
       data = Assignments.findOne(asstId)
       throw new Error("Assignment doesn't exist") unless data?
-      return new _Assignment(asstId, data)
+      return _assignments[asstId] = new Assignment(asstId, data)
 
   @getCurrentUserAssignment: (userId) ->
     user = Meteor.users.findOne(userId)
@@ -32,9 +32,9 @@ class TurkServer.Assignment
     return unless userId?
     return TurkServer.Assignment.getCurrentUserAssignment(userId)
 
-class _Assignment
   constructor: (@asstId, properties) ->
     check(@asstId, String)
+    throw new Error("Assignment already exists; use getAssignment") if _assignments[@asstId]?
     # The below properties are invariant for any assignment
     { @batchId, @hitId, @assignmentId, @workerId } = properties || Assignments.findOne(@asstId)
     check(@batchId, String)
@@ -58,16 +58,39 @@ class _Assignment
         exitdata: doc
       }
 
-  getData: (field) ->
-    Assignments.findOne(@asstId)[field]
+  # Gets the variable payment amount for this assignment (bonus)
+  getPayment: ->
+    Assignments.findOne(@asstId).bonusPayment
 
-  setData: (field, value) ->
-    doc = {}
-    doc[field] = value
+  # Sets the payment amount for this assignment, replacing any existing value
+  setPayment: (amount) ->
+    check(amount, Number)
+    Assignments.update @asstId,
+      $set: bonusPayment: amount
+
+  # Adds (or subtracts) an amount to the payment for this assignment
+  addPayment: (amount) ->
+    check(amount, Number)
+    Assignments.update @asstId,
+      $inc: bonusPayment: amount
+
+  # Gets an arbitrary data field on this assignment
+  getData: (field) ->
+    data = Assignments.findOne(@asstId)
+    return if field then data[field] else data
+
+  # Sets an arbitrary data field on this assignment
+  setData: (doc) ->
     Assignments.update @asstId, $set: doc
 
-  updateWorkerData: (panel) ->
-    Workers.upsert @workerId, { $set: panel }
+  # Get data from the worker associated with this assignment
+  getWorkerData: (field) ->
+    data = Workers.findOne(@workerId)
+    return if field then data[field] else data
+
+  # Sets data on the worker associated with this assignment
+  setWorkerData: (doc) ->
+    Workers.upsert @workerId, { $set: doc }
 
   # Handle a connection or reconnection by this user
   _connected: ->
@@ -241,7 +264,7 @@ Meteor.methods
     # TODO schedule this worker's resume token to be scavenged in the future
 
     # Update worker contact info
-    asst.updateWorkerData(panel) if panel
+    asst.setWorkerData(panel) if panel
 
     Meteor.users.update userId,
       $unset: {"turkserver.state": null}
