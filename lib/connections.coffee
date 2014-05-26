@@ -93,7 +93,7 @@ class TurkServer.Assignment
     Workers.upsert @workerId, { $set: doc }
 
   # Handle a connection or reconnection by this user
-  _connected: ->
+  _loggedIn: ->
     # Is worker in part of an active group (experiment)?
     # This is okay even if batch is not active
     if Partitioner.getUserGroup(@userId)
@@ -125,21 +125,6 @@ getUserGroup = (userId) ->
 ###
   Connect callbacks
 ###
-
-UserStatus.events.on "connectionLogin", (doc) ->
-  # Update ip address in assignments for this worker
-  user = Meteor.users.findOne(doc.userId)
-  return if user?.admin
-
-  # TODO verify this is valid as we reject multiple connections on login
-  Assignments.update {
-    workerId: user.workerId
-    status: "assigned"
-  }, {
-    $set: {ipAddr: doc.ipAddr}
-  }
-
-  return
 
 connectCallbacks = []
 

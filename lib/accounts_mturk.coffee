@@ -13,6 +13,26 @@ Accounts.validateLoginAttempt (info) ->
       throw new Meteor.Error(403, "Your HIT session has expired.")
   return true
 
+###
+  After a successful login, save the worker's IP address and
+  trigger initial assignment
+###
+Accounts.onLogin (info) ->
+  # User object should always exist here
+  return if info.user.admin
+
+  # TODO verify this is valid as we reject multiple connections on login
+  Assignments.update {
+    workerId: info.user.workerId
+    status: "assigned"
+  }, {
+    $set: {ipAddr: info.connection.clientAddress}
+  }
+
+  Meteor._debug "saved IP address"
+
+  return
+
 authenticateWorker = (loginRequest) ->
   { batchId, hitId, assignmentId, workerId } = loginRequest
 
@@ -93,7 +113,7 @@ Accounts.registerLoginHandler (loginRequest) ->
   asst = authenticateWorker(loginRequest)
 
   # This does the work of triggering what happens next.
-  Meteor.defer -> asst._connected()
+  Meteor.defer -> asst._loggedIn()
 
   # TODO: set the login token ourselves so that the expiration interval is shorter.
 

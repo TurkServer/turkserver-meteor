@@ -11,8 +11,10 @@ if Meteor.isServer
   assignmentId = "expClientAssignmentId"
   workerId = "expClientWorkerId"
 
-    # Add a user to this group upon login, for client tests below
-  Accounts.onLogin (info) ->
+  # This is just a hack to ensure that a batch and assignment exists for
+  # users that login below, so that IP address is stored in the assignment
+  # in the onLogin callback
+  Accounts.validateLoginAttempt (info) ->
     userId = info.user._id
     Partitioner.clearUserGroup(userId) # Remove any previous user group
 
@@ -30,7 +32,37 @@ if Meteor.isServer
     batch = TurkServer.Batch.getBatch("expClientBatch")
     batch.createInstance(["expClientTreatment"]).addUser(userId)
 
+    Meteor._debug "remote client logged in"
+    return true
+
+  Meteor.methods
+    getAssignmentData: ->
+      userId = Meteor.userId()
+      throw new Meteor.Error(500, "Not logged in") unless userId
+      workerId = Meteor.users.findOne(userId).workerId
+      Assignments.findOne({workerId, status: "assigned"})
+
 if Meteor.isClient
+  Tinytest.addAsync "experiment - client - wait for login", (test, next) ->
+    InsecureLogin.ready ->
+      test.ok()
+      next()
+
+  Tinytest.addAsync "experiment - client - IP address saved", (test, next) ->
+    returned = false
+    Meteor.call "getAssignmentData", (err, res) ->
+      returned = true
+      test.isFalse err
+      console.log "Got assignment data", res
+      test.isTrue res.ipAddr
+      next()
+
+    fail = ->
+      test.fail()
+      next()
+
+    simplePoll (-> returned), (->), fail, 2000
+
   Tinytest.addAsync "experiment - client - received experiment and treatment", (test, next) ->
     treatment = null
 

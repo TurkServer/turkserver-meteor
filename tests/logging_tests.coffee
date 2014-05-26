@@ -43,6 +43,7 @@ if Meteor.isServer
     test.equal doc._timestamp, past
 
 # Client methods
+# These run after the experiment client tests, so they should be logged in
 if Meteor.isClient
   Tinytest.addAsync "logging - initialize test", (test, next) ->
     Meteor.call "clearLogs", (err, res) ->

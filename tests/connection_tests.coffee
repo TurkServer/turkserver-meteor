@@ -66,7 +66,7 @@ Tinytest.add "connection - assignment object preserved upon creation", withClean
 
 Tinytest.add "connection - user added to lobby", withCleanup (test) ->
   asst = createAssignment()
-  asst._connected()
+  asst._loggedIn()
 
   lobbyUsers = batch.lobby.getUsers()
   user = Meteor.users.findOne(userId)
@@ -79,7 +79,7 @@ Tinytest.add "connection - user added to lobby", withCleanup (test) ->
 Tinytest.add "connection - user resuming into instance", withCleanup (test) ->
   asst = createAssignment()
   instance.addUser(userId)
-  asst._connected()
+  asst._loggedIn()
 
   user = Meteor.users.findOne(userId)
 
@@ -92,7 +92,7 @@ Tinytest.add "connection - user resuming into exit survey", withCleanup (test) -
     $set:
       "turkserver.state": "exitsurvey"
 
-  asst._connected()
+  asst._loggedIn()
 
   user = Meteor.users.findOne(userId)
 
