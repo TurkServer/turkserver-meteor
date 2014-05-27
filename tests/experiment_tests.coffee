@@ -35,6 +35,10 @@ TurkServer.ensureTreatmentExists
   name: "fooTreatment"
   fooProperty: "bar"
 
+# These instances are created once for each set of tests, then discarded
+serverInstanceId = null
+secondInstanceId = null
+
 withCleanup = TestUtils.getCleanupWrapper
   before: ->
     # Clear contents of collection
@@ -42,6 +46,7 @@ withCleanup = TestUtils.getCleanupWrapper
     # https://github.com/matb33/meteor-collection-hooks/issues/3#issuecomment-42878962
     Partitioner.directOperation ->
       Doobie.remove {}
+
     # Reset assignments
     Assignments.upsert {
         batchId: "expBatch"
@@ -52,12 +57,17 @@ withCleanup = TestUtils.getCleanupWrapper
         $set: status: "assigned"
         $unset: instances: null
       }
+
+    # Delete any data stored in instances
+    # TODO: can probably improve this and not use a global variable
+    Experiments.update serverInstanceId,
+      $unset: users: null
+    Experiments.update secondInstanceId,
+      $unset: users: null
+
     # Clear user group
     Partitioner.clearUserGroup(expTestUserId)
   after: -> # Can't use this for async
-
-serverInstanceId = null
-secondInstanceId = null
 
 Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) ->
   # First get should create, second get should return same object
@@ -124,6 +134,44 @@ Tinytest.add "experiment - instance - addUser records instance id", withCleanup 
   test.isTrue asst.instances[0]
   test.equal asst.instances[0].id, serverInstanceId
   test.isTrue asst.instances[0].joinTime
+
+Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  TestUtils.connCallbacks.userDisconnect
+    userId: expTestUserId
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  discTime = null
+
+  test.isTrue asst.instances[0]
+  test.isTrue asst.instances[0].joinTime
+  test.isTrue (discTime = asst.instances[0].lastDisconnect)
+
+  TestUtils.connCallbacks.userReconnect
+    userId: expTestUserId
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isFalse asst.instances[0].lastDisconnect
+  test.isTrue asst.instances[0].disconnectedTime
+
+Tinytest.add "experiment - instance - teardown while disconnected", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  TestUtils.connCallbacks.userDisconnect
+    userId: expTestUserId
+
+  instance.teardown()
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isFalse asst.instances[0].lastDisconnect
+  test.isTrue asst.instances[0].leaveTime
+  test.isTrue asst.instances[0].disconnectedTime
 
 Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)

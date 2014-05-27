@@ -55,7 +55,7 @@ if Meteor.isClient
       returned = true
       test.isFalse err
       console.log "Got assignment data", res
-      test.isTrue res.ipAddr
+      test.isTrue res?.ipAddr
       next()
 
     fail = ->
