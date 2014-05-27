@@ -115,55 +115,87 @@ class TurkServer.Assignment
           joinTime: new Date()
         }
 
-  _leaveInstance: (instanceId) ->
-    # If in disconnected state, compute total disconnected time
-    discTime = @_getLastDisconnect(instanceId)
-    now = new Date
+  # Helper functions for constructing database updates
+  addResetDisconnectedUpdateFields = (obj, discDurationMillis) ->
+    obj.$inc ?= {}
+    obj.$unset ?= {}
+    obj.$inc["instances.$.disconnectedTime"] = discDurationMillis
+    obj.$unset["instances.$.lastDisconnect"] = null
+    return obj
 
-    updateObj = if discTime
-      $inc:
-        "instances.$.disconnectedTime": now.getTime() - discTime
-      $unset:
-        "instances.$.lastDisconnect": null
+  addResetIdleUpdateFields = (obj, idleDurationMillis) ->
+    obj.$inc ?= {}
+    obj.$unset ?= {}
+    obj.$inc["instances.$.idleTime"] = idleDurationMillis
+    obj.$unset["instances.$.lastIdle"] = null
+    return obj
+
+  _leaveInstance: (instanceId) ->
+    now = new Date
+    updateObj =
       $set:
         "instances.$.leaveTime": now
-    else
-      $set:
-        "instances.$.leaveTime": now
+
+    # If in disconnected state, compute total disconnected time
+    if (discTime = @_getLastDisconnect(instanceId))?
+      addResetDisconnectedUpdateFields(updateObj, now.getTime() - discTime)
+    # If in idle state, compute total idle time
+    if (idleTime = @_getLastIdle(instanceId))?
+      addResetIdleUpdateFields(updateObj, now.getTime() - idleTime)
 
     Assignments.update {
       _id: @asstId
       "instances.id": instanceId
     }, updateObj
 
-  _reconnected: (instanceId) ->
-    discTime = @_getLastDisconnect(instanceId)
+  # Handle a disconnection by this user
+  _disconnected: (instanceId) ->
+    # Record a disconnect time if we are currently part of an instance
+    now = new Date()
+    updateObj =
+      $set:
+        "instances.$.lastDisconnect": now
 
-    return unless discTime
+    # If we are idle, add the total idle time to the running amount;
+    # A new idle session will start when the user reconnects
+    if (idleTime = @_getLastIdle(instanceId))?
+      addResetIdleUpdateFields(updateObj, now.getTime() - idleTime)
 
     Assignments.update {
       _id: @asstId
       "instances.id": instanceId
-    }, {
-      $inc:
-        "instances.$.disconnectedTime": Date.now() - discTime
-      $unset:
-        "instances.$.lastDisconnect": null
-    }
+    }, updateObj
+
+    # Remove from lobby if present
+    @getBatch().lobby.removeUser(@)
+
+  # Handle a reconnection by a user, if they were assigned prior to the reconnection
+  _reconnected: (instanceId) ->
+    # TODO: cleanup if user was somehow idled during the disconnection (see below)
+    discTime = @_getLastDisconnect(instanceId)
+    return unless discTime
+    Assignments.update {
+      _id: @asstId
+      "instances.id": instanceId
+    }, addResetDisconnectedUpdateFields({}, Date.now() - discTime)
     return
 
-  # Handle a disconnection by this user
-  _disconnected: (instanceId) ->
-    # Record a disconnect time if we are currently part of an instance
-    # TODO test this logic for robustness
+  _isIdle: (instanceId, timestamp) ->
+    # TODO: ignore if user is disconnected
     Assignments.update {
       _id: @asstId
       "instances.id": instanceId
     }, $set:
-      "instances.$.lastDisconnect": new Date()
+      "instances.$.lastIdle": timestamp
 
-    # Remove from lobby if present
-    @getBatch().lobby.removeUser(@)
+  _isActive: (instanceId, timestamp) ->
+    idleTime = @_getLastIdle(instanceId)
+    return unless idleTime
+    Assignments.update {
+      _id: @asstId
+      "instances.id": instanceId
+    }, addResetIdleUpdateFields({}, timestamp - idleTime)
+    return
 
   # Helper functions
   _getLastDisconnect: (instanceId) ->
@@ -171,6 +203,12 @@ class TurkServer.Assignment
       _id: @asstId
       instances: $elemMatch: {id: instanceId}
     }).instances?[0]?.lastDisconnect
+
+  _getLastIdle: (instanceId) ->
+    Assignments.findOne({
+      _id: @asstId
+      instances: $elemMatch: {id: instanceId}
+    }).instances?[0]?.lastIdle
 
 getActiveGroup = (userId) ->
   return unless userId
@@ -253,6 +291,10 @@ TurkServer.onActive = (func) -> idleCallbacks.push(func)
 
 userIdle = (doc) ->
   return unless (groupId = getActiveGroup(doc.userId))?
+
+  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
+  asst._isIdle(groupId, doc.lastActivity)
+
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId
@@ -269,6 +311,10 @@ userIdle = (doc) ->
 
 userActive = (doc) ->
   return unless (groupId = getActiveGroup(doc.userId))?
+
+  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
+  asst._isActive(groupId, doc.lastActivity)
+
   Partitioner.bindGroup groupId, ->
     TurkServer.log
       _userId: doc.userId

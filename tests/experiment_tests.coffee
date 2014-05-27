@@ -77,6 +77,10 @@ Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) -
 
   test.equal batch2, batch
 
+Tinytest.add "experiment - instance - throws error if doesn't exist", withCleanup (test) ->
+  test.throws ->
+    TurkServer.Instance.getInstance("yabbadabbadoober")
+
 Tinytest.add "experiment - instance - create", withCleanup (test) ->
   batch = TurkServer.Batch.getBatch("expBatch")
 
@@ -144,6 +148,7 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
 
   asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
+  # TODO ensure the accounting here is done correctly
   discTime = null
 
   test.isTrue asst.instances[0]
@@ -154,9 +159,73 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
     userId: expTestUserId
 
   asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-
   test.isFalse asst.instances[0].lastDisconnect
-  test.isTrue asst.instances[0].disconnectedTime
+  # We don't know the exact length of disconnection, but make sure it's in the right ballpark
+  test.isTrue asst.instances[0].disconnectedTime > 0
+  test.isTrue asst.instances[0].disconnectedTime < Date.now() - discTime
+
+Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  idleTime = new Date()
+
+  TestUtils.connCallbacks.userIdle
+    userId: expTestUserId
+    lastActivity: idleTime
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue asst.instances[0]
+  test.isTrue asst.instances[0].joinTime
+  test.equal asst.instances[0].lastIdle, idleTime
+
+  offset = 1000
+  activeTime = new Date(idleTime.getTime() + offset)
+
+  TestUtils.connCallbacks.userActive
+    userId: expTestUserId
+    lastActivity: activeTime
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isFalse asst.instances[0].lastIdle
+  test.equal asst.instances[0].idleTime, offset
+
+  # Another bout of inactivity
+  secondIdleTime = new Date(activeTime.getTime() + 5000)
+  secondActiveTime = new Date(secondIdleTime.getTime() + offset)
+
+  TestUtils.connCallbacks.userIdle
+    userId: expTestUserId
+    lastActivity: secondIdleTime
+
+  TestUtils.connCallbacks.userActive
+    userId: expTestUserId
+    lastActivity: secondActiveTime
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isFalse asst.instances[0].lastIdle
+  test.equal asst.instances[0].idleTime, offset + offset
+
+Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  idleTime = new Date()
+
+  TestUtils.connCallbacks.userIdle
+    userId: expTestUserId
+    lastActivity: idleTime
+
+  TestUtils.connCallbacks.userDisconnect
+    userId: expTestUserId
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue asst.instances[0].joinTime
+  # Check that idle fields exist
+  test.isFalse asst.instances[0].lastIdle
+  test.isTrue asst.instances[0].idleTime
+  # Check that disconnect fields exist
+  test.isTrue asst.instances[0].lastDisconnect
 
 Tinytest.add "experiment - instance - teardown while disconnected", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
@@ -165,13 +234,37 @@ Tinytest.add "experiment - instance - teardown while disconnected", withCleanup 
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
+  discTime = null
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue(discTime = asst.instances[0].lastDisconnect)
+
   instance.teardown()
 
   asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
-  test.isFalse asst.instances[0].lastDisconnect
   test.isTrue asst.instances[0].leaveTime
-  test.isTrue asst.instances[0].disconnectedTime
+  test.isFalse asst.instances[0].lastDisconnect
+  # We don't know the exact length of disconnection, but make sure it's in the right ballpark
+  test.isTrue asst.instances[0].disconnectedTime > 0
+  test.isTrue asst.instances[0].disconnectedTime < Date.now() - discTime
+
+Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  idleTime = new Date()
+
+  TestUtils.connCallbacks.userIdle
+    userId: expTestUserId
+    lastActivity: idleTime
+
+  instance.teardown()
+
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isTrue asst.instances[0].leaveTime
+  test.isFalse asst.instances[0].lastIdle
+  test.isTrue asst.instances[0].idleTime
 
 Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
@@ -215,8 +308,5 @@ Tinytest.add "experiment - instance - teardown and join second instance", withCl
 
 # TODO clean up assignments if they affect other tests
 
-Tinytest.add "experiment - instance - throws error if doesn't exist", withCleanup (test) ->
-  test.throws ->
-    TurkServer.Instance.getInstance("yabbadabbadoober")
 
 
