@@ -102,15 +102,36 @@ TurkServer.startup = (func) ->
 # Backwards compatibility fixes
 # XXX Remove these in the future
 Meteor.startup ->
+  prefix = "Schema update: "
+
   # Move "treatment" field in experiment instances to "treatments" array
-  Experiments.find({treatment: $exists: true}).forEach (instance) ->
+  treatmentUpdates = 0
+  Experiments.find({treatment: $exists: true}).forEach (instance, idx) ->
+    treatmentUpdates = idx + 1
     Experiments.update instance._id,
       $addToSet: treatments: instance.treatment
       $unset: treatment: null
 
+  console.log prefix + treatmentUpdates + " treatments updated" if treatmentUpdates > 0
+
   # Move "experimentId" fields in assignments to "instances" array
-  Assignments.find({experimentId: $exists: true}).forEach (asst) ->
+  experimentIdUpdates = 0
+  Assignments.find({experimentId: $exists: true}).forEach (asst, idx) ->
+    experimentIdUpdates = idx + 1
     Assignments.update asst._id,
       $push: instances: asst.experimentId
       $unset: experimentId: null
+
+  console.log prefix + experimentIdUpdates + " experimentIds converted to instances" if experimentIdUpdates > 0
+
+  # Update string values in instances array to objects
+  instanceUpdates = 0
+  Assignments.find({instances: $type: 2}).forEach (asst, idx) ->
+    instanceUpdates = idx + 1
+    instanceIds = asst.instances
+    Assignments.update asst._id,
+      $set: instances: _.map(instanceIds, (id) -> {id})
+
+  console.log prefix + instanceUpdates + " instance ids updated to objects" if instanceUpdates > 0
+
 

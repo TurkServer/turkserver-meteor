@@ -41,9 +41,7 @@ if Meteor.isServer
       userId = Meteor.userId()
       throw new Meteor.Error(500, "Not logged in") unless userId
       workerId = Meteor.users.findOne(userId).workerId
-      asstData = Assignments.findOne({workerId, status: "assigned"})
-      console.log asstData
-      return asstData
+      return Assignments.findOne({workerId, status: "assigned"})
 
 if Meteor.isClient
   Tinytest.addAsync "experiment - client - wait for login", (test, next) ->

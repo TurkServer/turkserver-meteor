@@ -121,7 +121,7 @@ Tinytest.addAsync "experiment - instance - addUser records instance id", withCle
   test.isTrue expTestUserId in instance.users()
   test.equal user.turkserver.state, "experiment"
   test.isTrue(asst.instances instanceof Array)
-  test.isTrue(serverInstanceId in asst.instances)
+  test.equal asst.instances[0].id, serverInstanceId
 
   next()
 

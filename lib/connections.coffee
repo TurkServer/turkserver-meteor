@@ -48,7 +48,7 @@ class TurkServer.Assignment
 
   addInstance: (instanceId) ->
     Assignments.update @asstId,
-      $push: { instances: instanceId }
+      $push: { instances: { id: instanceId } }
 
   setCompleted: (doc) ->
     Assignments.update @asstId,
@@ -129,6 +129,7 @@ getUserGroup = (userId) ->
 connectCallbacks = []
 
 UserStatus.events.on "connectionLogin", (doc) ->
+  # TODO handle a connected event on the assignment?
   return unless (groupId = getUserGroup(doc.userId))?
   Partitioner.bindGroup groupId, ->
     TurkServer.log
