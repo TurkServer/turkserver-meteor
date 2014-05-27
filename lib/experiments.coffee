@@ -25,6 +25,7 @@ class TurkServer.Instance
     @getInstance Partitioner.group()
 
   constructor: (@groupId) ->
+    throw new Error("Instance already exists; use getInstance") if _instances[@groupId]
 
   # Run the initialize handlers for this instance
   setup: ->
@@ -47,7 +48,7 @@ class TurkServer.Instance
 
     # Record instance Id in Assignment
     asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
-    asst.addInstance(@groupId)
+    asst._joinInstance(@groupId)
     return
 
   users: -> Experiments.findOne(@groupId).users
@@ -66,12 +67,16 @@ class TurkServer.Instance
 
     Experiments.update @groupId,
       $set:
-        endTime: Date.now()
+        endTime: new Date()
 
     batch = @batch()
-    _.each users, (userId) ->
-      Partitioner.clearUserGroup(userId)
-      batch.lobby.addUser TurkServer.getCurrentUserAssignment(userId)
 
-    Meteor.flush()
+    for userId in users
+      Partitioner.clearUserGroup(userId)
+      asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
+      asst._leaveInstance(@groupId)
+      batch.lobby.addUser asst
+
+    return
+
 

@@ -46,15 +46,11 @@ class TurkServer.Assignment
 
   getBatch: -> TurkServer.Batch.getBatch(@batchId)
 
-  addInstance: (instanceId) ->
-    Assignments.update @asstId,
-      $push: { instances: { id: instanceId } }
-
   setCompleted: (doc) ->
     Assignments.update @asstId,
       $set: {
         status: "completed"
-        submitTime: Date.now()
+        submitTime: new Date()
         exitdata: doc
       }
 
@@ -111,7 +107,22 @@ class TurkServer.Assignment
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
     batch.lobby.addUser(@)
 
-  # Handle a disconnection by this user
+  _joinInstance: (instanceId) ->
+    Assignments.update @asstId,
+      $push:
+        instances: {
+          id: instanceId
+          joinTime: new Date()
+        }
+
+  _leaveInstance: (instanceId) ->
+    Assignments.update {
+        _id: @asstId
+        "instances.id": instanceId
+      }, $set:
+        "instances.$.leaveTime": new Date()
+
+    # Handle a disconnection by this user
   _disconnected: ->
     # Remove from lobby if present
     @getBatch().lobby.removeUser(@)

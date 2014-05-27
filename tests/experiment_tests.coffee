@@ -57,6 +57,7 @@ withCleanup = TestUtils.getCleanupWrapper
   after: -> # Can't use this for async
 
 serverInstanceId = null
+secondInstanceId = null
 
 Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) ->
   # First get should create, second get should return same object
@@ -66,22 +67,23 @@ Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) -
 
   test.equal batch2, batch
 
-Tinytest.addAsync "experiment - instance - create", withCleanup (test, next) ->
+Tinytest.add "experiment - instance - create", withCleanup (test) ->
   batch = TurkServer.Batch.getBatch("expBatch")
 
   # Create a new id for this batch of tests
   serverInstanceId = Random.id()
 
   instance = batch.createInstance([ "fooTreatment" ], {_id: serverInstanceId})
-  test.isTrue(instance instanceof TurkServer.Instance)
+  test.instanceOf(instance, TurkServer.Instance)
 
   # Getting the instance again should get the same one
   inst2 = TurkServer.Instance.getInstance(serverInstanceId)
   test.equal inst2, instance
 
-  next()
+  secondInstanceId = Random.id()
+  instance = batch.createInstance([ "fooTreatment" ], {_id: secondInstanceId })
 
-Tinytest.addAsync "experiment - instance - setup context", withCleanup (test, next) ->
+Tinytest.add "experiment - instance - setup context", withCleanup (test) ->
   treatment = undefined
   group = undefined
   instance = TurkServer.Instance.getInstance(serverInstanceId)
@@ -94,9 +96,8 @@ Tinytest.addAsync "experiment - instance - setup context", withCleanup (test, ne
   test.equal treatment[0].name, "fooTreatment"
   test.equal treatment[0].fooProperty, "bar"
   test.equal group, serverInstanceId
-  next()
 
-Tinytest.addAsync "experiment - instance - global group", withCleanup (test, next) ->
+Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   Partitioner.bindGroup serverInstanceId, ->
     Doobie.insert
       foo: "bar"
@@ -109,9 +110,7 @@ Tinytest.addAsync "experiment - instance - global group", withCleanup (test, nex
   test.equal stuff[0].foo, "bar"
   test.equal stuff[0]._groupId, serverInstanceId
 
-  next()
-
-Tinytest.addAsync "experiment - instance - addUser records instance id", withCleanup (test, next) ->
+Tinytest.add "experiment - instance - addUser records instance id", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
   instance.addUser(expTestUserId)
 
@@ -120,16 +119,56 @@ Tinytest.addAsync "experiment - instance - addUser records instance id", withCle
 
   test.isTrue expTestUserId in instance.users()
   test.equal user.turkserver.state, "experiment"
-  test.isTrue(asst.instances instanceof Array)
-  test.equal asst.instances[0].id, serverInstanceId
+  test.instanceOf(asst.instances, Array)
 
-  next()
+  test.isTrue asst.instances[0]
+  test.equal asst.instances[0].id, serverInstanceId
+  test.isTrue asst.instances[0].joinTime
+
+Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.addUser(expTestUserId)
+
+  instance.teardown()
+
+  user = Meteor.users.findOne(expTestUserId)
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isTrue expTestUserId in instance.users() # Shouldn't have been removed
+  test.equal user.turkserver.state, "lobby"
+  test.instanceOf(asst.instances, Array)
+
+  test.isTrue asst.instances[0]
+  test.equal asst.instances[0].id, serverInstanceId
+  test.isTrue asst.instances[0].joinTime
+  test.isTrue asst.instances[0].leaveTime
+
+  instance2 = TurkServer.Instance.getInstance(secondInstanceId)
+
+  instance2.addUser(expTestUserId)
+
+  user = Meteor.users.findOne(expTestUserId)
+  test.equal user.turkserver.state, "experiment"
+
+  instance2.teardown()
+
+  user = Meteor.users.findOne(expTestUserId)
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isTrue expTestUserId in instance2.users() # Shouldn't have been removed
+  test.equal user.turkserver.state, "lobby"
+  test.instanceOf(asst.instances, Array)
+
+  # Make sure array-based updates worked
+  test.isTrue asst.instances[1]
+  test.equal asst.instances[1].id, secondInstanceId
+  test.notEqual asst.instances[0].joinTime, asst.instances[1].joinTime
+  test.notEqual asst.instances[0].leaveTime, asst.instances[1].leaveTime
 
 # TODO clean up assignments if they affect other tests
 
-Tinytest.addAsync "experiment - instance - throws error if doesn't exist", withCleanup (test, next) ->
+Tinytest.add "experiment - instance - throws error if doesn't exist", withCleanup (test) ->
   test.throws ->
     TurkServer.Instance.getInstance("yabbadabbadoober")
-  next()
 
 

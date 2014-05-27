@@ -18,7 +18,7 @@ class TurkServer.Batch
 
   createInstance: (treatmentNames, fields) ->
     fields = _.extend fields || {},
-      startTime: Date.now()
+      startTime: new Date
       batchId: @batchId
       treatments: treatmentNames || []
 

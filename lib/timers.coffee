@@ -4,7 +4,7 @@ class TurkServer.Timers
   # We can't actually store the timeout in the database
   # TODO make round ends work properly over a code reload
   @startNewRound: (startTime, endTime, callback) ->
-    interval = endTime - Date.now()
+    interval = endTime - new Date()
     throw new Error("endTime is in the past") if interval < 0
 
     if (currentRound = RoundTimers.findOne(active: true))?
@@ -48,8 +48,8 @@ class TurkServer.Timers
     unless (currentRound = RoundTimers.findOne(active: true))?
       throw new Error("No current round to end")
 
-    now = Date.now()
-    if currentRound.endTime < Date.now()
+    now = new Date()
+    if currentRound.endTime < now
       throw new Error("Current round is already ended")
 
     RoundTimers.update currentRound._id,

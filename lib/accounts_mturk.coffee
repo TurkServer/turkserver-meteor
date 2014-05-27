@@ -94,7 +94,7 @@ authenticateWorker = (loginRequest) ->
     hitId: loginRequest.hitId
     assignmentId: loginRequest.assignmentId
     workerId: loginRequest.workerId
-    acceptTime: Date.now()
+    acceptTime: new Date()
     status: "assigned"
 
 Accounts.registerLoginHandler (loginRequest) ->
