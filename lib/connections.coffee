@@ -46,13 +46,26 @@ class TurkServer.Assignment
 
   getBatch: -> TurkServer.Batch.getBatch(@batchId)
 
+  getInstances: -> Assignments.findOne(@asstId).instances || []
+
+  showExitSurvey: ->
+    Meteor.users.update @userId,
+      $set: { "turkserver.state": "exitsurvey" }
+
   setCompleted: (doc) ->
+    user = Meteor.users.findOne(@userId)
+    # check that the user is allowed to do this
+    throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
+
     Assignments.update @asstId,
       $set: {
         status: "completed"
         submitTime: new Date()
         exitdata: doc
       }
+
+    Meteor.users.update @userId,
+      $unset: {"turkserver.state": null}
 
   # Gets the variable payment amount for this assignment (bonus)
   getPayment: ->
@@ -88,7 +101,7 @@ class TurkServer.Assignment
   setWorkerData: (doc) ->
     Workers.upsert @workerId, { $set: doc }
 
-  # Handle a connection or reconnection by this user
+  # Handle an initial connection by this user after accepting a HIT
   _loggedIn: ->
     # Is worker in part of an active group (experiment)?
     # This is okay even if batch is not active
@@ -103,6 +116,9 @@ class TurkServer.Assignment
       return
 
     # None of the above, throw them into the lobby/assignment mechanism
+    @_enterLobby()
+
+  _enterLobby: ->
     batch = @getBatch()
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
     batch.lobby.addUser(@)
@@ -228,8 +244,15 @@ getActiveGroup = (userId) ->
 connectCallbacks = []
 
 userReconnect = (doc) ->
-  return unless (groupId = getActiveGroup(doc.userId))?
+  # Ensure user is in a valid state; add to lobby if not
+  user = Meteor.users.findOne(doc.userId)
+  return if not user? or user?.admin
 
+  unless user?.turkserver?.state
+    TurkServer.Assignment.getCurrentUserAssignment(doc.userId)._enterLobby()
+    return
+
+  return unless (groupId = getActiveGroup(doc.userId))?
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._reconnected(groupId)
 
@@ -355,22 +378,12 @@ Meteor.methods
     Meteor.users.update userId,
       $set: {username: username}
 
-  "ts-record-inactive": (data) ->
-    # TODO implement tracking inactivity
-    # We don't trust client timestamps, but only as identifier and use difference
-    console.log data.start, data.time
-
   "ts-submit-exitdata": (doc, panel) ->
     userId = Meteor.userId()
     throw new Meteor.Error(403, ErrMsg.authErr) unless userId
-    user = Meteor.users.findOne(userId)
-
-    # check that the user is allowed to do this
-    throw new Meteor.Error(403, ErrMsg.stateErr) unless user?.turkserver?.state is "exitsurvey"
 
     # TODO what if this doesn't exist?
     asst = TurkServer.Assignment.currentAssignment()
-
     # mark assignment as completed and save the data
     asst.setCompleted(doc)
 
@@ -378,9 +391,6 @@ Meteor.methods
 
     # Update worker contact info
     asst.setWorkerData(panel) if panel
-
-    Meteor.users.update userId,
-      $unset: {"turkserver.state": null}
 
     # return true to auto submit the HIT
     return true

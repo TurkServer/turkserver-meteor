@@ -1,4 +1,4 @@
-@Assigners = {}
+TurkServer.Assigners = {}
 
 # Default top level class
 class TurkServer.Assigner
@@ -6,9 +6,10 @@ class TurkServer.Assigner
     @batch = batch
     @lobby = batch.lobby
 
-    @lobby.events.on "user-join", @userJoined
-    @lobby.events.on "user-status", @userStatusChanged
-    @lobby.events.on "user-leave", @userLeft
+    # Pre-bind callbacks below to avoid ugly fat arrows
+    @lobby.events.on "user-join", @userJoined.bind(@)
+    @lobby.events.on "user-status", @userStatusChanged.bind(@)
+    @lobby.events.on "user-leave", @userLeft.bind(@)
 
   assignToNewInstance: (userIds, treatments) ->
     @lobby.pluckUsers(userIds)
@@ -22,15 +23,32 @@ class TurkServer.Assigner
   userLeft: ->
 
 # Puts everyone who joins into a single group.
-class Assigners.TestAssigner extends TurkServer.Assigner
+class TurkServer.Assigners.TestAssigner extends TurkServer.Assigner
+
+###
+  Assigns everyone who joins in a separate group.
+  Anyone who is done with their instance goes into the exit survey
+###
+class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
+  constructor: ->
+
+  userJoined: (asst) ->
+    if asst.getInstances().length > 0
+      # Send user to exit survey
+      @lobby.pluckUsers( [asst.userId] )
+      asst.showExitSurvey()
+    else
+      # Assign user to instance
+      treatment = _.sample @batch.getTreatments()
+      @assignToNewInstance( [asst.userId], [treatment] )
 
 ###
    Allows people to opt in after reaching a certain threshold.
 ###
-class Assigners.ThresholdAssigner extends TurkServer.Assigner
+class TurkServer.Assigners.ThresholdAssigner extends TurkServer.Assigner
   constructor: (@groupSize) ->
 
-  userStatusChanged: =>
+  userStatusChanged: ->
     readyUsers = @lobby.getUsers({status: true})
     return if readyUsers.length < @groupSize
 
@@ -46,7 +64,7 @@ class Assigners.ThresholdAssigner extends TurkServer.Assigner
   Assigns users to groups in a randomized, round-robin fashion
   as soon as the join the lobby
 ###
-class Assigners.RoundRobinAssigner extends TurkServer.Assigner
+class TurkServer.Assigners.RoundRobinAssigner extends TurkServer.Assigner
   constructor: (@instanceIds) ->
     # TODO: @instanceIds can be fetched from @batch
 
@@ -62,7 +80,7 @@ class Assigners.RoundRobinAssigner extends TurkServer.Assigner
 
       @instances.push instance
 
-  userJoined: (asst) =>
+  userJoined: (asst) ->
     # By default, assign this to the instance with the least number of users
     minUserInstance = _.min @instances, (instance) -> instance.users().length
 
@@ -72,11 +90,11 @@ class Assigners.RoundRobinAssigner extends TurkServer.Assigner
 ###
   Assign users to fixed size experiments sequentially, as they arrive
 ###
-class Assigners.SequentialAssigner extends TurkServer.Assigner
+class TurkServer.Assigners.SequentialAssigner extends TurkServer.Assigner
   constructor: (@groupSize, @instance) ->
 
   # Assignment for no lobby fixed group size
-  userJoined: (asst) =>
+  userJoined: (asst) ->
     if @instance.users().length >= @groupSize
       # Create a new instance, replacing the one we are holding
       treatment = _.sample @batch.getTreatments()

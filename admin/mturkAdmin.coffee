@@ -145,5 +145,10 @@ Template.tsAdminPanel.rendered = ->
 Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
 Template.tsAdminPanel.workerTotal = -> Workers.find().count()
 
-Template.tsAdminAssignments.completedAssts = -> Assignments.find { status: "completed" },
+Template.tsAdminActiveAssignments.activeAssts = ->
+  Assignments.find { status: "assigned" },
+    { sort: acceptTime: 1 }
+
+Template.tsAdminCompletedAssignments.completedAssts = ->
+  Assignments.find { status: "completed" },
     { sort: submitTime: -1 }

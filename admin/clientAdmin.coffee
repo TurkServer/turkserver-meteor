@@ -66,7 +66,7 @@ Deps.autorun ->
 Deps.autorun ->
   return unless Meteor.user()?.admin
   # must pass in different args to actually effect it
-  Meteor.subscribe("tsAdminState", Partitioner.group())
+  Meteor.subscribe("tsAdminState", Session.get("_tsViewingBatchId"), Partitioner.group())
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->

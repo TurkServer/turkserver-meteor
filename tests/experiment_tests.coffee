@@ -61,9 +61,15 @@ withCleanup = TestUtils.getCleanupWrapper
     # Delete any data stored in instances
     # TODO: can probably improve this and not use a global variable
     Experiments.update serverInstanceId,
-      $unset: users: null
+      $unset:
+        startTime: null
+        endTime: null
+        users: null
     Experiments.update secondInstanceId,
-      $unset: users: null
+      $unset:
+        startTime: null
+        endTime: null
+        users: null
 
     # Clear user group
     Partitioner.clearUserGroup(expTestUserId)
@@ -90,6 +96,10 @@ Tinytest.add "experiment - instance - create", withCleanup (test) ->
   instance = batch.createInstance([ "fooTreatment" ], {_id: serverInstanceId})
   test.instanceOf(instance, TurkServer.Instance)
 
+  instanceData = Experiments.findOne(serverInstanceId)
+  test.equal instanceData.batchId, "expBatch"
+  test.instanceOf instanceData.startTime, Date
+
   # Getting the instance again should get the same one
   inst2 = TurkServer.Instance.getInstance(serverInstanceId)
   test.equal inst2, instance
@@ -107,8 +117,8 @@ Tinytest.add "experiment - instance - setup context", withCleanup (test) ->
   test.equal instance.batch(), TurkServer.Batch.getBatch("expBatch")
 
   test.isTrue treatment
-  test.equal treatment[0].name, "fooTreatment"
-  test.equal treatment[0].fooProperty, "bar"
+  test.isTrue "fooTreatment" in treatment.treatments,
+  test.equal treatment.fooProperty, "bar"
   test.equal group, serverInstanceId
 
 Tinytest.add "experiment - instance - global group", withCleanup (test) ->
@@ -123,6 +133,13 @@ Tinytest.add "experiment - instance - global group", withCleanup (test) ->
 
   test.equal stuff[0].foo, "bar"
   test.equal stuff[0]._groupId, serverInstanceId
+
+Tinytest.add "experiment - instance - teardown", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.teardown()
+
+  instanceData = Experiments.findOne(serverInstanceId)
+  test.instanceOf instanceData.endTime, Date
 
 Tinytest.add "experiment - instance - addUser records instance id", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)

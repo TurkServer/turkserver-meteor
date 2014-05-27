@@ -10,12 +10,10 @@ Meteor.publish "tsAdmin", ->
   # Publish all admin data
   return [
     Batches.find(),
-    Assignments.find(),
     Workers.find(),
     Qualifications.find(),
     HITTypes.find(),
     HITs.find(),
-    LobbyStatus.find()
   ]
 
 userFindOptions =
@@ -25,15 +23,20 @@ userFindOptions =
     username: 1
     workerId: 1
 
-# Admin users - needs to update if group updates
-# Return all experiments unless in a group
-Meteor.publish "tsAdminState", (groupId) ->
+# Batch-specific filters for assignments, experiment instances, and lobby
+Meteor.publish "tsAdminState", (batchId, groupId) ->
   return [] unless isAdmin(@userId)
 
+  # When in a group, only users should be returned.
+  # needs to update if group updates
   cursors = [ Meteor.users.find({}, userFindOptions) ]
 
   unless groupId # specific experiment/treatment sent in tsCurrentExperiment
-    cursors.push Experiments.find()
+    # Return nothing if no batch is selected
+    batchSelector = if batchId then {batchId} else undefined
+    cursors.push Assignments.find(batchSelector)
+    cursors.push LobbyStatus.find(batchSelector)
+    cursors.push Experiments.find(batchSelector)
     cursors.push Treatments.find()
 
   return cursors
@@ -211,7 +214,7 @@ Meteor.methods
 
   "ts-admin-stop-experiment": (groupId) ->
     checkAdmin()
-    TurkServer.Experiment.complete(groupId)
+    TurkServer.Instance.getInstance(groupId).teardown()
     return
 
 # Create and set up admin user (and password) if not existent

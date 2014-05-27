@@ -6,9 +6,6 @@ init_queue = []
 TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
-TurkServer.finishExperiment = ->
-  TurkServer.Instance.currentInstance()?.teardown()
-
 # Represents a group or slice on the server, containing some users
 class TurkServer.Instance
   # map of groupId to instance objects
@@ -31,7 +28,7 @@ class TurkServer.Instance
   setup: ->
     context =
       group: @groupId
-      treatment: @treatments()
+      treatment: @treatment()
 
     Partitioner.bindGroup @groupId, ->
       (handler.call(context) for handler in init_queue)
@@ -57,18 +54,23 @@ class TurkServer.Instance
     instance = Experiments.findOne(@groupId)
     return TurkServer.Batch.getBatch(instance.batchId) if instance?
 
-  treatments: ->
+  treatment: ->
     instance = Experiments.findOne(@groupId)
-    return Treatments.find({name: $in: instance.treatments}).fetch() if instance?
+    return unless instance?
+    fields =
+      treatments: []
+    Treatments.find({name: $in: instance.treatments}).forEach (treatment) ->
+      fields.treatments.push treatment.name
+      _.extend(fields, _.omit(treatment, "_id", "name"))
+    return fields
 
   # Close this instance and return people to the lobby
   teardown: ->
-    users = Experiments.findOne(@groupId).users
-
     Experiments.update @groupId,
       $set:
         endTime: new Date()
 
+    return unless (users = Experiments.findOne(@groupId).users)?
     batch = @batch()
 
     for userId in users

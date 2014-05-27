@@ -322,8 +322,38 @@
 </template>
 
 <template name="tsAdminAssignments">
-    <h3>Completed Assignments</h3>
+    {{> tsAdminActiveAssignments}}
+    {{> tsAdminCompletedAssignments}}
+</template>
 
+<template name="tsAdminActiveAssignments">
+    <h3>Active Assignments</h3>
+    <table class="table table-condensed table-striped ts-admin-table">
+        <thead>
+        <tr>
+            <th style="width: 100px">Worker ID</th>
+            <th style="width: 90px">Experiment Instances</th>
+            <th style="width: 170px">Acceptance Time</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each activeAssts}}
+        <tr>
+            <td>{{> tsUserPill workerId=workerId }}</td>
+            <td>
+                {{#each instances}}
+                {{> tsInstancePill id}}
+                {{/each}}
+            </td>
+            <td>{{_tsRenderTime acceptTime}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</template>
+
+<template name="tsAdminCompletedAssignments">
+    <h3>Completed Assignments</h3>
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>

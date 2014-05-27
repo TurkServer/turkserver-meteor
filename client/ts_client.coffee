@@ -56,13 +56,19 @@ safeStartMonitor = (threshold, idleOnBlur) ->
     # Don't try to start the monitor in case the state changed
     @stop() unless TurkServer.inExperiment()
     try
-      UserStatus.startMonitor {threshold, idleOnBlur}
+      settings = {threshold, idleOnBlur}
+      UserStatus.startMonitor(settings)
       @stop()
+      console.log "Idle monitor started with ", settings
 
 idleComp = null
 
 TurkServer.enableIdleMonitor = (threshold, idleOnBlur) ->
-  throw new Error("Idle monitor already enabled") if idleComp?
+  if idleComp?
+    # If monitor is already started, stop it before trying new settings
+    idleComp.stop()
+    UserStatus.stopMonitor() if Deps.nonreactive -> UserStatus.isMonitoring()
+
   idleComp = Deps.autorun ->
     if TurkServer.inExperiment()
       safeStartMonitor(threshold, idleOnBlur)

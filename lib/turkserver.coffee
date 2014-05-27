@@ -134,4 +134,16 @@ Meteor.startup ->
 
   console.log prefix + instanceUpdates + " instance ids updated to objects" if instanceUpdates > 0
 
+  # Convert batch treatmentIds to treatments (names)
+  batchTreatmentUpdates = 0
+  Batches.find(treatmentIds: $exists: true).forEach (batch, idx) ->
+    batchTreatmentUpdates = idx + 1
+    treatments = []
+    for treatmentId in batch.treatmentIds
+      treatmentName = Treatments.findOne(treatmentId)?.name
+      treatments.push(treatmentName) if treatmentName?
+    Batches.update batch._id,
+      $set: { treatments }
+      $unset: {treatmentIds: null}
 
+  console.log prefix + batchTreatmentUpdates + " batch treatment ids updated to names" if instanceUpdates > 0

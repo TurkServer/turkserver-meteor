@@ -9,9 +9,7 @@ Util.duration = (millis) ->
 Util.timeSince = (timestamp) -> Util.duration(TimeSync.serverTime() - timestamp)
 Util.timeUntil = (timestamp) -> Util.duration(timestamp - TimeSync.serverTime())
 
-UI.registerHelper "_tsLookupTreatment", ->
-  treatmentId = "" + (@_id || @)
-  return Treatments.findOne(treatmentId) || treatmentId
+UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne(name: ""+@)
 
 UI.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()
 
@@ -21,6 +19,15 @@ UI.registerHelper "_tsRenderTimeUntil", Util.timeUntil
 UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)
   return m.format("l T") + " (" + m.fromNow() + ")"
+
+Template.tsBatchSelector.events =
+  "change select": (e) ->
+    unless Session.equals("_tsViewingBatchId", e.target.value)
+      Session.set("_tsViewingBatchId", e.target.value)
+
+Template.tsBatchSelector.batches = -> Batches.find()
+Template.tsBatchSelector.noBatchSelection = -> not Session.get("_tsViewingBatchId")
+Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
 
 Template.tsInstancePill.instance = -> Experiments.findOne(""+@)
 

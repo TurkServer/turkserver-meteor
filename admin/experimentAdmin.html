@@ -220,9 +220,6 @@
             <dd>{{> tsAdminBatchEditDesc }}</dd>
             <dt>Treatments</dt>
             <dd>{{> tsAdminBatchEditTreatments}}</dd>
-            <dt>Grouping</dt>
-            <dd>{{> tsAdminBatchEditGrouping}}
-            </dd>
         </dl>
 
         {{#if activatable}}
@@ -245,7 +242,7 @@
 
 <template name="tsAdminBatchEditTreatments">
     <p>
-    {{#each treatmentIds}}
+    {{#each treatments}}
     {{> tsTreatmentDeletePill _tsLookupTreatment}}
     {{/each}}
     </p>
@@ -253,7 +250,7 @@
     <div class="input-group">
         <select class="form-control">
             <option value="" disabled selected>Add treatment</option>
-            {{#each treatments}}
+            {{#each allTreatments}}
             <option>{{name}}</option>
             {{/each}}
         </select>
@@ -261,31 +258,6 @@
         <button class="btn btn-primary -ts-add-batch-treatment"><span class="glyphicon glyphicon-plus"></span></button>
         </span>
     </div>
-</template>
-
-<template name="tsAdminBatchEditGrouping">
-    <h5>
-        {{#if fixedGroupSize}}Fixed group size: {{/if}}
-        {{#if fixedGroupCount}}Fixed number of groups: {{/if}}
-        <b class="text-success">{{groupVal}}</b>
-        {{#if fixedGroupSize}}(<i>{{lobbyEnabled}}</i>){{/if}}
-    </h5>
-
-    <div class="row">
-    <div class="col-md-6">
-        <select class="form-control">
-            <option value="groupSize" selected={{fixedGroupSize}}>Fixed groups of size:</option>
-            <option value="groupCount" selected={{fixedGroupCount}}>Fixed number of groups:</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <input class="form-control" type="number" min="1" step="1" value="{{groupVal}}" pattern="\d+" name="groupVal">
-    </div>
-    </div>
-
-    <label class="checkbox">
-        <input type="checkbox" name="lobby" checked={{lobby}} disabled={{fixedGroupCount}}>Use lobby
-    </label>
 </template>
 
 <template name="tsAdminBatchList">

@@ -109,38 +109,18 @@ Template.tsAdminBatchEditDesc.rendered = ->
 
 Template.tsAdminBatchEditTreatments.events =
   "click .-ts-remove-batch-treatment": (e, tmpl) ->
-    treatmentId = "" + (@_id || @) # In case the treatment is gone
+    treatmentName = "" + (@name || @) # In case the treatment is gone
     Batches.update Session.get("_tsSelectedBatchId"),
-      $pull: { treatmentIds:  treatmentId }
+      $pull: { treatments:  treatmentName }
 
   "click .-ts-add-batch-treatment": (e, tmpl) ->
     e.preventDefault()
     treatment = UI.getElementData(tmpl.find(":selected"))
-    return unless treatment._id
+    return unless treatment?
     Batches.update @_id,
-      $addToSet: { treatmentIds: treatment._id }
+      $addToSet: { treatments: treatment.name }
 
-Template.tsAdminBatchEditTreatments.treatments = treatments
-Template.tsAdminBatchEditTreatments.treatmentName = ->
-  Treatments.findOne(""+@)?.name
-
-Template.tsAdminBatchEditGrouping.events =
-  "change select": (e, tmpl) ->
-    selected = tmpl.find(":selected").value
-    Batches.update @_id,
-      $set: grouping: selected
-  "change input[name=groupVal]": (e) ->
-    value = parseInt e.target.value
-    return unless value
-    Batches.update @_id,
-      $set: groupVal: value
-  "change input[name=lobby]": (e) ->
-    Batches.update @_id,
-      $set: lobby: e.target.checked
-
-Template.tsAdminBatchEditGrouping.fixedGroupSize = -> @grouping is "groupSize"
-Template.tsAdminBatchEditGrouping.fixedGroupCount = -> @grouping is "groupCount"
-Template.tsAdminBatchEditGrouping.lobbyEnabled = -> if @lobby then "with lobby" else "no lobby"
+Template.tsAdminBatchEditTreatments.allTreatments = treatments
 
 Template.tsAdminConfigureBatch.activatable = ->
   not @active and not Batches.findOne(active: true)

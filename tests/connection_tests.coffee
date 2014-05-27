@@ -76,6 +76,41 @@ Tinytest.add "connection - user added to lobby", withCleanup (test) ->
 
   test.equal user.turkserver.state, "lobby"
 
+Tinytest.add "connection - user sent to exit survey", withCleanup (test) ->
+  asst = createAssignment()
+  asst.showExitSurvey()
+
+  user = Meteor.users.findOne(userId)
+
+  test.equal user.turkserver.state, "exitsurvey"
+
+Tinytest.add "connection - user submitting HIT", withCleanup (test) ->
+  asst = createAssignment()
+
+  Meteor.users.update userId,
+    $set:
+      "turkserver.state": "exitsurvey"
+
+  exitData = {foo: "bar"}
+
+  asst.setCompleted( exitData )
+
+  user = Meteor.users.findOne(userId)
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse user.turkserver?.state
+
+  test.equal asstData.status, "completed"
+  test.instanceOf asstData.submitTime, Date
+  test.equal asstData.exitdata, exitData
+
+Tinytest.add "connection - improper submission of HIT", withCleanup (test) ->
+  asst = createAssignment()
+
+  test.throws ->
+    asst.setCompleted {}
+  , (e) -> e.error is 403 and e.reason is ErrMsg.stateErr
+
 Tinytest.add "connection - user resuming into instance", withCleanup (test) ->
   asst = createAssignment()
   instance.addUser(userId)
