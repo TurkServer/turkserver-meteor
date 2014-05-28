@@ -40,7 +40,7 @@ Template.tsInstancePill.rendered = ->
     placement: "auto right"
     trigger: "hover"
     container: container
-    content: =>
+    content: ->
       # FIXME: Workaround as popover doesn't update with changed data
       # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
       UI.toHTML Template.tsAdminGroupInfo.extend data: UI.getElementData(container[0])
@@ -72,7 +72,7 @@ Template.tsUserPill.rendered = ->
     placement: "auto right"
     trigger: "hover"
     container: container
-    content: =>
+    content: ->
       # FIXME: Workaround as popover doesn't update with changed data
       # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
       UI.toHTML Template.tsUserPillPopover.extend data: UI.getElementData(container[0])

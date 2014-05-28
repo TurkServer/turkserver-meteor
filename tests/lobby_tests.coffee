@@ -78,7 +78,7 @@ if Meteor.isServer
       next()
 
 if Meteor.isClient
-  # TODO fix config test for lobby
+  # TODO fix config test for lobby along with assigner lobby state
   undefined
 #  Tinytest.addAsync "lobby - verify config", (test, next) ->
 #    groupSize = null

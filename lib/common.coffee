@@ -40,9 +40,10 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
   usernameTaken: "Sorry, that username is taken."
   userNotInLobbyErr: "User is not in lobby"
 
-# TODO: only the admin is allowed to modify these from the client side
+# TODO move this to a more appropriate location
 Meteor.methods
   "ts-delete-treatment": (id) ->
+    TurkServer.checkAdmin()
     if Batches.findOne({ treatmentIds: { $in: [id] } })
       throw new Meteor.Error(403, "can't delete treatments that are used by existing batches")
 

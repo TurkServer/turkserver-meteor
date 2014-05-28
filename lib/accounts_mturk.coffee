@@ -73,7 +73,14 @@ authenticateWorker = (loginRequest) ->
       Assignments.update existing._id,
         $set: { status: "returned" }
 
-  # Check for limits before creating a new assignment
+  ###
+    Not a reconnection; creating a new assignment
+  ###
+  # Only active batches accept new HITs
+  if batchId? and not Batches.findOne(batchId)?.active
+    throw new Meteor.Error(403, "Batch is no longer active")
+
+  # Check for limits
   if Assignments.find({
     workerId: workerId,
     status: { $ne: "completed" }

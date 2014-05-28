@@ -33,7 +33,8 @@ HITs.upsert HITId: hitId2,
 # We can use the after wrapper here because the tests are synchronous
 withCleanup = TestUtils.getCleanupWrapper
   before: ->
-  after: ->
+  after: -> # We can use this due to synchronicity
+    Batches.update(authBatchId, $set: active: true)
     Assignments.remove({})
     Meteor.flush()
 
@@ -70,6 +71,19 @@ Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
   test.throws testFunc, (e) ->
     e.error is 403 # TODO and reason?
 
+Tinytest.add "auth - connection to inactive batch is rejected", withCleanup (test) ->
+  # Active is set to back to true on cleanup
+  Batches.update(authBatchId, $unset: active: false)
+
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: authBatchId
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+
+  test.throws testFunc, (e) ->
+    e.error is 403 # TODO and reason?
+
 Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (test) ->
   Assignments.insert
     batchId: authBatchId
@@ -91,8 +105,8 @@ Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (tes
 
   test.equal(record.status, "assigned")
 
-Tinytest.add "auth - reconnect - with existing hit after batch retired", withCleanup (test) ->
-  # TODO clean up batch hack in here
+Tinytest.add "auth - reconnect - with existing hit after batch is inactive", withCleanup (test) ->
+  # Active is set to back to true on cleanup
   Batches.update(authBatchId, $unset: active: false)
 
   Assignments.insert
@@ -114,8 +128,6 @@ Tinytest.add "auth - reconnect - with existing hit after batch retired", withCle
     workerId: workerId
 
   test.equal(record.status, "assigned")
-
-  Batches.update(authBatchId, $set: active: true)
 
 Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
   Assignments.insert

@@ -310,8 +310,6 @@ activeCallbacks = []
 TurkServer.onIdle = (func) -> idleCallbacks.push(func)
 TurkServer.onActive = (func) -> idleCallbacks.push(func)
 
-# TODO: compute total amount of time a user has been idle in a group
-
 userIdle = (doc) ->
   return unless (groupId = getActiveGroup(doc.userId))?
 
