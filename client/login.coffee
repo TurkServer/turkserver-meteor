@@ -94,6 +94,8 @@ if params.hitId and params.assignmentId and params.workerId
     assignmentId: params.assignmentId
     workerId: params.workerId
     batchId: params.batchId
+    # TODO: hack to allow testing logins
+    test: params.workerId.indexOf("_Worker") >= 0
   })
   Meteor._debug "Captured login params"
 

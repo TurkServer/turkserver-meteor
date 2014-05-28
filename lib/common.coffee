@@ -34,6 +34,7 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
   # operations
   authErr: "You are not logged in"
   stateErr: "You can't perform that operation right now"
+  notAdminErr: "Not logged in as admin"
   adminErr: "Operation not permitted by admin"
   # Stuff
   usernameTaken: "Sorry, that username is taken."
@@ -48,6 +49,34 @@ Meteor.methods
     Treatments.remove(id)
 
 # Helpful functions
+TurkServer.isAdmin = ->
+  userId = Meteor.userId()
+  return false unless userId
+  return Meteor.users.findOne(
+    _id: userId
+    "admin": { $exists: true }
+  , fields:
+    "admin" : 1
+  )?.admin
+
 TurkServer.checkNotAdmin = ->
-  if Deps.nonreactive(-> Meteor.user()?.admin)
-    throw new Meteor.Error(403, ErrMsg.adminErr)
+  if Meteor.isClient
+    # Don't register reactive dependencies on userId for a client check
+    throw new Meteor.Error(403, ErrMsg.adminErr) if Deps.nonreactive(-> TurkServer.isAdmin())
+  else
+    throw new Meteor.Error(403, ErrMsg.adminErr) if TurkServer.isAdmin()
+
+TurkServer.checkAdmin = ->
+  if Meteor.isClient
+    throw new Meteor.Error(403, ErrMsg.notAdminErr) unless Deps.nonreactive(-> TurkServer.isAdmin())
+  else
+    throw new Meteor.Error(403, ErrMsg.notAdminErr) unless TurkServer.isAdmin()
+
+TurkServer._mergeTreatments = (arr) ->
+  fields =
+    treatments: []
+  arr.forEach (treatment) ->
+    fields.treatments.push treatment.name
+    _.extend(fields, _.omit(treatment, "_id", "name"))
+  return fields
+

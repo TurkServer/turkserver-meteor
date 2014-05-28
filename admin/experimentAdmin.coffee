@@ -1,4 +1,3 @@
-activeBatch = -> Batches.findOne(active: true)
 treatments = -> Treatments.find()
 
 Template.tsAdminExperiments.events =
@@ -21,8 +20,6 @@ Template.tsAdminExperiments.events =
     expId = @_id
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
       Meteor.call "ts-admin-stop-experiment", expId if res
-
-Template.tsAdminExperiments.activeBatch = activeBatch
 
 numUsers = -> @users?.length
 
@@ -81,7 +78,7 @@ Template.tsAdminActiveBatches.events =
     Batches.update @_id, $set:
       active: false
 
-Template.tsAdminActiveBatches.activeBatch = activeBatch
+Template.tsAdminActiveBatches.activeBatch = -> Batches.findOne(active: true)
 
 Template.tsAdminConfigureBatch.events =
   "click .-ts-activate-batch": (e) ->

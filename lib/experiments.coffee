@@ -57,12 +57,7 @@ class TurkServer.Instance
   treatment: ->
     instance = Experiments.findOne(@groupId)
     return unless instance?
-    fields =
-      treatments: []
-    Treatments.find({name: $in: instance.treatments}).forEach (treatment) ->
-      fields.treatments.push treatment.name
-      _.extend(fields, _.omit(treatment, "_id", "name"))
-    return fields
+    return TurkServer._mergeTreatments Treatments.find({name: $in: instance.treatments})
 
   # Close this instance and return people to the lobby
   teardown: ->

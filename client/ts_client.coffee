@@ -14,28 +14,12 @@ TurkServer.inExperiment = ->
 TurkServer.inExitSurvey = ->
   Session.equals("turkserver.state", "exitsurvey")
 
-TurkServer.isAdmin = ->
-  userId = Meteor.userId()
-  return false unless userId
-  return Meteor.users.findOne(
-    _id: userId
-    "admin": { $exists: true }
-  , fields:
-    "admin" : 1
-  )?.admin
-
 TurkServer.batch = ->
   batchId = Session.get('_loginParams')?.batchId
   Batches.findOne(batchId) if batchId?
 
 # Merge all treatments into one document
-TurkServer.treatment = ->
-  fields =
-    treatments: []
-  Treatments.find({}).forEach (treatment) ->
-    fields.treatments.push treatment.name
-    _.extend(fields, _.omit(treatment, "_id", "name"))
-  return fields
+TurkServer.treatment = -> TurkServer._mergeTreatments Treatments.find({})
 
 # Find current round, whether running or in break
 # TODO this polls every second, which can be quite inefficient

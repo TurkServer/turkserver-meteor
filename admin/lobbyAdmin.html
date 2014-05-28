@@ -1,7 +1,9 @@
 <template name="tsAdminLobby">
     <h3>Current Lobby</h3>
 
-    {{> tsAdminLobbyStatus}}
+    {{#tsBatchMessage}}
+        Viewing lobby users in batch <b>{{name}}</b>.
+    {{/tsBatchMessage}}
 
     {{> tsAdminLobbyHeader}}
 
@@ -29,20 +31,6 @@
         {{/each}}
         </tbody>
     </table>
-</template>
-
-<template name="tsAdminLobbyStatus">
-    {{#if noBatchActive}}
-    <div class="alert alert-warning">
-        No batch of experiments is currently active.
-    </div>
-    {{/if}}
-
-    {{#if lobbyDisabled}}
-    <div class="alert alert-info">
-        No users should appear below, because the current batch of experiments does not use the lobby.
-    </div>
-    {{/if}}
 </template>
 
 <template name="tsAdminLobbyHeader">

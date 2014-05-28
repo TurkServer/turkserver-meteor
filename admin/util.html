@@ -8,6 +8,18 @@
     </select>
 </template>
 
+<template name="tsBatchMessage">
+    {{#with _tsViewingBatch}}
+    <div class="alert alert-info">
+        {{> UI.contentBlock this}}
+    </div>
+    {{else}}
+    <div class="alert alert-warning">
+        No batch selected. Choose one above.
+    </div>
+    {{/with}}
+</template>
+
 <template name="tsAdminGroupInfo">
     <dl class="dl-horizontal ts-compact">
         <dt>Group:</dt>

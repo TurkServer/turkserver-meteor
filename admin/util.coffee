@@ -9,6 +9,8 @@ Util.duration = (millis) ->
 Util.timeSince = (timestamp) -> Util.duration(TimeSync.serverTime() - timestamp)
 Util.timeUntil = (timestamp) -> Util.duration(timestamp - TimeSync.serverTime())
 
+UI.registerHelper "_tsViewingBatch", -> Batches.findOne(Session.get("_tsViewingBatchId"))
+
 UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne(name: ""+@)
 
 UI.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()

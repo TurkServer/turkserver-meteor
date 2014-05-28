@@ -1,13 +1,7 @@
 <template name="tsAdminExperiments">
-    {{#with activeBatch}}
-    <div class="alert alert-info">
-        Batch <b>{{name}}</b> is currently active.
-    </div>
-    {{else}}
-    <div class="alert alert-warning">
-        No batch is currently active.
-    </div>
-    {{/with}}
+    {{#tsBatchMessage}}
+        Viewing experiment instances in batch <b>{{name}}</b>.
+    {{/tsBatchMessage}}
 
     {{> tsAdminActiveExperiments }}
     {{> tsAdminCompletedExperiments }}

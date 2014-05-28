@@ -322,6 +322,10 @@
 </template>
 
 <template name="tsAdminAssignments">
+    {{#tsBatchMessage}}
+        Viewing assignments created in batch <b>{{name}}</b>.
+    {{/tsBatchMessage}}
+
     {{> tsAdminActiveAssignments}}
     {{> tsAdminCompletedAssignments}}
 </template>

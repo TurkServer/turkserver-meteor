@@ -77,26 +77,23 @@ Meteor.publish "tsGroupLogs", (groupId, limit) ->
       limit: limit
     })
 
-checkAdmin = ->
-  throw new Meteor.Error(403, "Not logged in as admin") unless Meteor.user()?.admin
-
 Meteor.methods
   "ts-admin-activate-batch": (batchId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
 
     Batches.update batchId, $set:
       active: true
     return
 
   "ts-admin-account-balance": ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     try
       return TurkServer.mturk "GetAccountBalance", {}
     catch e
       throw new Meteor.Error(403, e.toString())
 
   "ts-admin-register-hittype": (hitTypeId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     # Build up the params to register the HIT Type
     params = HITTypes.findOne(hitTypeId)
     delete params._id
@@ -128,7 +125,7 @@ Meteor.methods
     return
 
   "ts-admin-create-hit": (hitTypeId, params) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     hitType = HITTypes.findOne(hitTypeId)
     throw new Meteor.Error(403, "HITType not registered") unless hitType.HITTypeId
 
@@ -153,7 +150,7 @@ Meteor.methods
     return
 
   "ts-admin-refresh-hit": (HITId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     throw new Meteor.Error(400, "HIT ID not specified") unless HITId
     try
       hitData = TurkServer.mturk "GetHIT", HITId: HITId
@@ -164,7 +161,7 @@ Meteor.methods
     return
 
   "ts-admin-expire-hit": (HITId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     throw new Meteor.Error(400, "HIT ID not specified") unless HITId
     try
       hitData = TurkServer.mturk "ForceExpireHIT", HITId: HITId
@@ -177,7 +174,7 @@ Meteor.methods
     return
 
   "ts-admin-change-hittype": (params) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     check(params.HITId, String)
     check(params.HITTypeId, String)
     try
@@ -190,7 +187,7 @@ Meteor.methods
     return
 
   "ts-admin-extend-hit": (params) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     throw new Meteor.Error(400, "HIT ID not specified") unless params.HITId
     try
       TurkServer.mturk "ExtendHIT", params
@@ -203,17 +200,17 @@ Meteor.methods
     return
 
   "ts-admin-join-group": (groupId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     Partitioner.setUserGroup Meteor.userId(), groupId
     return
 
   "ts-admin-leave-group": ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     Partitioner.clearUserGroup Meteor.userId()
     return
 
   "ts-admin-stop-experiment": (groupId) ->
-    checkAdmin()
+    TurkServer.checkAdmin()
     TurkServer.Instance.getInstance(groupId).teardown()
     return
 
