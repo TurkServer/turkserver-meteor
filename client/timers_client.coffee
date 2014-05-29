@@ -28,7 +28,12 @@ class TurkServer.Timers
   @idleTime: UI.emboxValue ->
     return if TurkServer.isAdmin()
     return unless (instance = Assignments.findOne()?.instances?[0])?
-    return instance.idleTime || 0
+    # If we're idle, add the local idle time (as it's not updated from the server)
+    # TODO add a test for this part - difficult because user-status is a different package
+    idleMillis = (instance.idleTime || 0)
+    if UserStatus.isIdle()
+      idleMillis += TimeSync.serverTime() - UserStatus.lastActivity()
+    return idleMillis
 
   # Milliseconds this user has been disconnected in the experiment
   @disconnectedTime: UI.emboxValue ->
