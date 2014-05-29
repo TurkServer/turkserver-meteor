@@ -8,10 +8,37 @@ class TurkServer.Timers
     return unless exp.startTime?
     return Math.max(0, TimeSync.serverTime() - exp.startTime)
 
+  # Milliseconds elapsed since this user joined the experiment instance
+  # This is slightly different than the above
+  @joinedTime: ->
+    return if TurkServer.isAdmin()
+    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return Math.max(0, TimeSync.serverTime() - instance.joinTime)
+
   @remainingTime: ->
     return unless (exp = Experiments.findOne())?
     return unless exp.endTime?
     return Math.max(0, exp.endTime - TimeSync.serverTime())
+
+  ###
+    Emboxed values below because they aren't using per-second reactivity
+  ###
+
+  # Milliseconds this user has been idle in the experiment
+  @idleTime: UI.emboxValue ->
+    return if TurkServer.isAdmin()
+    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return instance.idleTime || 0
+
+  # Milliseconds this user has been disconnected in the experiment
+  @disconnectedTime: UI.emboxValue ->
+    return if TurkServer.isAdmin()
+    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return instance.disconnectedTime || 0
+
+  # Number of active milliseconds (= joined - idle - disconnected)
+  @activeTime: =>
+    @joinedTime() - @idleTime() - @disconnectedTime()
 
   # Milliseconds elapsed since round start
   @roundElapsedTime: ->
@@ -41,22 +68,20 @@ class TurkServer.Timers
 # UI Time helpers
 
 formatSeconds = (millis) ->
+  return unless millis
   diff = moment.utc(millis)
   time = diff.format("H:mm:ss")
   days = +diff.format("DDD") - 1
   return (if days then days + "d " else "") + time
 
-UI.registerHelper "tsElapsedTime", ->
-  formatSeconds TurkServer.Timers.elapsedTime()
+# Register all the helpers in the form tsGlobalHelperTime
+for own key of TurkServer.Timers
+  # camelCase the helper name
+  helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1)
+  (-> # Bind the function to the current value inside the closure
+    func = TurkServer.Timers[key]
+    UI.registerHelper helperName, -> formatSeconds func()
+  )()
 
-UI.registerHelper "tsRemainingTime", ->
-  formatSeconds TurkServer.Timers.remainingTime()
 
-UI.registerHelper "tsRoundElapsedTime", ->
-  formatSeconds TurkServer.Timers.roundElapsedTime()
 
-UI.registerHelper "tsRoundRemainingTime", ->
-  formatSeconds TurkServer.Timers.roundRemainingTime()
-
-UI.registerHelper "tsBreakRemainingTime", ->
-  formatSeconds TurkServer.Timers.breakRemainingTime()

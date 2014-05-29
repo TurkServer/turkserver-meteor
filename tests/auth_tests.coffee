@@ -16,6 +16,7 @@ Meteor.users.upsert "authUser1", $set: {workerId}
 Meteor.users.upsert "authUser2", $set: {workerId: workerId2}
 
 authBatchId = "authBatch"
+otherBatchId = "someOtherBatch"
 
 # Set up a dummy batch
 unless Batches.findOne(authBatchId)?
@@ -37,8 +38,8 @@ withCleanup = TestUtils.getCleanupWrapper
   before: ->
   after: -> # We can use this due to synchronicity
     Batches.update(authBatchId, $set: active: true)
-    Assignments.remove({})
-    Meteor.flush()
+    # Only remove assignments created here to avoid side effects on server-client tests
+    Assignments.remove($or: [ {batchId: authBatchId}, {batchId: otherBatchId} ])
 
 Tinytest.add "auth - with first time hit assignment", withCleanup (test) ->
   asst = TestUtils.authenticateWorker
@@ -65,7 +66,7 @@ Tinytest.add "auth - with first time hit assignment", withCleanup (test) ->
 
 Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
   testFunc = -> TestUtils.authenticateWorker
-    batchId: "someOtherBatch"
+    batchId: otherBatchId
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
@@ -276,7 +277,7 @@ Tinytest.add "auth - limit - too many total", withCleanup (test) ->
 
 Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) ->
   Assignments.insert
-    batchId: "someOtherBatch"
+    batchId: otherBatchId
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId

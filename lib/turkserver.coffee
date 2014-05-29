@@ -78,6 +78,7 @@ Meteor.publish null, ->
     fields: { turkserver: 1 }
 
 # Publish current experiment for a user, if it exists
+# This includes the data sent to the admin user
 Meteor.publish "tsCurrentExperiment", (group) ->
   return unless @userId
   cursors = [
@@ -89,6 +90,19 @@ Meteor.publish "tsCurrentExperiment", (group) ->
   # XXX Treatments will not be updated reactively if added/removed to the experiment
   if (treatments = Experiments.findOne(group)?.treatments)?
     cursors.push Treatments.find(name: $in: treatments)
+
+  # Current user assignment data, including idle and disconnection time
+  # This won't be sent for the admin user
+  # No reactive join needed here because workerId is immutable for users and re-sub will change group
+  if (workerId = Meteor.users.findOne(@userId)?.workerId)?
+    cursors.push Assignments.find({
+      workerId: workerId
+      instances: $elemMatch: {id: group}
+    }, {
+      fields: {
+        instances: 1
+      }
+    })
 
   return cursors
 

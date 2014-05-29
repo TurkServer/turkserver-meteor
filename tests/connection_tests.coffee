@@ -36,8 +36,8 @@ withCleanup = TestUtils.getCleanupWrapper
     batch.lobby.removeUser(asst)
     # Clear user group
     Partitioner.clearUserGroup(userId)
-    # Clear any assignments
-    Assignments.remove {}
+    # Clear any assignments we created
+    Assignments.remove {batchId}
     # Unset user state
     Meteor.users.update userId,
       $unset:
