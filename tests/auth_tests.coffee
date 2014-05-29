@@ -94,7 +94,8 @@ Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (tes
     workerId: workerId
     status: "assigned"
 
-  TestUtils.authenticateWorker
+  # This needs to return an assignment
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: hitId
     assignmentId : assignmentId
@@ -104,6 +105,13 @@ Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (tes
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId
+
+  test.equal(asst, TurkServer.Assignment.getAssignment(record._id))
+  test.equal asst.batchId, authBatchId
+  test.equal asst.hitId, hitId
+  test.equal asst.assignmentId, assignmentId
+  test.equal asst.workerId, workerId
+  test.equal asst.userId, "authUser1"
 
   test.equal(record.status, "assigned")
 
@@ -141,7 +149,7 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
     experimentId: experimentId
 
   # Authenticate with different worker
-  TestUtils.authenticateWorker
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: hitId
     assignmentId : assignmentId
@@ -156,6 +164,9 @@ Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId2
+
+  test.isTrue(asst)
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
 
   test.equal(prevRecord.status, "returned")
 
@@ -171,7 +182,7 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     status: "completed"
 
   # Authenticate with different worker
-  TestUtils.authenticateWorker
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: hitId
     assignmentId : assignmentId
@@ -186,6 +197,9 @@ Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
     hitId: hitId
     assignmentId: assignmentId
     workerId: workerId2
+
+  test.isTrue(asst)
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
 
   test.equal(prevRecord.status, "completed")
 
@@ -269,7 +283,7 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
     status: "completed"
     # Should not trigger concurrent limit
 
-  TestUtils.authenticateWorker
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: hitId2,
     assignmentId : assignmentId2
@@ -285,6 +299,9 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
     assignmentId: assignmentId2
     workerId: workerId
 
+  test.isTrue(asst)
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+
   test.equal(prevRecord.status, "completed")
   test.equal(prevRecord.batchId, "someOtherBatch")
 
@@ -294,7 +311,7 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
 Meteor.users.upsert "testWorker", $set: {workerId: "testingWorker"}
 
 Tinytest.add "auth - testing HIT login doesn't require existing HIT", withCleanup (test) ->
-  TestUtils.authenticateWorker
+  asst = TestUtils.authenticateWorker
     batchId: authBatchId
     hitId: "testingHIT"
     assignmentId: "testingAsst"
@@ -305,6 +322,9 @@ Tinytest.add "auth - testing HIT login doesn't require existing HIT", withCleanu
   record = Assignments.findOne
     hitId: "testingHIT"
     assignmentId: "testingAsst"
+
+  test.isTrue(asst)
+  test.equal(asst, TurkServer.Assignment.getAssignment(record._id))
 
   test.isTrue(record)
   test.equal(record.workerId, "testingWorker")

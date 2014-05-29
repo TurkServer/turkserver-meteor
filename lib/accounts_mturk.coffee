@@ -36,6 +36,10 @@ Accounts.onLogin (info) ->
   # console.log "saved IP address for connection ", info.connection.clientAddress
   return
 
+###
+  Authenticate a worker taking an assignment.
+  Returns an assignment object corresponding to the assignment.
+###
 authenticateWorker = (loginRequest) ->
   { batchId, hitId, assignmentId, workerId } = loginRequest
 
@@ -67,7 +71,7 @@ authenticateWorker = (loginRequest) ->
     # Was a different account in progress?
     if workerId is existing.workerId
       # Worker has already logged in to this HIT, no need to create record below
-      return
+      return TurkServer.Assignment.getAssignment(existing._id)
     else
       # HIT has been taken by someone else. Record a new assignment for this worker.
       Assignments.update existing._id,
