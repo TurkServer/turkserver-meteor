@@ -21,6 +21,8 @@ authBatchId = "authBatch"
 unless Batches.findOne(authBatchId)?
   Batches.insert(_id: authBatchId)
 
+Batches.update(authBatchId, $set: active: true)
+
 # Set up a dummy HIT type and HITs
 HITTypes.upsert HITTypeId: hitType,
   $set:
