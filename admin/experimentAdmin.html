@@ -137,8 +137,6 @@
     <h3>Manage Batches</h3>
     <div class="row">
         <div class="col-md-6">
-        {{> tsAdminActiveBatches }}
-
         {{> tsAdminBatchList }}
         </div>
         <div class="col-md-6">
@@ -191,19 +189,6 @@
     </div>
 </template>
 
-<template name="tsAdminActiveBatches">
-    {{#with activeBatch}}
-    <div class="alert alert-info">
-        <b>{{name}}</b> is the current active batch.
-        <button class="btn btn-danger -ts-retire-batch">Retire</button>
-    </div>
-    {{else}}
-    <div class="alert">
-        No batch of experiments is currently active. Create one below or activate an existing batch.
-    </div>
-    {{/with}}
-</template>
-
 <template name="tsAdminConfigureBatch">
     <div class="well">
     {{#with selectedBatch}}
@@ -216,8 +201,10 @@
             <dd>{{> tsAdminBatchEditTreatments}}</dd>
         </dl>
 
-        {{#if activatable}}
-        <button class="btn btn-danger -ts-activate-batch">Make Active</button>
+        {{#if active}}
+        <button class="btn btn-danger -ts-deactivate-batch">Make Inactive</button>
+        {{else}}
+        <button class="btn btn-success -ts-activate-batch">Make Active</button>
         {{/if}}
 
     {{else}}

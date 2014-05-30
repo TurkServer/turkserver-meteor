@@ -73,19 +73,14 @@ Template.tsAdminNewTreatment.events =
 Template.tsAdminTreatmentConfig.selectedTreatment = ->
   Treatments.findOne Session.get("_tsSelectedTreatmentId")
 
-Template.tsAdminActiveBatches.events =
-  "click .-ts-retire-batch": ->
+Template.tsAdminConfigureBatch.events =
+  "click .-ts-activate-batch": ->
+    Batches.update @_id, $set:
+      active: true
+
+  "click .-ts-deactivate-batch": ->
     Batches.update @_id, $set:
       active: false
-
-Template.tsAdminActiveBatches.activeBatch = -> Batches.findOne(active: true)
-
-Template.tsAdminConfigureBatch.events =
-  "click .-ts-activate-batch": (e) ->
-    unless @treatmentIds?.length > 0
-      bootbox.alert "Select at least one treatment to activate this batch."
-      return
-    Meteor.call "ts-admin-activate-batch", @_id
 
 Template.tsAdminConfigureBatch.selectedBatch = ->
   Batches.findOne(Session.get("_tsSelectedBatchId"))
@@ -118,9 +113,6 @@ Template.tsAdminBatchEditTreatments.events =
       $addToSet: { treatments: treatment.name }
 
 Template.tsAdminBatchEditTreatments.allTreatments = treatments
-
-Template.tsAdminConfigureBatch.activatable = ->
-  not @active and not Batches.findOne(active: true)
 
 Template.tsAdminBatchList.events =
   "click tbody > tr": (e) ->

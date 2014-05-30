@@ -35,6 +35,10 @@ class TurkServer.Instance
       return
 
   addUser: (userId) ->
+    if Experiments.findOne({_id: @groupId, endTime: $exists: true})?
+      throw new Error("Cannot add a user to an instance that has ended.")
+      return
+
     # Add a user to this instance
     Partitioner.setUserGroup(userId, @groupId)
 
@@ -48,7 +52,7 @@ class TurkServer.Instance
     asst._joinInstance(@groupId)
     return
 
-  users: -> Experiments.findOne(@groupId).users
+  users: -> Experiments.findOne(@groupId).users || []
 
   batch: ->
     instance = Experiments.findOne(@groupId)

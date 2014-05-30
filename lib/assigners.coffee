@@ -10,6 +10,7 @@ class TurkServer.Assigner
     @lobby.events.on "user-join", @userJoined.bind(@)
     @lobby.events.on "user-status", @userStatusChanged.bind(@)
     @lobby.events.on "user-leave", @userLeft.bind(@)
+    return
 
   assignToNewInstance: (userIds, treatments) ->
     @lobby.pluckUsers(userIds)
@@ -22,8 +23,28 @@ class TurkServer.Assigner
   userStatusChanged: ->
   userLeft: ->
 
-# Puts everyone who joins into a single group.
+###
+  Very dumb assigner: puts everyone who joins into a single group.
+  Once the instance ends, puts users in exit survey.
+###
 class TurkServer.Assigners.TestAssigner extends TurkServer.Assigner
+  initialize: ->
+    super
+    # Take any experiment from this batch, creating it if it doesn't exist
+    if (instanceId = Experiments.findOne(batchId: @batch.batchId))?
+      @instance = TurkServer.Instance.getInstance(instanceId)
+    else
+      @instance = @batch.createInstance(@batch.getTreatments())
+      @instance.setup()
+
+  userJoined: (asst) ->
+    if asst.getInstances().length > 0
+      @lobby.pluckUsers( [asst.userId] )
+      asst.showExitSurvey()
+    else
+      try
+        @instance.addUser( asst.userId )
+      @lobby.pluckUsers( [asst.userId] )
 
 ###
   Assigns everyone who joins in a separate group.
@@ -41,6 +62,27 @@ class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
       # Assign user to instance
       treatment = _.sample @batch.getTreatments()
       @assignToNewInstance( [asst.userId], [treatment] )
+
+###
+  Assigns users first to a tutorial treatment,
+  then to a single group.
+  An event on the lobby is used to trigger the group.
+###
+class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
+  constructor: (@tutorialTreatments, @groupTreatments) ->
+    @autoAssign = false
+
+  initialize: ->
+    super
+    @lobby.events.on "auto-assign", =>
+      @autoAssign = true
+      @assignAllUsers()
+
+  # put all users who have done the tutorial in the group
+  assignAllUsers: ->
+
+  # Assign users to the tutorial, the group, and the exit survey
+  userJoined: ->
 
 ###
    Allows people to opt in after reaching a certain threshold.

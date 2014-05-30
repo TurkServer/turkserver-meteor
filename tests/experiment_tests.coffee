@@ -47,6 +47,10 @@ withCleanup = TestUtils.getCleanupWrapper
     Partitioner.directOperation ->
       Doobie.remove {}
 
+    # Set user state to be in lobby
+    Meteor.users.update expTestUserId,
+      $set: "turkserver.state": "lobby"
+
     # Reset assignments
     Assignments.upsert {
         batchId: "expBatch"
@@ -140,6 +144,21 @@ Tinytest.add "experiment - instance - teardown", withCleanup (test) ->
 
   instanceData = Experiments.findOne(serverInstanceId)
   test.instanceOf instanceData.endTime, Date
+
+Tinytest.add "experiment - instance - reject adding user to ended instance", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  instance.teardown()
+
+  test.throws ->
+    instance.addUser(expTestUserId)
+
+  user = Meteor.users.findOne(expTestUserId)
+  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.length instance.users(), 0
+  test.equal user.turkserver.state, "lobby"
+
+  test.isFalse asst.instances
 
 Tinytest.add "experiment - instance - addUser records instance id", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)

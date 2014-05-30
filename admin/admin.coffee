@@ -78,13 +78,6 @@ Meteor.publish "tsGroupLogs", (groupId, limit) ->
     })
 
 Meteor.methods
-  "ts-admin-activate-batch": (batchId) ->
-    TurkServer.checkAdmin()
-
-    Batches.update batchId, $set:
-      active: true
-    return
-
   "ts-admin-account-balance": ->
     TurkServer.checkAdmin()
     try
@@ -207,6 +200,14 @@ Meteor.methods
   "ts-admin-leave-group": ->
     TurkServer.checkAdmin()
     Partitioner.clearUserGroup Meteor.userId()
+    return
+
+  "ts-admin-lobby-event": (batchId, event) ->
+    TurkServer.checkAdmin()
+    batch = TurkServer.Batch.getBatch(batchId)
+    throw new Meteor.Error(500, "Batch #{batchId} does not exist") unless batch?
+    emitter = batch.lobby.events
+    emitter.emit.apply(emitter, Array::slice.call(arguments, 1)) # Event and any other arguments
     return
 
   "ts-admin-stop-experiment": (groupId) ->
