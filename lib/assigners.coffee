@@ -12,12 +12,13 @@ class TurkServer.Assigner
     @lobby.events.on "user-leave", @userLeft.bind(@)
     return
 
-  assignToNewInstance: (userIds, treatments) ->
-    @lobby.pluckUsers(userIds)
+  assignToNewInstance: (assts, treatments) ->
+    @lobby.pluckUsers( _.pluck(assts, "userId") )
 
     instance = @batch.createInstance(treatments)
     instance.setup()
-    instance.addUser(userId) for userId in userIds
+    instance.addAssignment(asst) for asst in assts
+    return instance
 
   userJoined: ->
   userStatusChanged: ->
@@ -43,7 +44,7 @@ class TurkServer.Assigners.TestAssigner extends TurkServer.Assigner
       asst.showExitSurvey()
     else
       try
-        @instance.addUser( asst.userId )
+        @instance.addAssignment(asst)
       @lobby.pluckUsers( [asst.userId] )
 
 ###
@@ -61,7 +62,7 @@ class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
     else
       # Assign user to instance
       treatment = _.sample @batch.getTreatments()
-      @assignToNewInstance( [asst.userId], [treatment] )
+      @assignToNewInstance( [asst], [treatment] )
 
 ###
   Assigns users first to a tutorial treatment,
@@ -74,15 +75,44 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
 
   initialize: ->
     super
+
+    # if experiment was already created, and in progress store it
+    if (exp = Experiments.findOne({
+      batchId: @batch.batchId
+      treatments: $all: @groupTreatments
+      endTime: $exists: false
+    }))?
+      @instance = TurkServer.Instance.getInstance(exp._id)
+      @autoAssign = true
+
     @lobby.events.on "auto-assign", =>
       @autoAssign = true
       @assignAllUsers()
 
   # put all users who have done the tutorial in the group
   assignAllUsers: ->
+    unless @instance?
+      @instance = @batch.createInstance(@groupTreatments)
+      @instance.setup()
+
+    assts = _.filter @lobby.getAssignments(), (asst) ->
+      asst.getInstances().length is 1
+
+    @instance.addAssignment(asst) for asst in assts
 
   # Assign users to the tutorial, the group, and the exit survey
-  userJoined: ->
+  userJoined: (asst) ->
+    instances = asst.getInstances()
+    if instances.length is 0
+      @assignToNewInstance([asst], @tutorialTreatments)
+    else if instances.length is 2
+      @lobby.pluckUsers( [asst.userId] )
+      asst.showExitSurvey()
+    else if @autoAssign
+      # Put me in, coach!
+      @instance.addAssignment(asst)
+
+    # Otherwise, wait for assignment event
 
 ###
    Allows people to opt in after reaching a certain threshold.
@@ -91,16 +121,14 @@ class TurkServer.Assigners.ThresholdAssigner extends TurkServer.Assigner
   constructor: (@groupSize) ->
 
   userStatusChanged: ->
-    readyUsers = @lobby.getUsers({status: true})
-    return if readyUsers.length < @groupSize
-
-    userIds = _.pluck(readyUsers, "_id")
+    readyAssts = @lobby.getAssignments({status: true})
+    return if readyAssts.length < @groupSize
 
     # Default behavior is to pick a random treatment
     # We could improve this in the future
     treatment = _.sample @batch.getTreatments()
 
-    @assignToNewInstance(userIds, [treatment])
+    @assignToNewInstance(readyAssts, [treatment])
 
 ###
   Assigns users to groups in a randomized, round-robin fashion
@@ -127,7 +155,7 @@ class TurkServer.Assigners.RoundRobinAssigner extends TurkServer.Assigner
     minUserInstance = _.min @instances, (instance) -> instance.users().length
 
     @lobby.pluckUsers [asst.userId]
-    minUserInstance.addUser(asst.userId)
+    minUserInstance.addAssignment(asst)
 
 ###
   Assign users to fixed size experiments sequentially, as they arrive
@@ -144,7 +172,7 @@ class TurkServer.Assigners.SequentialAssigner extends TurkServer.Assigner
       @instance.setup()
 
     @lobby.pluckUsers [asst.userId]
-    @instance.addUser(asst.userId)
+    @instance.addAssignment(asst)
 
 
 

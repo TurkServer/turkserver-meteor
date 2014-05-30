@@ -150,59 +150,63 @@ Tinytest.add "experiment - instance - reject adding user to ended instance", wit
   instance.teardown()
 
   test.throws ->
-    instance.addUser(expTestUserId)
+    asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+    instance.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   test.length instance.users(), 0
   test.equal user.turkserver.state, "lobby"
 
-  test.isFalse asst.instances
+  test.isFalse asstData.instances
 
-Tinytest.add "experiment - instance - addUser records instance id", withCleanup (test) ->
+Tinytest.add "experiment - instance - addAssignment records instance id", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   test.isTrue expTestUserId in instance.users()
   test.equal user.turkserver.state, "experiment"
-  test.instanceOf(asst.instances, Array)
+  test.instanceOf(asstData.instances, Array)
 
-  test.isTrue asst.instances[0]
-  test.equal asst.instances[0].id, serverInstanceId
-  test.isTrue asst.instances[0].joinTime
+  test.isTrue asstData.instances[0]
+  test.equal asstData.instances[0].id, serverInstanceId
+  test.isTrue asstData.instances[0].joinTime
 
 Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   # TODO ensure the accounting here is done correctly
   discTime = null
 
-  test.isTrue asst.instances[0]
-  test.isTrue asst.instances[0].joinTime
-  test.isTrue (discTime = asst.instances[0].lastDisconnect)
+  test.isTrue asstData.instances[0]
+  test.isTrue asstData.instances[0].joinTime
+  test.isTrue (discTime = asstData.instances[0].lastDisconnect)
 
   TestUtils.connCallbacks.userReconnect
     userId: expTestUserId
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isFalse asst.instances[0].lastDisconnect
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isFalse asstData.instances[0].lastDisconnect
   # We don't know the exact length of disconnection, but make sure it's in the right ballpark
-  test.isTrue asst.instances[0].disconnectedTime > 0
-  test.isTrue asst.instances[0].disconnectedTime < Date.now() - discTime
+  test.isTrue asstData.instances[0].disconnectedTime > 0
+  test.isTrue asstData.instances[0].disconnectedTime < Date.now() - discTime
 
 Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   idleTime = new Date()
 
@@ -210,10 +214,10 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
     userId: expTestUserId
     lastActivity: idleTime
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isTrue asst.instances[0]
-  test.isTrue asst.instances[0].joinTime
-  test.equal asst.instances[0].lastIdle, idleTime
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue asstData.instances[0]
+  test.isTrue asstData.instances[0].joinTime
+  test.equal asstData.instances[0].lastIdle, idleTime
 
   offset = 1000
   activeTime = new Date(idleTime.getTime() + offset)
@@ -222,9 +226,9 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
     userId: expTestUserId
     lastActivity: activeTime
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isFalse asst.instances[0].lastIdle
-  test.equal asst.instances[0].idleTime, offset
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isFalse asstData.instances[0].lastIdle
+  test.equal asstData.instances[0].idleTime, offset
 
   # Another bout of inactivity
   secondIdleTime = new Date(activeTime.getTime() + 5000)
@@ -238,13 +242,14 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
     userId: expTestUserId
     lastActivity: secondActiveTime
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isFalse asst.instances[0].lastIdle
-  test.equal asst.instances[0].idleTime, offset + offset
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isFalse asstData.instances[0].lastIdle
+  test.equal asstData.instances[0].idleTime, offset + offset
 
 Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   idleTime = new Date()
 
@@ -255,38 +260,40 @@ Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isTrue asst.instances[0].joinTime
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue asstData.instances[0].joinTime
   # Check that idle fields exist
-  test.isFalse asst.instances[0].lastIdle
-  test.isTrue asst.instances[0].idleTime
+  test.isFalse asstData.instances[0].lastIdle
+  test.isTrue asstData.instances[0].idleTime
   # Check that disconnect fields exist
-  test.isTrue asst.instances[0].lastDisconnect
+  test.isTrue asstData.instances[0].lastDisconnect
 
 Tinytest.add "experiment - instance - teardown while disconnected", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
   discTime = null
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
-  test.isTrue(discTime = asst.instances[0].lastDisconnect)
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  test.isTrue(discTime = asstData.instances[0].lastDisconnect)
 
   instance.teardown()
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
-  test.isTrue asst.instances[0].leaveTime
-  test.isFalse asst.instances[0].lastDisconnect
+  test.isTrue asstData.instances[0].leaveTime
+  test.isFalse asstData.instances[0].lastDisconnect
   # We don't know the exact length of disconnection, but make sure it's in the right ballpark
-  test.isTrue asst.instances[0].disconnectedTime > 0
-  test.isTrue asst.instances[0].disconnectedTime < Date.now() - discTime
+  test.isTrue asstData.instances[0].disconnectedTime > 0
+  test.isTrue asstData.instances[0].disconnectedTime < Date.now() - discTime
 
 Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   idleTime = new Date()
 
@@ -296,33 +303,34 @@ Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) -
 
   instance.teardown()
 
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
-  test.isTrue asst.instances[0].leaveTime
-  test.isFalse asst.instances[0].lastIdle
-  test.isTrue asst.instances[0].idleTime
+  test.isTrue asstData.instances[0].leaveTime
+  test.isFalse asstData.instances[0].lastIdle
+  test.isTrue asstData.instances[0].idleTime
 
 Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.addUser(expTestUserId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
 
   instance.teardown()
 
   user = Meteor.users.findOne(expTestUserId)
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   test.isTrue expTestUserId in instance.users() # Shouldn't have been removed
   test.equal user.turkserver.state, "lobby"
-  test.instanceOf(asst.instances, Array)
+  test.instanceOf(asstData.instances, Array)
 
-  test.isTrue asst.instances[0]
-  test.equal asst.instances[0].id, serverInstanceId
-  test.isTrue asst.instances[0].joinTime
-  test.isTrue asst.instances[0].leaveTime
+  test.isTrue asstData.instances[0]
+  test.equal asstData.instances[0].id, serverInstanceId
+  test.isTrue asstData.instances[0].joinTime
+  test.isTrue asstData.instances[0].leaveTime
 
   instance2 = TurkServer.Instance.getInstance(secondInstanceId)
 
-  instance2.addUser(expTestUserId)
+  instance2.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
   test.equal user.turkserver.state, "experiment"
@@ -330,17 +338,17 @@ Tinytest.add "experiment - instance - teardown and join second instance", withCl
   instance2.teardown()
 
   user = Meteor.users.findOne(expTestUserId)
-  asst = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   test.isTrue expTestUserId in instance2.users() # Shouldn't have been removed
   test.equal user.turkserver.state, "lobby"
-  test.instanceOf(asst.instances, Array)
+  test.instanceOf(asstData.instances, Array)
 
   # Make sure array-based updates worked
-  test.isTrue asst.instances[1]
-  test.equal asst.instances[1].id, secondInstanceId
-  test.notEqual asst.instances[0].joinTime, asst.instances[1].joinTime
-  test.notEqual asst.instances[0].leaveTime, asst.instances[1].leaveTime
+  test.isTrue asstData.instances[1]
+  test.equal asstData.instances[1].id, secondInstanceId
+  test.notEqual asstData.instances[0].joinTime, asstData.instances[1].joinTime
+  test.notEqual asstData.instances[0].leaveTime, asstData.instances[1].leaveTime
 
 # TODO clean up assignments if they affect other tests
 

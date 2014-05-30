@@ -33,7 +33,7 @@ withCleanup = TestUtils.getCleanupWrapper
   before: ->
   after: ->
     # Remove user from lobby
-    batch.lobby.removeUser(asst)
+    batch.lobby.removeAssignment(asst)
     # Clear user group
     Partitioner.clearUserGroup(userId)
     # Clear any assignments we created
@@ -68,11 +68,12 @@ Tinytest.add "connection - user added to lobby", withCleanup (test) ->
   asst = createAssignment()
   asst._loggedIn()
 
-  lobbyUsers = batch.lobby.getUsers()
+  lobbyUsers = batch.lobby.getAssignments()
   user = Meteor.users.findOne(userId)
 
   test.equal lobbyUsers.length, 1
-  test.equal lobbyUsers[0]._id, userId
+  test.equal lobbyUsers[0], asst
+  test.equal lobbyUsers[0].userId, userId
 
   test.equal user.turkserver.state, "lobby"
 
@@ -113,12 +114,12 @@ Tinytest.add "connection - improper submission of HIT", withCleanup (test) ->
 
 Tinytest.add "connection - user resuming into instance", withCleanup (test) ->
   asst = createAssignment()
-  instance.addUser(userId)
+  instance.addAssignment(asst)
   asst._loggedIn()
 
   user = Meteor.users.findOne(userId)
 
-  test.equal batch.lobby.getUsers().length, 0
+  test.equal batch.lobby.getAssignments().length, 0
   test.equal user.turkserver.state, "experiment"
 
 Tinytest.add "connection - user resuming into exit survey", withCleanup (test) ->
@@ -131,7 +132,7 @@ Tinytest.add "connection - user resuming into exit survey", withCleanup (test) -
 
   user = Meteor.users.findOne(userId)
 
-  test.equal batch.lobby.getUsers().length, 0
+  test.equal batch.lobby.getAssignments().length, 0
   test.equal user.turkserver.state, "exitsurvey"
 
 Tinytest.add "connection - set payment amount", withCleanup (test) ->

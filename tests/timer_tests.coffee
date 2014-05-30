@@ -11,7 +11,8 @@ Tinytest.addAsync "timers - expiration callback", withCleanup (test, next) ->
     now = Date.now()
     TurkServer.Timers.startNewRound now, now + 100, ->
       test.ok()
-      next()
+      # Cancel group binding
+      Partitioner._currentGroup.withValue(null, next)
 
 Tinytest.addAsync "timers - early expiration", withCleanup (test, next) ->
   Partitioner.bindGroup testGroup, ->
@@ -24,5 +25,6 @@ Tinytest.addAsync "timers - early expiration", withCleanup (test, next) ->
     # wait to see if we have failed, otherwise we passed
     Meteor.setTimeout ->
       test.ok()
-      next()
+      # Cancel group binding
+      Partitioner._currentGroup.withValue(null, next)
     , 150

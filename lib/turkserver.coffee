@@ -97,7 +97,7 @@ Meteor.publish "tsCurrentExperiment", (group) ->
   if (workerId = Meteor.users.findOne(@userId)?.workerId)?
     cursors.push Assignments.find({
       workerId: workerId
-      instances: $elemMatch: {id: group}
+      "instances.id": group
     }, {
       fields: {
         instances: 1

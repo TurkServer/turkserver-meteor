@@ -34,21 +34,21 @@ class TurkServer.Instance
       (handler.call(context) for handler in init_queue)
       return
 
-  addUser: (userId) ->
+  addAssignment: (asst) ->
+    check(asst, TurkServer.Assignment)
     if Experiments.findOne({_id: @groupId, endTime: $exists: true})?
       throw new Error("Cannot add a user to an instance that has ended.")
       return
 
     # Add a user to this instance
-    Partitioner.setUserGroup(userId, @groupId)
+    Partitioner.setUserGroup(asst.userId, @groupId)
 
     Experiments.update @groupId,
-      { $addToSet: { users: userId } }
-    Meteor.users.update userId,
+      { $addToSet: { users: asst.userId } }
+    Meteor.users.update asst.userId,
       $set: { "turkserver.state": "experiment" }
 
     # Record instance Id in Assignment
-    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
     asst._joinInstance(@groupId)
     return
 
@@ -76,7 +76,7 @@ class TurkServer.Instance
       Partitioner.clearUserGroup(userId)
       asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
       asst._leaveInstance(@groupId)
-      batch.lobby.addUser asst
+      batch.lobby.addAssignment asst
 
     return
 

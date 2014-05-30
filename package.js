@@ -132,9 +132,9 @@ Package.on_test(function (api) {
     api.use('turkserver');
 
     api.add_files("tests/display_fix.css");
-    api.add_files("tests/insecure_login.js");
 
-    api.add_files('tests/utils.coffee');
+    api.add_files('tests/utils.coffee'); // Deletes users so do it before insecure login
+    api.add_files("tests/insecure_login.js");
 
     api.add_files('tests/lobby_tests.coffee');
     api.add_files('tests/auth_tests.coffee', 'server');
@@ -143,6 +143,10 @@ Package.on_test(function (api) {
     api.add_files('tests/experiment_client_tests.coffee');
     api.add_files('tests/timer_tests.coffee', 'server');
     api.add_files('tests/logging_tests.coffee');
+
+    // This goes after experiment tests, so we can be sure that assigning works
+    api.add_files('tests/assigner_tests.coffee', 'server');
+
     // This runs after user is logged in, as it requires a userId
     api.add_files('tests/helper_tests.coffee');
 });

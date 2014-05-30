@@ -31,7 +31,8 @@ if Meteor.isServer
       $unset: instances: null
 
     batch = TurkServer.Batch.getBatch("expClientBatch")
-    batch.createInstance(["expClientTreatment"]).addUser(userId)
+    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
+    batch.createInstance(["expClientTreatment"]).addAssignment(asst)
 
     Meteor._debug "created assignment for remote client"
     return true

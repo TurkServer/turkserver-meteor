@@ -121,7 +121,7 @@ class TurkServer.Assignment
   _enterLobby: ->
     batch = @getBatch()
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
-    batch.lobby.addUser(@)
+    batch.lobby.addAssignment(@)
 
   _joinInstance: (instanceId) ->
     Assignments.update @asstId,
@@ -183,7 +183,7 @@ class TurkServer.Assignment
     }, updateObj
 
     # Remove from lobby if present
-    @getBatch().lobby.removeUser(@)
+    @getBatch().lobby.removeAssignment(@)
 
   # Handle a reconnection by a user, if they were assigned prior to the reconnection
   _reconnected: (instanceId) ->
@@ -214,17 +214,12 @@ class TurkServer.Assignment
     return
 
   # Helper functions
+  # TODO test that these are grabbing the right numbers
   _getLastDisconnect: (instanceId) ->
-    Assignments.findOne({
-      _id: @asstId
-      instances: $elemMatch: {id: instanceId}
-    }).instances?[0]?.lastDisconnect
+    _.find(@getInstances(), (inst) -> inst.id is instanceId)?.lastDisconnect
 
   _getLastIdle: (instanceId) ->
-    Assignments.findOne({
-      _id: @asstId
-      instances: $elemMatch: {id: instanceId}
-    }).instances?[0]?.lastIdle
+    _.find(@getInstances(), (inst) -> inst.id is instanceId)?.lastIdle
 
 getActiveGroup = (userId) ->
   return unless userId

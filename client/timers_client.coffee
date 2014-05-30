@@ -12,7 +12,9 @@ class TurkServer.Timers
   # This is slightly different than the above
   @joinedTime: ->
     return if TurkServer.isAdmin()
-    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return unless (group = TurkServer.group())?
+    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
+      inst.id is group))?
     return Math.max(0, TimeSync.serverTime() - instance.joinTime)
 
   @remainingTime: ->
@@ -27,7 +29,9 @@ class TurkServer.Timers
   # Milliseconds this user has been idle in the experiment
   @idleTime: UI.emboxValue ->
     return if TurkServer.isAdmin()
-    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return unless (group = TurkServer.group())?
+    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
+      inst.id is group))?
     # If we're idle, add the local idle time (as it's not updated from the server)
     # TODO add a test for this part - difficult because user-status is a different package
     idleMillis = (instance.idleTime || 0)
@@ -38,7 +42,9 @@ class TurkServer.Timers
   # Milliseconds this user has been disconnected in the experiment
   @disconnectedTime: UI.emboxValue ->
     return if TurkServer.isAdmin()
-    return unless (instance = Assignments.findOne()?.instances?[0])?
+    return unless (group = TurkServer.group())?
+    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
+      inst.id is group))?
     return instance.disconnectedTime || 0
 
   # Number of active milliseconds (= joined - idle - disconnected)

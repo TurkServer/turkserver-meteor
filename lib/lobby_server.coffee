@@ -6,8 +6,7 @@ class TurkServer.Lobby
   constructor: (@batchId) ->
     @events = new EventEmitter()
 
-  # TODO move status updates into specific assigners
-  addUser: (asst) ->
+  addAssignment: (asst) ->
     throw new Error("unexpected batchId") if asst.batchId isnt @batchId
 
     # Insert or update status in lobby
@@ -15,7 +14,8 @@ class TurkServer.Lobby
       # Simply {status: false} caused https://github.com/meteor/meteor/issues/1552
       $set:
         batchId: @batchId
-        status: false
+        asstId: asst.asstId
+        # status: false
 
     Meteor.users.update asst.userId,
       $set:
@@ -23,11 +23,12 @@ class TurkServer.Lobby
 
     Meteor.defer => @events.emit "user-join", asst
 
-  getUsers: (selector) ->
+  getAssignments: (selector) ->
     selector = _.extend selector || {},
       batchId: @batchId
-    LobbyStatus.find(selector).fetch()
+    TurkServer.Assignment.getAssignment(record.asstId) for record in LobbyStatus.find(selector).fetch()
 
+  # TODO move status updates into specific assigners
   toggleStatus: (asst) ->
     existing = LobbyStatus.findOne(asst.userId)
     throw new Meteor.Error(403, ErrMsg.userNotInLobbyErr) unless existing
@@ -41,7 +42,7 @@ class TurkServer.Lobby
   pluckUsers: (userIds) ->
     LobbyStatus.remove {_id : $in: userIds }
 
-  removeUser: (asst) ->
+  removeAssignment: (asst) ->
     # TODO check for batchId here
     if LobbyStatus.remove(asst.userId) > 0
       Meteor.defer => @events.emit "user-leave", asst
@@ -84,9 +85,10 @@ Meteor.methods
     TurkServer.Lobby.checkState()
 
 # Clear lobby status on startup
+# Just clear lobby users for assignment, but not lobby state
 Meteor.startup ->
   LobbyStatus.remove {}
 
-  Meteor.users.update { "turkserver.state": "lobby" },
-    $unset: {"turkserver.state": null}
-  , {multi: true}
+#  Meteor.users.update { "turkserver.state": "lobby" },
+#    $unset: {"turkserver.state": null}
+#  , {multi: true}
