@@ -98,18 +98,23 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
     assts = _.filter @lobby.getAssignments(), (asst) ->
       asst.getInstances().length is 1
 
-    @instance.addAssignment(asst) for asst in assts
+    for asst in assts
+      @lobby.pluckUsers( [asst.userId] )
+      @instance.addAssignment(asst)
+    return
 
   # Assign users to the tutorial, the group, and the exit survey
   userJoined: (asst) ->
     instances = asst.getInstances()
     if instances.length is 0
+      @lobby.pluckUsers( [asst.userId] )
       @assignToNewInstance([asst], @tutorialTreatments)
     else if instances.length is 2
       @lobby.pluckUsers( [asst.userId] )
       asst.showExitSurvey()
     else if @autoAssign
       # Put me in, coach!
+      @lobby.pluckUsers( [asst.userId] )
       @instance.addAssignment(asst)
 
     # Otherwise, wait for assignment event

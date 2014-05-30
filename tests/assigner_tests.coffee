@@ -55,6 +55,7 @@ Tinytest.add "assigners - tutorialGroup - initial lobby gets tutorial", withClea
   test.equal user.turkserver.state, "experiment"
   test.length instances, 1
 
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
   exp = Experiments.findOne(instances[0].id)
   test.equal exp.treatments, tutorialTreatments
 
@@ -88,6 +89,7 @@ Tinytest.add "assigners - tutorialGroup - autoAssign event triggers properly", w
   test.equal user.turkserver.state, "experiment"
   test.length instances, 2
 
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
   exp = Experiments.findOne(instances[1].id)
   test.equal exp.treatments, groupTreatments
 
