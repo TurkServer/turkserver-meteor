@@ -148,6 +148,16 @@ Meteor.startup ->
 
   console.log prefix + instanceUpdates + " instance ids updated to objects" if instanceUpdates > 0
 
+  experimentBatchUpdates = 0
+  Experiments.find({batchId: $exists: false}).forEach (exp, idx) ->
+    experimentBatchUpdates = idx + 1
+    someAsst = Assignments.findOne
+      "instances.id": exp._id
+    Experiments.update exp._id,
+      $set: batchId: someAsst.batchId
+
+  console.log prefix + experimentBatchUpdates + " batchIds added to experiment instances" if experimentBatchUpdates > 0
+
   # Convert batch treatmentIds to treatments (names)
   batchTreatmentUpdates = 0
   Batches.find(treatmentIds: $exists: true).forEach (batch, idx) ->
