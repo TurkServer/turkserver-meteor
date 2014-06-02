@@ -148,6 +148,22 @@ Meteor.startup ->
 
   console.log prefix + instanceUpdates + " instance ids updated to objects" if instanceUpdates > 0
 
+  hitTypeBatchUpdates = 0
+  HITTypes.find({batchId: $exists: false}).forEach (hitType, idx) ->
+    # Find an assignment that was created in this HIT Type, if any, to patch up the batch Id
+    return unless hitType.HITTypeId?
+    hits = _.pluck(HITs.find(HITTypeId: hitType.HITTypeId).fetch(), "HITId")
+    return unless hits.length > 0
+    asst = Assignments.findOne
+      batchId: $exists: true
+      hitId: $in: hits
+    return unless asst?
+    HITTypes.update hitType._id,
+      $set: batchId: asst.batchId
+    hitTypeBatchUpdates += 1
+
+  console.log prefix + hitTypeBatchUpdates + " HIT Types updated with batch Ids" if hitTypeBatchUpdates > 0
+
   experimentBatchUpdates = 0
   Experiments.find({batchId: $exists: false}).forEach (exp, idx) ->
     experimentBatchUpdates = idx + 1

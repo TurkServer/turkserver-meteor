@@ -18,6 +18,7 @@ Template.tsAdminViewHitType.events =
   "click .-ts-delete-hittype": ->
     HITTypes.remove(@_id)
 
+Template.tsAdminViewHitType.batchName = -> Batches.findOne(@batchId)?.name || "(none)"
 Template.tsAdminViewHitType.renderReward = -> @Reward.toFixed(2)
 Template.tsAdminViewHitType.qualName = -> Qualifications.findOne(""+@)?.name
 

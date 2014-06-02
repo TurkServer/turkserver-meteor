@@ -143,7 +143,6 @@ Package.on_test(function (api) {
     api.add_files('tests/experiment_client_tests.coffee');
     api.add_files('tests/timer_tests.coffee', 'server');
     api.add_files('tests/logging_tests.coffee');
-
     // This goes after experiment tests, so we can be sure that assigning works
     api.add_files('tests/assigner_tests.coffee', 'server');
 
