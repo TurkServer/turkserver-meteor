@@ -35,14 +35,14 @@ currentRound = ->
 
 TurkServer.currentRound = UI.emboxValue(currentRound, EJSON.equals)
 
+# Called to start the monitor with given settings when in experiment
+# Similar to usage in user-status demo
 safeStartMonitor = (threshold, idleOnBlur) ->
-  Deps.autorun ->
-    # Don't try to start the monitor in case the state changed
-    @stop() unless TurkServer.inExperiment()
+  Deps.autorun (c) ->
     try
       settings = {threshold, idleOnBlur}
       UserStatus.startMonitor(settings)
-      @stop()
+      c.stop()
       console.log "Idle monitor started with ", settings
 
 idleComp = null
