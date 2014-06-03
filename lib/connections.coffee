@@ -187,14 +187,18 @@ class TurkServer.Assignment
 
   # Handle a reconnection by a user, if they were assigned prior to the reconnection
   _reconnected: (instanceId) ->
-    # TODO: cleanup if user was somehow idled during the disconnection (see below)
-    discTime = @_getLastDisconnect(instanceId)
-    return unless discTime
+    # XXX Safety hatch: never count an idle time tracked over a disconnection
+    updateObj =
+      $unset:
+        "instances.$.lastIdle": null
+
+    if (discTime = @_getLastDisconnect(instanceId))?
+      addResetDisconnectedUpdateFields(updateObj, Date.now() - discTime)
+
     Assignments.update {
       _id: @asstId
       "instances.id": instanceId
-    }, addResetDisconnectedUpdateFields({}, Date.now() - discTime)
-    return
+    }, updateObj
 
   _isIdle: (instanceId, timestamp) ->
     # TODO: ignore if user is disconnected

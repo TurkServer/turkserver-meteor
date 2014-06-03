@@ -47,7 +47,7 @@ Tinytest.add "assigners - tutorialGroup - initial lobby gets tutorial", withClea
   asst = createAssignment()
   asst._loggedIn()
 
-  sleep(100) # YES!!
+  TestUtils.sleep(100) # YES!!
 
   user = Meteor.users.findOne(asst.userId)
   instances = asst.getInstances()
@@ -71,7 +71,7 @@ Tinytest.add "assigners - tutorialGroup - autoAssign event triggers properly", w
   tutorialInstance.addAssignment(asst)
   tutorialInstance.teardown()
 
-  sleep(100) # So the user joins the lobby properly
+  TestUtils.sleep(100) # So the user joins the lobby properly
 
   user = Meteor.users.findOne(asst.userId)
   instances = asst.getInstances()
@@ -81,7 +81,7 @@ Tinytest.add "assigners - tutorialGroup - autoAssign event triggers properly", w
 
   batch.lobby.events.emit("auto-assign")
 
-  sleep(100)
+  TestUtils.sleep(100)
 
   user = Meteor.users.findOne(asst.userId)
   instances = asst.getInstances()
@@ -105,14 +105,14 @@ Tinytest.add "assigners - tutorialGroup - final send to exit survey", withCleanu
   tutorialInstance.addAssignment(asst)
   tutorialInstance.teardown()
 
-  sleep(100) # So the user joins the lobby properly
+  TestUtils.sleep(100) # So the user joins the lobby properly
 
   groupInstance = batch.createInstance(groupTreatments)
   groupInstance.setup()
   groupInstance.addAssignment(asst)
   groupInstance.teardown()
 
-  sleep(100)
+  TestUtils.sleep(100)
 
   user = Meteor.users.findOne(asst.userId)
   instances = asst.getInstances()

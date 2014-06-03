@@ -16,3 +16,9 @@ if Meteor.isClient
     TurkServer.checkNotAdmin()
     test.ok()
     next()
+
+  ###
+    Timer helper tests
+  ###
+  Tinytest.add "timers - formatSeconds renders 0 properly", (test) ->
+    test.equal TestUtils.formatSeconds(0), "0:00:00"

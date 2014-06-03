@@ -44,24 +44,17 @@ if Meteor.isServer
       workerId = Meteor.users.findOne(userId).workerId
       return Assignments.findOne({workerId, status: "assigned"})
 
-    setAssignmentInstanceData: (fields) ->
-      id = Partitioner.group()
-      throw new Meteor.Error(500, "No group set") unless id
-      workerId = Meteor.user().workerId
+    setAssignmentInstanceData: (arr) ->
+      selector =
+        workerId: Meteor.user().workerId
+        status: "assigned"
 
-      transformedFields = new ->
-        @["instances.$." + k] = v for k,v of fields
-        this
-
-      selector =  {
-        workerId,
-        "instances.id": id
-      }
-
-      Assignments.update(selector, $set: transformedFields)
+      unless Assignments.update(selector, $set: {instances: arr}) > 0
+        throw new Meteor.Error(400, "Could not find assignment to update")
+      return
 
 if Meteor.isClient
-  Tinytest.addAsync "experiment - client - login and creation of assignment metada", (test, next) ->
+  Tinytest.addAsync "experiment - client - login and creation of assignment metadata", (test, next) ->
     InsecureLogin.ready ->
       test.ok()
       next()
@@ -133,14 +126,38 @@ if Meteor.isClient
       return true if asstData?
     ), verify, fail, 2000
 
-  Tinytest.addAsync "experiment - client - joined time computation", (test, next) ->
-    fields =
-      idleTime: 1000
-      disconnectedTime: 2000
+  Tinytest.addAsync "experiment - client - no time fields", (test, next) ->
+    fields = [
+      {
+        id: TurkServer.group()
+        joinTime: new Date()
+      }
+    ]
 
     Meteor.call "setAssignmentInstanceData", fields, (err, res) ->
       test.isFalse err
+      Deps.flush() # Help out the emboxed value thingies
 
+      test.equal TurkServer.Timers.idleTime(), 0
+      test.equal TurkServer.Timers.disconnectedTime(), 0
+
+      test.equal UI._globalHelper("tsIdleTime")(), "0:00:00"
+      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:00"
+
+      next()
+
+  Tinytest.addAsync "experiment - client - joined time computation", (test, next) ->
+    fields = [
+      {
+        id: TurkServer.group()
+        joinTime: new Date()
+        idleTime: 1000
+        disconnectedTime: 2000
+      }
+    ]
+
+    Meteor.call "setAssignmentInstanceData", fields, (err, res) ->
+      test.isFalse err
       Deps.flush() # Help out the emboxed value thingies
 
       test.equal TurkServer.Timers.idleTime(), 1000
@@ -148,5 +165,39 @@ if Meteor.isClient
 
       test.isTrue Math.abs(TurkServer.Timers.activeTime() + 3000 - TurkServer.Timers.joinedTime()) < 10
 
+      test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
+      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
+
       next()
 
+  Tinytest.addAsync "experiment - client - selects correct instance of multiple", (test, next) ->
+    fields = [
+      {
+        id: Random.id()
+        joinTime: new Date(Date.now() - 3600*1000)
+        idleTime: 3000
+        disconnectedTime: 5000
+      },
+      {
+        id: TurkServer.group()
+        joinTime: new Date(Date.now() - 5000)
+        idleTime: 1000
+        disconnectedTime: 2000
+      }
+    ]
+
+    Meteor.call "setAssignmentInstanceData", fields, (err, res) ->
+      test.isFalse err
+      Deps.flush() # Help out the emboxed value thingies
+
+      test.equal TurkServer.Timers.idleTime(), 1000
+      test.equal TurkServer.Timers.disconnectedTime(), 2000
+
+      activeTime = TurkServer.Timers.activeTime()
+      test.isTrue Math.abs(activeTime + 3000 - TurkServer.Timers.joinedTime()) < 10
+      test.isTrue activeTime > 0 # Should not be negative
+
+      test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
+      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
+
+      next()

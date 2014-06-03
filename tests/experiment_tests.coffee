@@ -268,6 +268,35 @@ Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (
   # Check that disconnect fields exist
   test.isTrue asstData.instances[0].lastDisconnect
 
+Tinytest.add "experiment - instance - idleness is cleared on reconnection", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+  instance.addAssignment(asst)
+
+  idleTime = new Date()
+
+  TestUtils.connCallbacks.userDisconnect
+    userId: expTestUserId
+
+  TestUtils.connCallbacks.userIdle
+    userId: expTestUserId
+    lastActivity: idleTime
+
+  TestUtils.sleep(100)
+
+  TestUtils.connCallbacks.userReconnect
+    userId: expTestUserId
+
+  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+
+  test.isTrue asstData.instances[0].joinTime
+  # Check that idleness was not counted
+  test.isFalse asstData.instances[0].lastIdle
+  test.isFalse asstData.instances[0].idleTime
+  # Check that disconnect fields exist
+  test.isFalse asstData.instances[0].lastDisconnect
+  test.isTrue asstData.instances[0].disconnectedTime
+
 Tinytest.add "experiment - instance - teardown while disconnected", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
   asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)

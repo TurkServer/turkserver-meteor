@@ -2,6 +2,9 @@
   Reactive time functions
 ###
 class TurkServer.Timers
+  _currentAssignmentInstance = (group) ->
+    _.find(Assignments.findOne()?.instances, (inst) -> inst.id is group)
+
   # Milliseconds elapsed since experiment start
   @elapsedTime: ->
     return unless (exp = Experiments.findOne())?
@@ -13,8 +16,7 @@ class TurkServer.Timers
   @joinedTime: ->
     return if TurkServer.isAdmin()
     return unless (group = TurkServer.group())?
-    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
-      inst.id is group))?
+    return unless (instance = _currentAssignmentInstance(group))?
     return Math.max(0, TimeSync.serverTime() - instance.joinTime)
 
   @remainingTime: ->
@@ -30,8 +32,7 @@ class TurkServer.Timers
   @idleTime: UI.emboxValue ->
     return if TurkServer.isAdmin()
     return unless (group = TurkServer.group())?
-    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
-      inst.id is group))?
+    return unless (instance = _currentAssignmentInstance(group))?
     # If we're idle, add the local idle time (as it's not updated from the server)
     # TODO add a test for this part - difficult because user-status is a different package
     idleMillis = (instance.idleTime || 0)
@@ -43,8 +44,7 @@ class TurkServer.Timers
   @disconnectedTime: UI.emboxValue ->
     return if TurkServer.isAdmin()
     return unless (group = TurkServer.group())?
-    return unless (instance = _.find(Assignments.findOne()?.instances, (inst) ->
-      inst.id is group))?
+    return unless (instance = _currentAssignmentInstance(group))?
     return instance.disconnectedTime || 0
 
   # Number of active milliseconds (= joined - idle - disconnected)
@@ -79,7 +79,7 @@ class TurkServer.Timers
 # UI Time helpers
 
 formatSeconds = (millis) ->
-  return unless millis
+  return unless millis? # Can be 0 in which case we should render it
   diff = moment.utc(millis)
   time = diff.format("H:mm:ss")
   days = +diff.format("DDD") - 1
@@ -94,5 +94,5 @@ for own key of TurkServer.Timers
     UI.registerHelper helperName, -> formatSeconds func()
   )()
 
-
+TestUtils.formatSeconds = formatSeconds
 
