@@ -54,6 +54,9 @@ if Meteor.isServer
       return
 
 if Meteor.isClient
+  tol = 20 # range in ms that we can be off in adjacent cols
+  big_tol = 500 # max range we tolerate in a round trip to the server (async method)
+
   Tinytest.addAsync "experiment - client - login and creation of assignment metadata", (test, next) ->
     InsecureLogin.ready ->
       test.ok()
@@ -130,7 +133,7 @@ if Meteor.isClient
     fields = [
       {
         id: TurkServer.group()
-        joinTime: new Date()
+        joinTime: new Date(TimeSync.serverTime())
       }
     ]
 
@@ -141,6 +144,14 @@ if Meteor.isClient
       test.equal TurkServer.Timers.idleTime(), 0
       test.equal TurkServer.Timers.disconnectedTime(), 0
 
+      joinedTime = TurkServer.Timers.joinedTime()
+      activeTime = TurkServer.Timers.activeTime()
+
+      test.isTrue joinedTime >= 0
+      test.isTrue joinedTime < big_tol
+
+      test.isTrue activeTime >= 0
+
       test.equal UI._globalHelper("tsIdleTime")(), "0:00:00"
       test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:00"
 
@@ -150,7 +161,7 @@ if Meteor.isClient
     fields = [
       {
         id: TurkServer.group()
-        joinTime: new Date()
+        joinTime: new Date(TimeSync.serverTime() - 3000)
         idleTime: 1000
         disconnectedTime: 2000
       }
@@ -163,7 +174,13 @@ if Meteor.isClient
       test.equal TurkServer.Timers.idleTime(), 1000
       test.equal TurkServer.Timers.disconnectedTime(), 2000
 
-      test.isTrue Math.abs(TurkServer.Timers.activeTime() + 3000 - TurkServer.Timers.joinedTime()) < 10
+      joinedTime = TurkServer.Timers.joinedTime()
+      activeTime = TurkServer.Timers.activeTime()
+
+      test.isTrue joinedTime >= 3000
+      test.isTrue joinedTime < 3000 + big_tol
+      test.isTrue Math.abs(activeTime + 3000 - joinedTime) < tol
+      test.isTrue activeTime >= 0
 
       test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
       test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
@@ -174,13 +191,13 @@ if Meteor.isClient
     fields = [
       {
         id: Random.id()
-        joinTime: new Date(Date.now() - 3600*1000)
+        joinTime: new Date(TimeSync.serverTime() - 3600*1000)
         idleTime: 3000
         disconnectedTime: 5000
       },
       {
         id: TurkServer.group()
-        joinTime: new Date(Date.now() - 5000)
+        joinTime: new Date(TimeSync.serverTime() - 5000)
         idleTime: 1000
         disconnectedTime: 2000
       }
@@ -193,9 +210,14 @@ if Meteor.isClient
       test.equal TurkServer.Timers.idleTime(), 1000
       test.equal TurkServer.Timers.disconnectedTime(), 2000
 
+      joinedTime = TurkServer.Timers.joinedTime()
       activeTime = TurkServer.Timers.activeTime()
-      test.isTrue Math.abs(activeTime + 3000 - TurkServer.Timers.joinedTime()) < 10
-      test.isTrue activeTime > 0 # Should not be negative
+
+      test.isTrue joinedTime >= 5000
+      test.isTrue joinedTime < 5000 + big_tol
+
+      test.isTrue Math.abs(activeTime + 3000 - joinedTime) < tol
+      test.isTrue activeTime >= 0 # Should not be negative
 
       test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
       test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"

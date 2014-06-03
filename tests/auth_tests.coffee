@@ -72,7 +72,7 @@ Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
     workerId: workerId
 
   test.throws testFunc, (e) ->
-    e.error is 403 # TODO and reason?
+    e.error is 403 and e.reason is ErrMsg.unexpectedBatch
 
 Tinytest.add "auth - connection to inactive batch is rejected", withCleanup (test) ->
   # Active is set to back to true on cleanup
@@ -85,7 +85,7 @@ Tinytest.add "auth - connection to inactive batch is rejected", withCleanup (tes
     workerId: workerId
 
   test.throws testFunc, (e) ->
-    e.error is 403 # TODO and reason?
+    e.error is 403 and e.reason is ErrMsg.batchInactive
 
 Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (test) ->
   Assignments.insert

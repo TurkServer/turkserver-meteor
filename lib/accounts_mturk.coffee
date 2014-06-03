@@ -4,13 +4,21 @@
   for users who are not currently assigned to a HIT.
 ###
 Accounts.validateLoginAttempt (info) ->
-  if info.methodArguments[0].resume? and not info.user?.admin
-    # Is the worker currently assigned to a HIT?
+  return true if info.user?.admin # Always allow admin to login
+
+  # If resuming, is the worker currently assigned to a HIT?
+  if info.methodArguments[0].resume?
     unless info.user?.workerId and Assignments.findOne(
       workerId: info.user.workerId
       status: "assigned"
     )
       throw new Meteor.Error(403, "Your HIT session has expired.")
+
+  # TODO Does the worker have this open in another window? If so, reject the login.
+  # This is a bit fail-prone due to leaking sessions across HCR, so take it out.
+#  if info.user? and UserStatus.connections.findOne(userId: info.user._id)
+#    throw new Meteor.Error(403, "You already have this open in another window. Complete it there.")
+
   return true
 
 ###
@@ -49,7 +57,7 @@ authenticateWorker = (loginRequest) ->
       HITId: hitId
     hitType = HITTypes.findOne
       HITTypeId: hit.HITTypeId
-    throw new Meteor.Error(403, "Unexpected batchId") unless batchId is hitType.batchId
+    throw new Meteor.Error(403, ErrMsg.unexpectedBatch) unless batchId is hitType.batchId
 
   # Has this worker already completed the HIT?
   if Assignments.findOne({
@@ -82,7 +90,7 @@ authenticateWorker = (loginRequest) ->
   ###
   # Only active batches accept new HITs
   if batchId? and not Batches.findOne(batchId)?.active
-    throw new Meteor.Error(403, "Batch is no longer active")
+    throw new Meteor.Error(403, ErrMsg.batchInactive)
 
   # Check for limits
   if Assignments.find({

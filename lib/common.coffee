@@ -28,9 +28,11 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 
 @ErrMsg =
   # authentication
+  unexpectedBatch: "This HIT is not recognized."
+  batchInactive: "This task is currently not accepting new assignments."
   batchLimit: "You've completed the maximum number of HITs allowed in this group. Please return this assignment."
   simultaneousLimit: "You are already connected through another HIT. Please complete that one first."
-  alreadyCompleted: "you have already completed this HIT"
+  alreadyCompleted: "You have already completed this HIT."
   # operations
   authErr: "You are not logged in"
   stateErr: "You can't perform that operation right now"

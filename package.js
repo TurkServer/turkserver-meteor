@@ -130,6 +130,7 @@ Package.on_test(function (api) {
     api.use('session', 'client');
 
     api.use('turkserver');
+    api.use('timesync');
 
     api.add_files("tests/display_fix.css");
 

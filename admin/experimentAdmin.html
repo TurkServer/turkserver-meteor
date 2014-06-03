@@ -113,7 +113,7 @@
         <tbody>
         {{#each logEntries}}
         <tr>
-            <td>{{_tsRenderTime _timestamp}}</td>
+            <td>{{_tsRenderTimeMillis _timestamp}}</td>
             <td>{{> tsUserPill userId=_userId}}</td>
             <td>{{> tsDescList entryData}}</td>
         </tr>

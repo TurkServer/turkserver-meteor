@@ -14,6 +14,9 @@ UI.registerHelper "_tsViewingBatch", -> Batches.findOne(Session.get("_tsViewingB
 UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne(name: ""+@)
 
 UI.registerHelper "_tsRenderTime", (timestamp) -> new Date(timestamp).toLocaleString()
+UI.registerHelper "_tsRenderTimeMillis", (timestamp) ->
+  m = moment(timestamp)
+  m.format("L h:mm:ss.SSS A")
 
 UI.registerHelper "_tsRenderTimeSince", Util.timeSince
 UI.registerHelper "_tsRenderTimeUntil", Util.timeUntil
