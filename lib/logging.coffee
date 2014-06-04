@@ -15,7 +15,7 @@ Logs.before.insert (userId, doc) ->
 
   doc._userId = userId if userId
   doc._groupId = groupId
-  doc._timestamp = new Date() unless doc?._timestamp # Allow specification of custom timestamps
+  doc._timestamp ?= new Date() # Allow specification of custom timestamps
   return true
 
 TurkServer.log = (doc, callback) ->

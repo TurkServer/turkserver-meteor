@@ -29,8 +29,7 @@ if Meteor.isServer
     test.isTrue doc._timestamp
 
   Tinytest.add "logging - override timestamp", (test) ->
-    now = new Date()
-    past = new Date(now.getTime() - 1000)
+    past = new Date(Date.now() - 1000)
 
     Partitioner.bindGroup testGroup, ->
       Meteor.call "clearLogs"

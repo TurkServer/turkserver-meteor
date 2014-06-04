@@ -23,6 +23,11 @@ class TurkServer.Batch
       treatments: treatmentNames || []
 
     groupId = Experiments.insert(fields)
+
+    Partitioner.bindGroup groupId, ->
+      TurkServer.log
+        _meta: "created"
+
     return new TurkServer.Instance(groupId)
 
   getTreatments: -> Batches.findOne(@batchId).treatments

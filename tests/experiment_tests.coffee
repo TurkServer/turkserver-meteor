@@ -62,6 +62,10 @@ withCleanup = TestUtils.getCleanupWrapper
         $unset: instances: null
       }
 
+    # Delete any log entries generated
+    Logs.remove
+      _groupId: serverInstanceId
+
     # Delete any data stored in instances
     # TODO: can probably improve this and not use a global variable
     Experiments.update serverInstanceId,
@@ -78,6 +82,8 @@ withCleanup = TestUtils.getCleanupWrapper
     # Clear user group
     Partitioner.clearUserGroup(expTestUserId)
   after: -> # Can't use this for async
+
+lastLog = (groupId) -> Logs.findOne({_groupId: groupId}, {sort: timestamp: -1})
 
 Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) ->
   # First get should create, second get should return same object
@@ -104,6 +110,11 @@ Tinytest.add "experiment - instance - create", withCleanup (test) ->
   test.equal instanceData.batchId, "expBatch"
   test.instanceOf instanceData.startTime, Date
 
+  # Test that create meta event was recorded in log
+  logEntry = lastLog(serverInstanceId)
+  test.isTrue logEntry
+  test.equal logEntry?._meta, "created"
+
   # Getting the instance again should get the same one
   inst2 = TurkServer.Instance.getInstance(serverInstanceId)
   test.equal inst2, instance
@@ -124,6 +135,21 @@ Tinytest.add "experiment - instance - setup context", withCleanup (test) ->
   test.isTrue "fooTreatment" in treatment.treatments,
   test.equal treatment.fooProperty, "bar"
   test.equal group, serverInstanceId
+
+  # Check that the init _meta event was logged with treatment info
+  logEntry = lastLog(serverInstanceId)
+  test.isTrue logEntry
+  test.equal logEntry?._meta, "initialized"
+  test.equal logEntry?.treatmentData, treatment
+
+Tinytest.add "experiment - instance - teardown and log", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+
+  instance.teardown()
+
+  logEntry = lastLog(serverInstanceId)
+  test.isTrue logEntry
+  test.equal logEntry?._meta, "teardown"
 
 Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   Partitioner.bindGroup serverInstanceId, ->

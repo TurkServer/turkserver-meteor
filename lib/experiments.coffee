@@ -31,6 +31,9 @@ class TurkServer.Instance
       treatment: @treatment()
 
     Partitioner.bindGroup @groupId, ->
+      TurkServer.log
+        _meta: "initialized"
+        treatmentData: context.treatment
       (handler.call(context) for handler in init_queue)
       return
 
@@ -65,9 +68,16 @@ class TurkServer.Instance
 
   # Close this instance and return people to the lobby
   teardown: ->
+    now = new Date()
+
+    Partitioner.bindGroup @groupId, ->
+      TurkServer.log
+        _meta: "teardown"
+        _timestamp: now
+
     Experiments.update @groupId,
       $set:
-        endTime: new Date()
+        endTime: now
 
     return unless (users = Experiments.findOne(@groupId).users)?
     batch = @batch()
