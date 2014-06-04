@@ -24,17 +24,20 @@ class TurkServer.Instance
   constructor: (@groupId) ->
     throw new Error("Instance already exists; use getInstance") if _instances[@groupId]
 
+  # Run a function scoped to this instance with a given context.
+  # The value of context.instance will be set to this instance.
+  bindOperation: (func, context) ->
+    context ?= {}
+    context.instance = this
+    Partitioner.bindGroup @groupId, -> func.call(context)
+
   # Run the initialize handlers for this instance
   setup: ->
-    context =
-      group: @groupId
-      treatment: @treatment()
-
-    Partitioner.bindGroup @groupId, ->
+    @bindOperation ->
       TurkServer.log
         _meta: "initialized"
-        treatmentData: context.treatment
-      (handler.call(context) for handler in init_queue)
+        treatmentData: @instance.treatment()
+      (handler.call(@) for handler in init_queue)
       return
 
   addAssignment: (asst) ->

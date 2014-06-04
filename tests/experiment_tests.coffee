@@ -1,13 +1,16 @@
 Doobie = new Meteor.Collection("experiment_test")
 
-treatment = undefined
-group = undefined
+Partitioner.partitionCollection Doobie
 
-contextHandler = ->
-  treatment = @treatment
-  group = @group
+setupContext = undefined
+reconnectContext = undefined
+disconnectContext = undefined
+idleContext = undefined
+activeContext = undefined
 
-insertHandler = ->
+TurkServer.initialize -> setupContext = @
+
+TurkServer.initialize ->
   Doobie.insert
     foo: "bar"
 
@@ -16,10 +19,10 @@ insertHandler = ->
     Doobie.insert
       bar: "baz"
 
-Partitioner.partitionCollection Doobie
-
-TurkServer.initialize contextHandler
-TurkServer.initialize insertHandler
+TurkServer.onConnect -> reconnectContext = this
+TurkServer.onDisconnect -> disconnectContext = this
+TurkServer.onIdle -> idleContext = this
+TurkServer.onActive -> activeContext = this
 
 # Ensure batch exists
 Batches.upsert "expBatch", $set: {}
@@ -41,6 +44,13 @@ secondInstanceId = null
 
 withCleanup = TestUtils.getCleanupWrapper
   before: ->
+    # Clear any callback records
+    setupContext = undefined
+    reconnectContext = undefined
+    disconnectContext = undefined
+    idleContext = undefined
+    activeContext = undefined
+
     # Clear contents of collection
     # TODO should be able to use .direct.remove here but it seems to be currently broken:
     # https://github.com/matb33/meteor-collection-hooks/issues/3#issuecomment-42878962
@@ -123,18 +133,19 @@ Tinytest.add "experiment - instance - create", withCleanup (test) ->
   instance = batch.createInstance([ "fooTreatment" ], {_id: secondInstanceId })
 
 Tinytest.add "experiment - instance - setup context", withCleanup (test) ->
-  treatment = undefined
-  group = undefined
   instance = TurkServer.Instance.getInstance(serverInstanceId)
   # For this test to work, it better be the only setup on the page
   instance.setup()
+
+  test.isTrue setupContext
+  treatment = setupContext?.instance.treatment()
 
   test.equal instance.batch(), TurkServer.Batch.getBatch("expBatch")
 
   test.isTrue treatment
   test.isTrue "fooTreatment" in treatment.treatments,
   test.equal treatment.fooProperty, "bar"
-  test.equal group, serverInstanceId
+  test.equal setupContext?.instance.groupId, serverInstanceId
 
   # Check that the init _meta event was logged with treatment info
   logEntry = lastLog(serverInstanceId)
@@ -211,6 +222,10 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
+  test.isTrue disconnectContext
+  test.equal disconnectContext?.instance, instance
+  test.equal disconnectContext?.userId, expTestUserId
+
   asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
 
   # TODO ensure the accounting here is done correctly
@@ -222,6 +237,10 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
 
   TestUtils.connCallbacks.userReconnect
     userId: expTestUserId
+
+  test.isTrue reconnectContext
+  test.equal reconnectContext?.instance, instance
+  test.equal reconnectContext?.userId, expTestUserId
 
   asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
   test.isFalse asstData.instances[0].lastDisconnect
@@ -240,6 +259,10 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
     userId: expTestUserId
     lastActivity: idleTime
 
+  test.isTrue idleContext
+  test.equal idleContext?.instance, instance
+  test.equal idleContext?.userId, expTestUserId
+
   asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
   test.isTrue asstData.instances[0]
   test.isTrue asstData.instances[0].joinTime
@@ -251,6 +274,10 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   TestUtils.connCallbacks.userActive
     userId: expTestUserId
     lastActivity: activeTime
+
+  test.isTrue activeContext
+  test.equal activeContext?.instance, instance
+  test.equal activeContext?.userId, expTestUserId
 
   asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
   test.isFalse asstData.instances[0].lastIdle

@@ -236,6 +236,13 @@ getActiveGroup = (userId) ->
   or just replace connections with users due to muxing implemented in user-status
 ###
 
+attemptCallbacks = (callbacks, context, errMsg) ->
+  for cb in callbacks
+    try
+      cb.call(context)
+    catch e
+      Meteor._debug errMsg, e
+
 ###
   Connect callbacks
 ###
@@ -255,18 +262,14 @@ userReconnect = (doc) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._reconnected(groupId)
 
-  Partitioner.bindGroup groupId, ->
+  TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
       _userId: doc.userId
       _meta: "connected"
 
-    for cb in connectCallbacks
-      try
-        cb.call
-          userId: doc.userId
-      catch e
-        Meteor._debug "Exception in user connect callback: " + e
+    attemptCallbacks(connectCallbacks, this, "Exception in user connect callback")
     return
+  , { userId: doc.userId }
 
 TurkServer.onConnect = (func) ->
   connectCallbacks.push func
@@ -283,18 +286,14 @@ userDisconnect = (doc) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst?._disconnected(groupId) # Needed during tests, as assignments are being removed from db
 
-  Partitioner.bindGroup groupId, ->
+  TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
       _userId: doc.userId
       _meta: "disconnected"
 
-    for cb in disconnectCallbacks
-      try
-        cb.call
-          userId: doc.userId
-      catch e
-        Meteor._debug "Exception in user disconnect callback: " + e
+    attemptCallbacks(disconnectCallbacks, this, "Exception in user disconnect callback")
     return
+  , { userId: doc.userId }
 
 TurkServer.onDisconnect = (func) ->
   disconnectCallbacks.push func
@@ -315,19 +314,15 @@ userIdle = (doc) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._isIdle(groupId, doc.lastActivity)
 
-  Partitioner.bindGroup groupId, ->
+  TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
       _userId: doc.userId
       _meta: "idle"
       _timestamp: doc.lastActivity # Overridden to a past value
 
-    for cb in idleCallbacks
-      try
-        cb.call
-          userId: doc.userId
-      catch e
-        Meteor._debug "Exception in user idle callback: " + e
+    attemptCallbacks(idleCallbacks, this, "Exception in user idle callback")
     return
+  , { userId: doc.userId }
 
 userActive = (doc) ->
   return unless (groupId = getActiveGroup(doc.userId))?
@@ -335,19 +330,15 @@ userActive = (doc) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._isActive(groupId, doc.lastActivity)
 
-  Partitioner.bindGroup groupId, ->
+  TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
       _userId: doc.userId
       _meta: "active"
       _timestamp: doc.lastActivity # Also overridden
 
-    for cb in activeCallbacks
-      try
-        cb.call
-          userId: doc.userId
-      catch e
-        Meteor._debug "Exception in user active callback: " + e
+    attemptCallbacks(activeCallbacks, this, "Exception in user active callback")
     return
+  , { userId: doc.userId }
 
 UserStatus.events.on "connectionLogin", userReconnect
 UserStatus.events.on "connectionLogout", userDisconnect
