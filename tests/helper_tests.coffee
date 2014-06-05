@@ -3,7 +3,8 @@
 if Meteor.isClient
   Tinytest.addAsync "helpers - isAdmin", (test, next) ->
     InsecureLogin.ready ->
-      test.isFalse TurkServer.isAdmin()
+      # this should be straight up false - isFalse might take `undefined` for an answer.
+      test.equal TurkServer.isAdmin(), false
       next()
 
   Tinytest.addAsync "helpers - checkAdmin", (test, next) ->

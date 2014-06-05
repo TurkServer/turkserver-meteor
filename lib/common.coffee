@@ -60,7 +60,7 @@ TurkServer.isAdmin = ->
     "admin": { $exists: true }
   , fields:
     "admin" : 1
-  )?.admin
+  )?.admin || false
 
 TurkServer.checkNotAdmin = ->
   if Meteor.isClient
