@@ -141,7 +141,92 @@ Template.tsAdminNewHit.events =
 Template.tsAdminNewHit.hitTypes = hitTypes
 
 Template.tsAdminPanel.rendered = ->
-  # for now, statically display the worker panel data
+  svg = d3.select(@find("svg"))
+  $svg = @$("svg")
+
+  margin =
+    left: 90
+    bottom: 30
+
+  x = d3.scale.linear()
+    .range([0, $svg.width() - margin.left])
+
+  y = d3.scale.ordinal()
+    # Data was originally stored in GMT -5 so just display that
+    .domain(m.zone(300).format("HH ZZ") for m in TurkServer.Util._defaultTimeSlots())
+    .rangeBands([0, $svg.height() - margin.bottom], 0.2)
+
+  xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+
+  yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left")
+
+  # Draw axes
+  chart = svg.append("g")
+    .attr("transform", "translate(" + margin.left + ",0)")
+
+  chart.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + ($svg.height() - margin.bottom) + ")")
+    .call(xAxis)
+
+  chart.append("g")
+    .attr("class", "y axis")
+    .call(yAxis)
+  .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -80)
+    .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text("Timezone")
+
+  data = {}
+
+  newData = false
+  redraw = ->
+    return unless newData
+    newData = false
+
+    entries = d3.entries(data)
+
+    # Update domain with max value
+    x.domain([0, d3.max(entries, (d) -> d.value)])
+    chart.select("g.x.axis").call(xAxis)
+
+    bars = chart.selectAll(".bar")
+      .data(entries, (d) -> d.key)
+
+    # Add any new bars in the enter selection
+    bars.enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("y", (d) -> y(d.key) )
+      .attr("height", y.rangeBand());
+
+    # Update widths in the update selection, including entered nodes
+    bars.attr("data-value", (d) -> d.value )
+      .transition()
+      .attr("width", (d) -> x(d.value) )
+
+  # Aggregate the worker times into the current timezone
+  @handle = Workers.find().observeChanges
+    added: (id, fields) ->
+      # Only use data from workers who agreed to be contacted
+      return unless fields.contact and fields.times?
+      for time in fields.times
+        # normalize into buckets
+        continue unless time # Ignore invalid (empty) entries
+        data[time] ?= 0
+        data[time] += 1
+
+      newData = true
+      Meteor.defer(redraw)
+
+Template.tsAdminPanel.destroyed = ->
+  @handle.stop()
 
 Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
 Template.tsAdminPanel.workerTotal = -> Workers.find().count()

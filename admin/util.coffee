@@ -1,13 +1,15 @@
-@Util = {}
+TurkServer.Util ?= {}
 
-Util.duration = (millis) ->
+TurkServer.Util.duration = (millis) ->
   diff = moment.utc(millis)
   time = diff.format("H:mm:ss")
   days = +diff.format("DDD") - 1
   return (if days isnt 0 then days + "d " else "") + time
 
-Util.timeSince = (timestamp) -> Util.duration(TimeSync.serverTime() - timestamp)
-Util.timeUntil = (timestamp) -> Util.duration(timestamp - TimeSync.serverTime())
+TurkServer.Util.timeSince = (timestamp) ->
+  TurkServer.Util.duration(TimeSync.serverTime() - timestamp)
+TurkServer.Util.timeUntil = (timestamp) ->
+  TurkServer.Util.duration(timestamp - TimeSync.serverTime())
 
 UI.registerHelper "_tsViewingBatch", -> Batches.findOne(Session.get("_tsViewingBatchId"))
 
@@ -18,8 +20,8 @@ UI.registerHelper "_tsRenderTimeMillis", (timestamp) ->
   m = moment(timestamp)
   m.format("L h:mm:ss.SSS A")
 
-UI.registerHelper "_tsRenderTimeSince", Util.timeSince
-UI.registerHelper "_tsRenderTimeUntil", Util.timeUntil
+UI.registerHelper "_tsRenderTimeSince", TurkServer.Util.timeSince
+UI.registerHelper "_tsRenderTimeUntil", TurkServer.Util.timeUntil
 
 UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)

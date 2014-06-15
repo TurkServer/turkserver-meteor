@@ -1,15 +1,19 @@
 UI.registerHelper "_tsDebug", ->
   console.log @, arguments
 
+TurkServer.Util ?= {}
+
+TurkServer.Util._defaultTimeSlots = ->
+  # Default time selections: 9AM EST to 11PM EST
+  m = moment.utc(hours: 9 + 5).local()
+  return (m.clone().add('hours', x) for x in [0..14])
+
 # Submit as soon as this template appears on the page.
 Template.mturkSubmit.rendered = -> @find("form").submit()
 
 Template.tsTimePicker.zone = -> moment().format("Z")
 
-Template.tsTimeOptions.momentList = ->
-  # Default time selections: 9AM EST to 11PM EST
-  m = moment.utc(hours: 9 + 5).local()
-  return (m.clone().add('hours', x) for x in [0..14])
+Template.tsTimeOptions.momentList = TurkServer.Util._defaultTimeSlots
 
 # Store all values in GMT-5
 Template.tsTimeOptions.valueFormatted = -> @zone(300).format('HH ZZ')

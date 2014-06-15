@@ -37,7 +37,8 @@ Template.tsAdminCompletedExperiments.experiments = ->
   ,
     sort: { startTime: 1 }
 
-Template.tsAdminCompletedExperiments.duration = -> Util.duration(@endTime - @startTime)
+Template.tsAdminCompletedExperiments.duration = ->
+  TurkServer.Util.duration(@endTime - @startTime)
 
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 
