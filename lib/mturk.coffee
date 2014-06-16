@@ -19,6 +19,23 @@ TurkServer.mturk = (op, params) ->
   syncFunc = Meteor._wrapAsync mturkAPI[op].bind mturkAPI
   return syncFunc(params)
 
+TurkServer.Util ?= {}
+
+# Assign a qualification and store it in the workers collection
+TurkServer.Util.assignQualification = (workerId, qualId) ->
+  TurkServer.mturk "AssignQualification",
+    WorkerId: workerId
+    QualificationTypeId: qualId
+
+  # Update worker collection if succeeded (no throw)
+  Workers.update workerId,
+    $push:
+      quals: {
+        id: qualId
+        value: 1
+      }
+  return
+
 # Initialize some helpful qualifications
 Meteor.startup ->
   return if Qualifications.find().count() > 0

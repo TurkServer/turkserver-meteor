@@ -37,7 +37,7 @@ RoundTimers.deny(always)
   HITs
 ###
 
-Workers.deny(always)
+Workers.allow(adminOnly)
 Assignments.deny(always)
 
 Qualifications.allow(adminOnly)

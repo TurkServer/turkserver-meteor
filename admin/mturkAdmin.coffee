@@ -231,6 +231,27 @@ Template.tsAdminPanel.destroyed = ->
 Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
 Template.tsAdminPanel.workerTotal = -> Workers.find().count()
 
+Template.tsAdminEmail.events
+  "submit form": (e, t) ->
+    e.preventDefault()
+    $sub = t.$("input[name=subject]")
+    $msg = t.$("textarea[name=message]")
+
+    subject = $sub.val()
+    message = $msg.val()
+
+    selector = { contact: true }
+    if t.$("input[name=selection]:checked").val() is "qual"
+      $.extend(selector, {"quals.id": t.$("input[name=qualification]").val() } )
+
+    Meteor.call "ts-admin-notify-workers", subject, message, selector, (err, res) ->
+      if err?
+        bootbox.alert(err)
+      else
+        bootbox.alert(res + " workers notified!")
+        $sub.val('')
+        $msg.val('')
+
 Template.tsAdminActiveAssignments.activeAssts = ->
   Assignments.find { status: "assigned" },
     { sort: acceptTime: 1 }

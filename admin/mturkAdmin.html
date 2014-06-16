@@ -329,7 +329,30 @@
     <h3>E-mail workers</h3>
 
     <div class="row">
-
+        <div class="col-md-6 well">
+            <form>
+                <div class="form-group">
+                    <label>Subject:</label>
+                    <input class="form-control" name="subject" type="text" required>
+                </div>
+                <div class="form-group">
+                    <label>Message:</label>
+                    <textarea class="form-control" name="message" required></textarea>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="selection" value="all" checked>All Panel Workers
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="selection" value="qual">Workers with qualification:
+                    </label>
+                    <input class="form-control" style="width: 200px; display: inline-block" type="text" name="qualification">
+                </div>
+                <button class="btn btn-primary" type="submit">Notify Workers</button>
+            </form>
+        </div>
     </div>
 </template>
 

@@ -210,6 +210,33 @@ Meteor.methods
     emitter.emit.apply(emitter, Array::slice.call(arguments, 1)) # Event and any other arguments
     return
 
+  "ts-admin-notify-workers": (subject, message, selector) ->
+    TurkServer.checkAdmin()
+    check(subject, String)
+    check(message, String)
+
+    workers = Workers.find(selector).map((w) -> w._id)
+    return 0 unless workers.length > 0
+    count = 0
+
+    while workers.length > 0
+      # Notify workers 50 at a time
+      chunk = workers.splice(0, 50)
+
+      params =
+        Subject: subject
+        MessageText: message
+        WorkerId: chunk
+
+      try
+        TurkServer.mturk "NotifyWorkers", params
+      catch e
+        throw new Meteor.Error(500, e.toString())
+
+      count += chunk.length
+
+    return count
+
   "ts-admin-stop-experiment": (groupId) ->
     TurkServer.checkAdmin()
     TurkServer.Instance.getInstance(groupId).teardown()
