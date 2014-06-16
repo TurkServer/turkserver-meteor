@@ -112,6 +112,18 @@ Tinytest.add "connection - improper submission of HIT", withCleanup (test) ->
     asst.setCompleted {}
   , (e) -> e.error is 403 and e.reason is ErrMsg.stateErr
 
+Tinytest.add "connection - set assignment as returned", withCleanup (test) ->
+  asst = createAssignment()
+  asst._loggedIn()
+
+  asst.setReturned()
+
+  user = Meteor.users.findOne(userId)
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.equal asstData.status, "returned"
+  test.isFalse user.turkserver?.state
+
 Tinytest.add "connection - user resuming into instance", withCleanup (test) ->
   asst = createAssignment()
   instance.addAssignment(asst)

@@ -47,7 +47,7 @@ Tinytest.add "assigners - tutorialGroup - initial lobby gets tutorial", withClea
   asst = createAssignment()
   asst._loggedIn()
 
-  TestUtils.sleep(100) # YES!!
+  TestUtils.sleep(150) # YES!!
 
   user = Meteor.users.findOne(asst.userId)
   instances = asst.getInstances()

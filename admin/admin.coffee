@@ -27,17 +27,20 @@ userFindOptions =
 Meteor.publish "tsAdminState", (batchId, groupId) ->
   return [] unless isAdmin(@userId)
 
-  # When in a group, only users should be returned.
-  # needs to update if group updates
+  # When in a group, override whatever user publication the group sends with our fields
+  # TODO Don't publish all users
   cursors = [ Meteor.users.find({}, userFindOptions) ]
+  # Send nothing else, specific experiment/treatment sent in tsCurrentExperiment
+  return cursors if groupId?
 
-  unless groupId # specific experiment/treatment sent in tsCurrentExperiment
-    # Return nothing if no batch is selected
-    batchSelector = if batchId then {batchId} else undefined
-    cursors.push Assignments.find(batchSelector)
-    cursors.push LobbyStatus.find(batchSelector)
-    cursors.push Experiments.find(batchSelector)
-    cursors.push Treatments.find()
+  # Return nothing if no batch is selected
+  batchSelector = if batchId then {batchId} else undefined
+
+  # TODO only publish assigned/completed assignments
+  cursors.push Assignments.find(batchSelector)
+  cursors.push LobbyStatus.find(batchSelector)
+  cursors.push Experiments.find(batchSelector)
+  cursors.push Treatments.find()
 
   return cursors
 
@@ -233,14 +236,50 @@ Meteor.methods
       catch e
         throw new Meteor.Error(500, e.toString())
 
+      Meteor._debug(chunk.length + " workers notified")
+
       count += chunk.length
 
     return count
 
+  "ts-admin-cleanup-user-state": ->
+    # Find all users that are state: experiment but don't have an active assignment
+    # This shouldn't have to be used in most cases
+    Meteor.users.find({"turkserver.state": "experiment"}).map (user) ->
+      return if TurkServer.Assignment.getCurrentUserAssignment(user._id)?
+      Meteor.users.update user._id,
+        $unset: "turkserver.state": null
+
+    return
+
+  "ts-admin-cancel-assignments": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    count = 0
+    Assignments.find({batchId, status: "assigned"}).map (asst) ->
+      return if Meteor.users.find({workerId: asst.workerId}).status?.online
+      TurkServer.Assignment.getAssignment(asst._id).setReturned()
+      count++
+    return count
+
   "ts-admin-stop-experiment": (groupId) ->
     TurkServer.checkAdmin()
+    check(groupId, String)
+
     TurkServer.Instance.getInstance(groupId).teardown()
     return
+
+  "ts-admin-stop-all-experiments": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    count = 0
+    Experiments.find({batchId, endTime: {$exists: false} }).map (instance) ->
+      TurkServer.Instance.getInstance(instance._id).teardown()
+      count++
+
+    return count
 
 # Create and set up admin user (and password) if not existent
 Meteor.startup ->

@@ -162,6 +162,9 @@ Tinytest.add "experiment - instance - teardown and log", withCleanup (test) ->
   test.isTrue logEntry
   test.equal logEntry?._meta, "teardown"
 
+  instanceData = Experiments.findOne(serverInstanceId)
+  test.instanceOf instanceData.endTime, Date
+
 Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   Partitioner.bindGroup serverInstanceId, ->
     Doobie.insert
@@ -175,24 +178,19 @@ Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   test.equal stuff[0].foo, "bar"
   test.equal stuff[0]._groupId, serverInstanceId
 
-Tinytest.add "experiment - instance - teardown", withCleanup (test) ->
-  instance = TurkServer.Instance.getInstance(serverInstanceId)
-  instance.teardown()
-
-  instanceData = Experiments.findOne(serverInstanceId)
-  test.instanceOf instanceData.endTime, Date
-
 Tinytest.add "experiment - instance - reject adding user to ended instance", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
   instance.teardown()
 
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+
   test.throws ->
-    asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
     instance.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
 
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
   test.length instance.users(), 0
   test.equal user.turkserver.state, "lobby"
 
@@ -204,7 +202,9 @@ Tinytest.add "experiment - instance - addAssignment records instance id", withCl
   instance.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.equal Partitioner.getUserGroup(expTestUserId), serverInstanceId
 
   test.isTrue expTestUserId in instance.users()
   test.equal user.turkserver.state, "experiment"
@@ -213,6 +213,24 @@ Tinytest.add "experiment - instance - addAssignment records instance id", withCl
   test.isTrue asstData.instances[0]
   test.equal asstData.instances[0].id, serverInstanceId
   test.isTrue asstData.instances[0].joinTime
+
+Tinytest.add "experiment - instance - teardown with returned assignment", withCleanup (test) ->
+  instance = TurkServer.Instance.getInstance(serverInstanceId)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
+
+  instance.addAssignment(asst)
+
+  asst.setReturned()
+
+  instance.teardown() # This should not throw
+
+  user = Meteor.users.findOne(expTestUserId)
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
+  test.isFalse user.turkserver?.state
+  test.isTrue asstData.instances[0]
+  test.equal asstData.status, "returned"
 
 Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanup (test) ->
   instance = TurkServer.Instance.getInstance(serverInstanceId)
@@ -226,7 +244,7 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   test.equal disconnectContext?.instance, instance
   test.equal disconnectContext?.userId, expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
 
   # TODO ensure the accounting here is done correctly
   discTime = null
@@ -242,7 +260,7 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   test.equal reconnectContext?.instance, instance
   test.equal reconnectContext?.userId, expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isFalse asstData.instances[0].lastDisconnect
   # We don't know the exact length of disconnection, but make sure it's in the right ballpark
   test.isTrue asstData.instances[0].disconnectedTime > 0
@@ -263,7 +281,7 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   test.equal idleContext?.instance, instance
   test.equal idleContext?.userId, expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isTrue asstData.instances[0]
   test.isTrue asstData.instances[0].joinTime
   test.equal asstData.instances[0].lastIdle, idleTime
@@ -279,7 +297,7 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   test.equal activeContext?.instance, instance
   test.equal activeContext?.userId, expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isFalse asstData.instances[0].lastIdle
   test.equal asstData.instances[0].idleTime, offset
 
@@ -295,7 +313,7 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
     userId: expTestUserId
     lastActivity: secondActiveTime
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isFalse asstData.instances[0].lastIdle
   test.equal asstData.instances[0].idleTime, offset + offset
 
@@ -313,7 +331,7 @@ Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (
   TestUtils.connCallbacks.userDisconnect
     userId: expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isTrue asstData.instances[0].joinTime
   # Check that idle fields exist
   test.isFalse asstData.instances[0].lastIdle
@@ -340,7 +358,7 @@ Tinytest.add "experiment - instance - idleness is cleared on reconnection", with
   TestUtils.connCallbacks.userReconnect
     userId: expTestUserId
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
 
   test.isTrue asstData.instances[0].joinTime
   # Check that idleness was not counted
@@ -359,12 +377,14 @@ Tinytest.add "experiment - instance - teardown while disconnected", withCleanup 
     userId: expTestUserId
 
   discTime = null
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
   test.isTrue(discTime = asstData.instances[0].lastDisconnect)
 
   instance.teardown()
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
 
   test.isTrue asstData.instances[0].leaveTime
   test.isFalse asstData.instances[0].lastDisconnect
@@ -385,7 +405,9 @@ Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) -
 
   instance.teardown()
 
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
 
   test.isTrue asstData.instances[0].leaveTime
   test.isFalse asstData.instances[0].lastIdle
@@ -399,7 +421,9 @@ Tinytest.add "experiment - instance - teardown and join second instance", withCl
   instance.teardown()
 
   user = Meteor.users.findOne(expTestUserId)
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
 
   test.isTrue expTestUserId in instance.users() # Shouldn't have been removed
   test.equal user.turkserver.state, "lobby"
@@ -415,12 +439,16 @@ Tinytest.add "experiment - instance - teardown and join second instance", withCl
   instance2.addAssignment(asst)
 
   user = Meteor.users.findOne(expTestUserId)
+
+  test.equal Partitioner.getUserGroup(expTestUserId), secondInstanceId
   test.equal user.turkserver.state, "experiment"
 
   instance2.teardown()
 
   user = Meteor.users.findOne(expTestUserId)
-  asstData = Assignments.findOne(workerId: expTestWorkerId, status: "assigned")
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(expTestUserId)
 
   test.isTrue expTestUserId in instance2.users() # Shouldn't have been removed
   test.equal user.turkserver.state, "lobby"

@@ -252,6 +252,15 @@ Template.tsAdminEmail.events
         $sub.val('')
         $msg.val('')
 
+Template.tsAdminAssignmentMaintenance.events
+  "click .-ts-cancel-assignments": ->
+    message = "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? "
+    bootbox.confirm message, (res) ->
+      return unless res
+      Meteor.call "ts-admin-cancel-assignments", Session.get("_tsViewingBatchId"), (err, res) ->
+        bootbox.alert(err) if err?
+        bootbox.alert(res + " assignments canceled") if res?
+
 Template.tsAdminActiveAssignments.activeAssts = ->
   Assignments.find { status: "assigned" },
     { sort: acceptTime: 1 }

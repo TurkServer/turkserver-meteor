@@ -77,13 +77,13 @@ authenticateWorker = (loginRequest) ->
 
   if existing
     # Was a different account in progress?
+    existingAsst = TurkServer.Assignment.getAssignment(existing._id)
     if workerId is existing.workerId
       # Worker has already logged in to this HIT, no need to create record below
-      return TurkServer.Assignment.getAssignment(existing._id)
+      return existingAsst
     else
       # HIT has been taken by someone else. Record a new assignment for this worker.
-      Assignments.update existing._id,
-        $set: { status: "returned" }
+      existingAsst.setReturned()
 
   ###
     Not a reconnection; creating a new assignment

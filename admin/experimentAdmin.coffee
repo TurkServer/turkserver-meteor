@@ -1,6 +1,6 @@
 treatments = -> Treatments.find()
 
-Template.tsAdminExperiments.events =
+Template.tsAdminExperiments.events
   "click .-ts-watch-experiment": ->
     groupId = @_id
     currentRoute = Router.current()
@@ -22,6 +22,14 @@ Template.tsAdminExperiments.events =
       Meteor.call "ts-admin-stop-experiment", expId if res
 
 numUsers = -> @users?.length
+
+Template.tsAdminExperimentMaintenance.events
+  "click .-ts-stop-all-experiments": (e) ->
+    bootbox.confirm "This will end all experiments in progress. Are you sure?", (res) ->
+      return unless res
+      Meteor.call "ts-admin-stop-all-experiments", Session.get("_tsViewingBatchId"), (err, res) ->
+        bootbox.alert(err) if err?
+        bootbox.alert(res + " instances stopped") if res?
 
 Template.tsAdminActiveExperiments.experiments = ->
   Experiments.find

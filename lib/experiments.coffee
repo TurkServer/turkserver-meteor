@@ -88,6 +88,8 @@ class TurkServer.Instance
     for userId in users
       Partitioner.clearUserGroup(userId)
       asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
+      continue unless asst?
+      # If the user is still assigned, do final accounting and put them in lobby
       asst._leaveInstance(@groupId)
       batch.lobby.addAssignment asst
 

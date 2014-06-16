@@ -112,3 +112,8 @@ Template.tsAdminConnections.users = ->
   Meteor.users.find
     admin: {$exists: false}
     "turkserver.state": {$exists: true}
+
+Template.tsAdminConnectionMaintenance.events
+  "click .-ts-cleanup-user-state": ->
+    Meteor.call "ts-admin-cleanup-user-state", (err, res) ->
+      bootbox.alert(err.reason) if err?

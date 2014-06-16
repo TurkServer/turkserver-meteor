@@ -67,6 +67,14 @@ class TurkServer.Assignment
     Meteor.users.update @userId,
       $unset: {"turkserver.state": null}
 
+  # Mark this assignment as returned and not completable
+  setReturned: ->
+    Assignments.update @asstId,
+      $set: { status: "returned" }
+    # Unset the user's state
+    Meteor.users.update {workerId: @workerId},
+      $unset: {"turkserver.state": null}
+
   # Gets the variable payment amount for this assignment (bonus)
   getPayment: ->
     Assignments.findOne(@asstId).bonusPayment
