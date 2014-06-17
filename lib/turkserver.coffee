@@ -107,7 +107,11 @@ Meteor.publish "tsCurrentExperiment", (group) ->
   return cursors
 
 # For test logins, need to publish the list of batches.
-Meteor.publish null, -> Batches.find()
+# TODO make this a bit more secure
+Meteor.publish null, ->
+  # Don't publish batches if logged in
+  return [] if @userId?
+  return Batches.find()
 
 TurkServer.startup = (func) ->
   Meteor.startup ->

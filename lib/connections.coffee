@@ -386,7 +386,8 @@ Meteor.methods
     # TODO schedule this worker's resume token to be scavenged in the future
 
     # Update worker contact info
-    asst.setWorkerData(panel) if panel
+    # TODO don't overwrite panel data if we don't need to.
+    asst.setWorkerData(panel) if panel?
 
     # return true to auto submit the HIT
     return true
