@@ -47,9 +47,20 @@ class TurkServer.Lobby
     if LobbyStatus.remove(asst.userId) > 0
       Meteor.defer => @events.emit "user-leave", asst
 
-# Publish lobby contents for a particular batch
+# Publish lobby contents for a particular batch, as well as users
 Meteor.publish "lobby", (batchId) ->
-  LobbyStatus.find( {batchId} )
+  sub = this
+
+  handle = LobbyStatus.find({batchId}).observeChanges
+    added: (id, fields) ->
+      sub.added("ts.lobby", id, fields)
+      sub.added("users", id, Meteor.users.findOne(id, fields: username: 1))
+    removed: (id) ->
+      sub.removed("ts.lobby", id)
+      sub.removed("users", id)
+
+  sub.ready()
+  sub.onStop -> handle.stop()
 
 # Publish lobby config information for active batches with lobby and grouping
 # TODO publish this based on the batch of the active user

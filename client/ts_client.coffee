@@ -15,8 +15,10 @@ TurkServer.inExitSurvey = ->
   Session.equals("turkserver.state", "exitsurvey")
 
 TurkServer.batch = ->
-  batchId = Session.get('_loginParams')?.batchId
-  Batches.findOne(batchId) if batchId?
+  if (batchId = Session.get('_loginParams')?.batchId)?
+    return Batches.findOne(batchId)
+  else
+    return Batches.findOne()
 
 # Merge all treatments into one document
 TurkServer.treatment = -> TurkServer._mergeTreatments Treatments.find({})

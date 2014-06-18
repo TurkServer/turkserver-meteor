@@ -123,13 +123,16 @@ class TurkServer.Assignment
       # Wait for them to fill it out
       return
 
-    # None of the above, throw them into the lobby/assignment mechanism
-    @_enterLobby()
+    # Nothing else needs to be done; a fresh login OR a reconnect will check for lobby state properly.
 
   _enterLobby: ->
     batch = @getBatch()
     throw new Meteor.Error(403, "No batch associated with assignment") unless batch?
     batch.lobby.addAssignment(@)
+
+  _removeFromLobby: ->
+    # Remove from lobby if present
+    @getBatch().lobby.removeAssignment(@)
 
   _joinInstance: (instanceId) ->
     Assignments.update @asstId,
@@ -174,6 +177,8 @@ class TurkServer.Assignment
 
   # Handle a disconnection by this user
   _disconnected: (instanceId) ->
+    check(instanceId, String)
+
     # Record a disconnect time if we are currently part of an instance
     now = new Date()
     updateObj =
@@ -189,9 +194,6 @@ class TurkServer.Assignment
       _id: @asstId
       "instances.id": instanceId
     }, updateObj
-
-    # Remove from lobby if present
-    @getBatch().lobby.removeAssignment(@)
 
   # Handle a reconnection by a user, if they were assigned prior to the reconnection
   _reconnected: (instanceId) ->
@@ -262,7 +264,8 @@ userReconnect = (doc) ->
   user = Meteor.users.findOne(doc.userId)
   return if not user? or user?.admin
 
-  unless user?.turkserver?.state
+  state = user?.turkserver?.state
+  if state is "lobby" or not state?
     TurkServer.Assignment.getCurrentUserAssignment(doc.userId)._enterLobby()
     return
 
@@ -289,9 +292,13 @@ TurkServer.onConnect = (func) ->
 disconnectCallbacks = []
 
 userDisconnect = (doc) ->
-  return unless (groupId = getActiveGroup(doc.userId))?
+  user = Meteor.users.findOne(doc.userId)
+  return if not user? or user?.admin
 
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
+  asst?._removeFromLobby()
+
+  return unless (groupId = getActiveGroup(doc.userId))?
   asst?._disconnected(groupId) # Needed during tests, as assignments are being removed from db
 
   TurkServer.Instance.getInstance(groupId).bindOperation ->

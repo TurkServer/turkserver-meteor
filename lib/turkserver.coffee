@@ -109,9 +109,23 @@ Meteor.publish "tsCurrentExperiment", (group) ->
 # For test logins, need to publish the list of batches.
 # TODO make this a bit more secure
 Meteor.publish null, ->
-  # Don't publish batches if logged in
-  return [] if @userId?
-  return Batches.find()
+  return Batches.find() unless @userId?
+  # Publish specific batch if logged in
+
+  # This should work for now because an assignment is made upon login
+  return [] unless (workerId = Meteor.users.findOne(@userId)?.workerId)?
+
+  sub = this
+  handle = Assignments.find({workerId, status: "assigned"}).observeChanges
+    added: (id, fields) ->
+      batchId = Assignments.findOne(id).batchId
+      sub.added "ts.batches", batchId, Batches.findOne(batchId)
+    removed: (id) ->
+      batchId = Assignments.findOne(id).batchId
+      sub.removed "ts.batches", batchId
+
+  sub.ready()
+  sub.onStop -> handle.stop()
 
 TurkServer.startup = (func) ->
   Meteor.startup ->

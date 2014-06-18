@@ -116,7 +116,6 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
       # Put me in, coach!
       @lobby.pluckUsers( [asst.userId] )
       @instance.addAssignment(asst)
-
     # Otherwise, wait for assignment event
 
 ###

@@ -16,7 +16,8 @@ class TurkServer.Instance
       return instance
     else
       throw new Error("Instance does not exist: " + groupId) unless Experiments.findOne(groupId)?
-      return _instances[groupId] = new TurkServer.Instance(groupId)
+      # TODO somehow the above call can block and an instance is created when it returns
+      return _instances[groupId] ?= new TurkServer.Instance(groupId)
 
   @currentInstance: ->
     @getInstance Partitioner.group()

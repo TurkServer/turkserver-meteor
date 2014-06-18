@@ -1,6 +1,20 @@
 <template name="tsBasicLobby">
     <div class="jumbotron">
-        <h3>Waiting the task to start. Sit tight for a few minutes!</h3>
+        <h3>Waiting for enough users to start the task. Sit tight for a few minutes!</h3>
+
+        <p>There are {{count}} user(s) currently waiting:</p>
+
+        <table class="table table-striped">
+            <tbody>
+            {{#each lobbyInfo}}
+            <tr>
+                <td>
+                    {{identifier}}
+                </td>
+            </tr>
+            {{/each}}
+            </tbody>
+        </table>
     </div>
 </template>
 
