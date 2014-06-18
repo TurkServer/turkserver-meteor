@@ -23,7 +23,7 @@ UI.registerHelper "hitIsViewing",
 loginCallback = (err) ->
   return unless err
   console.log err
-  if err.message is ErrMsg.alreadyCompleted
+  if err.reason is ErrMsg.alreadyCompleted
     # submit the HIT
     TurkServer.submitHIT()
   else
