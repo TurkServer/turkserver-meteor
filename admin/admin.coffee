@@ -236,9 +236,8 @@ Meteor.methods
       catch e
         throw new Meteor.Error(500, e.toString())
 
-      Meteor._debug(chunk.length + " workers notified")
-
       count += chunk.length
+      Meteor._debug(count + " workers notified")
 
     return count
 
