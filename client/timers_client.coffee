@@ -87,7 +87,7 @@ for own key of TurkServer.Timers
   helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1)
   (-> # Bind the function to the current value inside the closure
     func = TurkServer.Timers[key]
-    UI.registerHelper helperName, -> TurkServer.Util.formatSeconds func()
+    UI.registerHelper helperName, -> TurkServer.Util.formatMillis func()
   )()
 
 
