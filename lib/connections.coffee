@@ -52,6 +52,8 @@ class TurkServer.Assignment
     Meteor.users.update @userId,
       $set: { "turkserver.state": "exitsurvey" }
 
+  isCompleted: -> Assignments.findOne(@asstId).status is "completed"
+
   setCompleted: (doc) ->
     user = Meteor.users.findOne(@userId)
     # check that the user is allowed to do this
@@ -83,13 +85,36 @@ class TurkServer.Assignment
   setPayment: (amount) ->
     check(amount, Number)
     Assignments.update @asstId,
-      $set: bonusPayment: amount
+      $set:
+        bonusPayment: amount
 
   # Adds (or subtracts) an amount to the payment for this assignment
   addPayment: (amount) ->
     check(amount, Number)
     Assignments.update @asstId,
       $inc: bonusPayment: amount
+
+  # Pays the worker their bonus, if set, using the mturk API
+  payBonus: (message) ->
+    check(message, String)
+
+    data = Assignments.findOne(@asstId)
+    throw new Error("Bonus value not set") unless data.bonusPayment?
+    throw new Error("Bonus already paid") if data.bonusPaid?
+
+    TurkServer.mturk "GrantBonus",
+      WorkerId: data.workerId
+      AssignmentId: data.assignmentId
+      BonusAmount:
+        Amount: data.bonusPayment
+        CurrencyCode: "USD"
+      Reason: message
+
+    # Successfully paid!
+    Assignments.update @asstId,
+      $set:
+        bonusPaid: new Date()
+        bonusMessage: message
 
   # Gets an arbitrary data field on this assignment
   getData: (field) ->

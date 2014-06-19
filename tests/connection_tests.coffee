@@ -124,6 +124,7 @@ Tinytest.add "connection - user submitting HIT", withCleanup (test) ->
 
   test.isFalse user.turkserver?.state
 
+  test.isTrue asst.isCompleted()
   test.equal asstData.status, "completed"
   test.instanceOf asstData.submitTime, Date
   test.equal asstData.exitdata, exitData
@@ -189,3 +190,38 @@ Tinytest.add "connection - increment null payment amount", withCleanup (test) ->
   amount = 1.00
   asst.addPayment(amount)
   test.equal asst.getPayment(), amount
+
+Tinytest.add "connection - pay worker bonus", withCleanup (test) ->
+  asst = createAssignment()
+
+  test.isFalse(asst.getData("bonusPaid"))
+
+  amount = 10.00
+  asst.setPayment(amount)
+
+  message = "Thanks for your work!"
+  asst.payBonus(message)
+
+  test.equal TestUtils.mturkAPI.op, "GrantBonus"
+  test.equal TestUtils.mturkAPI.params.WorkerId, asst.workerId
+  test.equal TestUtils.mturkAPI.params.AssignmentId, asst.assignmentId
+  test.equal TestUtils.mturkAPI.params.BonusAmount.Amount, amount
+  test.equal TestUtils.mturkAPI.params.BonusAmount.CurrencyCode, "USD"
+  test.equal TestUtils.mturkAPI.params.Reason, message
+
+  asstData = asst.getData()
+  test.equal asstData.bonusPayment, amount
+  test.equal asstData.bonusMessage, message
+  test.instanceOf asstData.bonusPaid, Date
+
+Tinytest.add "connection - throw on double payments", withCleanup (test) ->
+  asst = createAssignment()
+
+  amount = 10.00
+  asst.setPayment(amount)
+
+  message = "Thanks for your work!"
+  asst.payBonus(message)
+
+  test.throws ->
+    asst.payBonus(message)

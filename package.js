@@ -57,7 +57,8 @@ Package.on_use(function (api) {
 
     // Shared files
     api.add_files([
-        'lib/common.coffee'
+        'lib/common.coffee',
+        'lib/util.coffee'
     ]);
 
     // Server files

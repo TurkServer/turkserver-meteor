@@ -12,6 +12,12 @@ if Meteor.isServer
   Assignments.remove {}
   Treatments.remove {}
 
+  # Stub out the mturk API
+  TestUtils.mturkAPI = {}
+  TurkServer.mturk = (op, params) ->
+    TestUtils.mturkAPI.op = op
+    TestUtils.mturkAPI.params = params
+
 # Get a wrapper that runs a before and after function wrapping some test function.
 TestUtils.getCleanupWrapper = (settings) ->
   before = settings.before

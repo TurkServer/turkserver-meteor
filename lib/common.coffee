@@ -74,12 +74,3 @@ TurkServer.checkAdmin = ->
     throw new Meteor.Error(403, ErrMsg.notAdminErr) unless Deps.nonreactive(-> TurkServer.isAdmin())
   else
     throw new Meteor.Error(403, ErrMsg.notAdminErr) unless TurkServer.isAdmin()
-
-TurkServer._mergeTreatments = (arr) ->
-  fields =
-    treatments: []
-  arr.forEach (treatment) ->
-    fields.treatments.push treatment.name
-    _.extend(fields, _.omit(treatment, "_id", "name"))
-  return fields
-

@@ -81,23 +81,13 @@ class TurkServer.Timers
     return unless nextRound.startTime?
     return Math.max(0, nextRound.startTime - TimeSync.serverTime())
 
-# UI Time helpers
-
-formatSeconds = (millis) ->
-  return unless millis? # Can be 0 in which case we should render it
-  diff = moment.utc(millis)
-  time = diff.format("H:mm:ss")
-  days = +diff.format("DDD") - 1
-  return (if days then days + "d " else "") + time
-
 # Register all the helpers in the form tsGlobalHelperTime
 for own key of TurkServer.Timers
   # camelCase the helper name
   helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1)
   (-> # Bind the function to the current value inside the closure
     func = TurkServer.Timers[key]
-    UI.registerHelper helperName, -> formatSeconds func()
+    UI.registerHelper helperName, -> TurkServer.Util.formatSeconds func()
   )()
 
-TestUtils.formatSeconds = formatSeconds
 
