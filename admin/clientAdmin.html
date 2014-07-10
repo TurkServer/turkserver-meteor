@@ -6,6 +6,11 @@
         <div class="tabbable tabs-below container">
             <div id="ts-content" class="tab-content well">
                 {{> tsAdminGroupInfo currentExperiment }}
+
+                {{#with include}}
+                {{> this}}
+                {{/with}}
+
                 <a href="/turkserver" class="btn btn-info pull-right">Return to Admin</a>
             </div>
             <ul id="ts-tabs" class="nav nav-tabs pull-right">

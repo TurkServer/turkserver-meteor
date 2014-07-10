@@ -38,18 +38,6 @@ Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
 
 Template.tsInstancePill.instance = -> Experiments.findOne(""+@)
 
-Template.tsInstancePill.rendered = ->
-  container = @$(".ts-instance-pill-container")
-  container.popover
-    html: true
-    placement: "auto right"
-    trigger: "hover"
-    container: container
-    content: ->
-      # FIXME: Workaround as popover doesn't update with changed data
-      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      UI.toHTML Template.tsAdminGroupInfo.extend data: UI.getElementData(container[0])
-
 Template.tsUserPill.user = ->
   switch
     when @userId then Meteor.users.findOne(@userId)
@@ -69,18 +57,6 @@ Template.tsUserPill.identifier = ->
     "(" + @workerId + ")"
   else
     "(" + @_id + ")"
-
-Template.tsUserPill.rendered = ->
-  container = @$(".ts-user-pill-container")
-  container.popover
-    html: true
-    placement: "auto right"
-    trigger: "hover"
-    container: container
-    content: ->
-      # FIXME: Workaround as popover doesn't update with changed data
-      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      UI.toHTML Template.tsUserPillPopover.extend data: UI.getElementData(container[0])
 
 Template.tsDescList.properties = ->
   result = []

@@ -59,18 +59,18 @@ Router.map ->
 # Subscribe to admin data if we are an admin user.
 # On rerun, subscription is automatically stopped
 Deps.autorun ->
-  Meteor.subscribe("tsAdmin") if Meteor.user()?.admin
+  Meteor.subscribe("tsAdmin") if TurkServer.isAdmin()
 
 # Resubscribe when group changes
 # Separate this one from the above to avoid re-runs for just a group change
 Deps.autorun ->
-  return unless Meteor.user()?.admin
+  return unless TurkServer.isAdmin()
   # must pass in different args to actually effect it
   Meteor.subscribe("tsAdminState", Session.get("_tsViewingBatchId"), Partitioner.group())
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->
-  return unless Meteor.user()?.admin
+  return unless TurkServer.isAdmin()
   Meteor.subscribe "tsGroupUsers", Partitioner.group()
 
 Template.turkserverPulldown.events =
@@ -78,7 +78,7 @@ Template.turkserverPulldown.events =
     e.preventDefault()
     $("#ts-content").slideToggle()
 
-Template.turkserverPulldown.admin = -> Meteor.user()?.admin
+Template.turkserverPulldown.admin = TurkServer.isAdmin
 Template.turkserverPulldown.currentExperiment = -> Experiments.findOne()
 
 Template.tsAdminLogin.events =
@@ -94,6 +94,36 @@ Template.tsAdminWatching.events =
   "click .-ts-leave-experiment": ->
     Meteor.call "ts-admin-leave-group", (err, res) ->
       bootbox.alert(err.reason) if err
+
+Template.tsAdminLayout.events
+  "mouseenter .ts-instance-pill-container": (e) ->
+    container = $(e.target)
+
+    container.popover({
+      html: true
+      placement: "auto right"
+      trigger: "manual"
+      container: container
+      # TODO: Dynamic popover content, if necessary
+      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
+      content: UI.toHTML Template.tsAdminGroupInfo.extend( data: UI.getElementData(e.target) )
+    }).popover("show")
+
+    container.one("mouseleave", -> container.popover("destroy") )
+
+  "mouseenter .ts-user-pill-container": (e) ->
+    container = $(e.target)
+
+    container.popover({
+      html: true
+      placement: "auto right"
+      trigger: "manual"
+      container: container
+      # TODO: ditto
+      content: UI.toHTML Template.tsUserPillPopover.extend( data: UI.getElementData(e.target) )
+    }).popover("show")
+
+    container.one("mouseleave", -> container.popover("destroy") )
 
 onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
 
