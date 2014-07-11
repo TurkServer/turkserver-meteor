@@ -409,24 +409,31 @@
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
-            <th style="width: 100px">Worker ID</th>
-            <th style="width: 90px">Experiment Instances</th>
-            <th style="width: 90px">IP Address</th>
-            <th style="width: 170px">Completion Time</th>
+            <th style="width: 256px">Assignment</th>
             <th>Exit Data</th>
         </tr>
         </thead>
         <tbody>
         {{#each completedAssts}}
         <tr>
-            <td>{{> tsUserPill workerId=workerId }}</td>
             <td>
-                {{#each instances}}
-                {{> tsInstancePill id}}
-                {{/each}}
+                <dl class="dl-horizontal ts-compact">
+                    <dt>Worker</dt>
+                    <dd>{{> tsUserPill workerId=workerId }}</dd>
+                    <dt>IPs</dt>
+                    <dd>{{ipAddr}}</dd>
+                    <dt>Instances</dt>
+                    <dd>
+                        {{#each instances}}
+                        {{> tsInstancePill id}}
+                        {{/each}}
+                    </dd>
+                    <dt>Accepted</dt>
+                    <dd>{{_tsRenderTime acceptTime}}</dd>
+                    <dt>Submitted</dt>
+                    <dd>{{_tsRenderTime submitTime}}</dd>
+                </dl>
             </td>
-            <td>{{ipAddr}}</td>
-            <td>{{_tsRenderTime submitTime}}</td>
             <td>{{> tsDescList exitdata}}</td>
         </tr>
         {{/each}}

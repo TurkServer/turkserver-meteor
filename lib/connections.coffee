@@ -116,15 +116,6 @@ class TurkServer.Assignment
         bonusPaid: new Date()
         bonusMessage: message
 
-  # Gets an arbitrary data field on this assignment
-  getData: (field) ->
-    data = Assignments.findOne(@asstId)
-    return if field then data[field] else data
-
-  # Sets an arbitrary data field on this assignment
-  setData: (doc) ->
-    Assignments.update @asstId, $set: doc
-
   # Get data from the worker associated with this assignment
   getWorkerData: (field) ->
     data = Workers.findOne(@workerId)
@@ -133,6 +124,11 @@ class TurkServer.Assignment
   # Sets data on the worker associated with this assignment
   setWorkerData: (doc) ->
     Workers.upsert @workerId, { $set: doc }
+
+  _data: -> Assignments.findOne(@asstId)
+
+  _update: (modifier) ->
+    Assignments.update(@asstId, modifier)
 
   # Handle an initial connection by this user after accepting a HIT
   _loggedIn: ->
@@ -289,13 +285,22 @@ userReconnect = (doc) ->
   user = Meteor.users.findOne(doc.userId)
   return if not user? or user?.admin
 
+  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
+
+  # Save IP address and UA; multiple connections from different IPs/browsers
+  # are recorded for diagnostic purposes.
+  asst._update
+    $addToSet: {
+      ipAddr: doc.ipAddr
+      userAgent: doc.userAgent
+    }
+
   state = user?.turkserver?.state
   if state is "lobby" or not state?
-    TurkServer.Assignment.getCurrentUserAssignment(doc.userId)._enterLobby()
+    asst._enterLobby()
     return
 
   return unless (groupId = getActiveGroup(doc.userId))?
-  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._reconnected(groupId)
 
   TurkServer.Instance.getInstance(groupId).bindOperation ->

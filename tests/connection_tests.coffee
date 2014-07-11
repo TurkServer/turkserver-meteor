@@ -194,7 +194,7 @@ Tinytest.add "connection - increment null payment amount", withCleanup (test) ->
 Tinytest.add "connection - pay worker bonus", withCleanup (test) ->
   asst = createAssignment()
 
-  test.isFalse(asst.getData("bonusPaid"))
+  test.isFalse(asst._data().bonusPaid)
 
   amount = 10.00
   asst.setPayment(amount)
@@ -209,7 +209,7 @@ Tinytest.add "connection - pay worker bonus", withCleanup (test) ->
   test.equal TestUtils.mturkAPI.params.BonusAmount.CurrencyCode, "USD"
   test.equal TestUtils.mturkAPI.params.Reason, message
 
-  asstData = asst.getData()
+  asstData = asst._data()
   test.equal asstData.bonusPayment, amount
   test.equal asstData.bonusMessage, message
   test.instanceOf asstData.bonusPaid, Date

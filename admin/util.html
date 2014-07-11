@@ -76,7 +76,13 @@
             {{/if}}
         </dd>
         <dt>Last login:</dt>
-        <dd>{{_tsRenderTime status.lastLogin}}</dd>
+        <dd>{{#if status.lastLogin.date}}
+            {{_tsRenderTime status.lastLogin.date}} <i>from</i>
+            {{status.lastLogin.ipAddr}};
+            <i>{{status.lastLogin.userAgent}}</i>
+            {{else}}
+            {{_tsRenderTime status.lastLogin}}
+            {{/if}}</dd>
         <dt>Current state:</dt>
         <dd>{{turkserver.state}}</dd>
     </dl>

@@ -7,6 +7,7 @@ Accounts.validateLoginAttempt (info) ->
   return true if info.user?.admin # Always allow admin to login
 
   # If resuming, is the worker currently assigned to a HIT?
+  # TODO add a test for this
   if info.methodArguments[0].resume?
     unless info.user?.workerId and Assignments.findOne(
       workerId: info.user.workerId
@@ -20,29 +21,6 @@ Accounts.validateLoginAttempt (info) ->
 #    throw new Meteor.Error(403, "You already have this open in another window. Complete it there.")
 
   return true
-
-###
-  After a successful login, save the worker's IP address and
-  trigger initial assignment
-###
-Accounts.onLogin (info) ->
-  # User object should always exist here, since account was already created
-  return if info.user.admin
-
-  # However, user data (workerId) may not be up to date, so use our own
-  # method to grab the assignment for this user
-  # This is especially pertinent in testing
-  # TODO verify this is valid as we reject multiple connections on login
-  asst = TurkServer.Assignment.getCurrentUserAssignment(info.user._id)
-
-  unless asst?
-    Meteor._debug "Nonexistent assignment for user " + info.user._id
-    return
-
-  asst.setData { ipAddr: info.connection.clientAddress }
-
-  # console.log "saved IP address for connection ", info.connection.clientAddress
-  return
 
 ###
   Authenticate a worker taking an assignment.

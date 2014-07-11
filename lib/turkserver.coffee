@@ -144,7 +144,7 @@ Meteor.startup ->
       $addToSet: treatments: instance.treatment
       $unset: treatment: null
 
-  console.log prefix + treatmentUpdates + " treatments updated" if treatmentUpdates > 0
+  console.log "#{prefix} #{treatmentUpdates} treatments updated" if treatmentUpdates > 0
 
   # Move "experimentId" fields in assignments to "instances" array
   experimentIdUpdates = 0
@@ -154,7 +154,7 @@ Meteor.startup ->
       $push: instances: asst.experimentId
       $unset: experimentId: null
 
-  console.log prefix + experimentIdUpdates + " experimentIds converted to instances" if experimentIdUpdates > 0
+  console.log "#{prefix} #{experimentIdUpdates} experimentIds converted to instances" if experimentIdUpdates > 0
 
   # Update string values in instances array to objects
   instanceUpdates = 0
@@ -164,7 +164,7 @@ Meteor.startup ->
     Assignments.update asst._id,
       $set: instances: _.map(instanceIds, (id) -> {id})
 
-  console.log prefix + instanceUpdates + " instance ids updated to objects" if instanceUpdates > 0
+  console.log "#{prefix} #{instanceUpdates} instance ids updated to objects" if instanceUpdates > 0
 
   hitTypeBatchUpdates = 0
   HITTypes.find({batchId: $exists: false}).forEach (hitType, idx) ->
@@ -180,7 +180,7 @@ Meteor.startup ->
       $set: batchId: asst.batchId
     hitTypeBatchUpdates += 1
 
-  console.log prefix + hitTypeBatchUpdates + " HIT Types updated with batch Ids" if hitTypeBatchUpdates > 0
+  console.log "#{prefix} #{hitTypeBatchUpdates} HIT Types updated with batch Ids" if hitTypeBatchUpdates > 0
 
   experimentBatchUpdates = 0
   Experiments.find({batchId: $exists: false}).forEach (exp, idx) ->
@@ -190,7 +190,7 @@ Meteor.startup ->
     Experiments.update exp._id,
       $set: batchId: someAsst.batchId
 
-  console.log prefix + experimentBatchUpdates + " batchIds added to experiment instances" if experimentBatchUpdates > 0
+  console.log "#{prefix} #{experimentBatchUpdates} batchIds added to experiment instances" if experimentBatchUpdates > 0
 
   # Convert batch treatmentIds to treatments (names)
   batchTreatmentUpdates = 0
@@ -204,4 +204,27 @@ Meteor.startup ->
       $set: { treatments }
       $unset: {treatmentIds: null}
 
-  console.log prefix + batchTreatmentUpdates + " batch treatment ids updated to names" if instanceUpdates > 0
+  console.log "#{prefix} #{batchTreatmentUpdates} batch treatment ids updated to names" if instanceUpdates > 0
+
+  # 7/11/14 - Update string or null IPs to be array
+  # Because operators match into arrays, we need to make sure the field itself
+  # isn't already an array.
+  ipAddrUpdates = 0
+  Assignments.find({
+    ipAddr: {$type: 2},
+    "ipAddr.0": {$exists: false}
+  }).forEach (asst) ->
+    ipAddrUpdates++
+    Assignments.update asst._id,
+      $set: { ipAddr: [ asst.ipAddr ] }
+
+  console.log "#{prefix} #{ipAddrUpdates} IP address fields updated" if ipAddrUpdates > 0
+
+  ipAddrNulls = 0
+  Assignments.find({ipAddr: $type: 10}).forEach (asst) ->
+    ipAddrNulls++
+    Assignments.update asst._id,
+      $unset: { ipAddr: null }
+
+  console.log "#{prefix} #{ipAddrNulls} IP address fields nulled out" if ipAddrNulls > 0
+

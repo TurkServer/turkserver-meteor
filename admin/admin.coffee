@@ -37,6 +37,7 @@ Meteor.publish "tsAdminState", (batchId, groupId) ->
   batchSelector = if batchId then {batchId} else undefined
 
   # TODO only publish assigned/completed assignments
+  # TODO reduce number of fields sent over
   cursors.push Assignments.find(batchSelector)
   cursors.push LobbyStatus.find(batchSelector)
   cursors.push Experiments.find(batchSelector)
