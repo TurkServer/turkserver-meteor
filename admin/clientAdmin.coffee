@@ -73,10 +73,43 @@ Deps.autorun ->
   return unless TurkServer.isAdmin()
   Meteor.subscribe "tsGroupUsers", Partitioner.group()
 
-Template.turkserverPulldown.events =
+pillPopoverEvents =
+  "mouseenter .ts-instance-pill-container": (e) ->
+    container = $(e.target)
+
+    container.popover({
+      html: true
+      placement: "auto right"
+      trigger: "manual"
+      container: container
+    # TODO: Dynamic popover content, if necessary
+    # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
+      content: UI.toHTML Template.tsAdminGroupInfo.extend( data: UI.getElementData(e.target) )
+    }).popover("show")
+
+    container.one("mouseleave", -> container.popover("destroy") )
+
+  "mouseenter .ts-user-pill-container": (e) ->
+    container = $(e.target)
+
+    container.popover({
+      html: true
+      placement: "auto right"
+      trigger: "manual"
+      container: container
+    # TODO: ditto
+      content: UI.toHTML Template.tsUserPillPopover.extend( data: UI.getElementData(e.target) )
+    }).popover("show")
+
+    container.one("mouseleave", -> container.popover("destroy") )
+
+Template.turkserverPulldown.events
   "click .ts-adminToggle": (e) ->
     e.preventDefault()
     $("#ts-content").slideToggle()
+
+# Add the pill events as well
+Template.turkserverPulldown.events(pillPopoverEvents)
 
 Template.turkserverPulldown.admin = TurkServer.isAdmin
 Template.turkserverPulldown.currentExperiment = -> Experiments.findOne()
@@ -95,35 +128,7 @@ Template.tsAdminWatching.events =
     Meteor.call "ts-admin-leave-group", (err, res) ->
       bootbox.alert(err.reason) if err
 
-Template.tsAdminLayout.events
-  "mouseenter .ts-instance-pill-container": (e) ->
-    container = $(e.target)
-
-    container.popover({
-      html: true
-      placement: "auto right"
-      trigger: "manual"
-      container: container
-      # TODO: Dynamic popover content, if necessary
-      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      content: UI.toHTML Template.tsAdminGroupInfo.extend( data: UI.getElementData(e.target) )
-    }).popover("show")
-
-    container.one("mouseleave", -> container.popover("destroy") )
-
-  "mouseenter .ts-user-pill-container": (e) ->
-    container = $(e.target)
-
-    container.popover({
-      html: true
-      placement: "auto right"
-      trigger: "manual"
-      container: container
-      # TODO: ditto
-      content: UI.toHTML Template.tsUserPillPopover.extend( data: UI.getElementData(e.target) )
-    }).popover("show")
-
-    container.one("mouseleave", -> container.popover("destroy") )
+Template.tsAdminLayout.events(pillPopoverEvents)
 
 onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
 
