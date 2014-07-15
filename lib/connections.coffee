@@ -41,8 +41,11 @@ class TurkServer.Assignment
     check(@hitId, String)
     check(@assignmentId, String)
     check(@workerId, String)
-    # Grab the userId
-    @userId = Meteor.users.findOne(workerId: @workerId)._id
+    # Grab the userId - when the assignment is constructed as part of a method
+    # call, we need to reach around it to avoid adding a group key, which will
+    # cause the find to fail.
+    @userId = Partitioner.directOperation =>
+      Meteor.users.findOne(workerId: @workerId)._id
 
   getBatch: -> TurkServer.Batch.getBatch(@batchId)
 
@@ -74,7 +77,7 @@ class TurkServer.Assignment
     Assignments.update @asstId,
       $set: { status: "returned" }
     # Unset the user's state
-    Meteor.users.update {workerId: @workerId},
+    Meteor.users.update @userId,
       $unset: {"turkserver.state": null}
 
   # Gets the variable payment amount for this assignment (bonus)
@@ -406,8 +409,12 @@ Meteor.methods
     # TODO may need validation here due to bad browsers/bad people
     userId = Meteor.userId()
     return unless userId
-    if Partitioner.directOperation(-> Meteor.users.findOne(username: username))
+
+    # No directOperation needed here since partitioner recognizes username as
+    # a unique index
+    if Meteor.users.findOne(username: username)?
       throw new Meteor.Error(409, ErrMsg.usernameTaken)
+
     Meteor.users.update userId,
       $set: {username: username}
 

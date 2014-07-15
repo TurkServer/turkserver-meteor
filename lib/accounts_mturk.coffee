@@ -98,7 +98,9 @@ Accounts.registerLoginHandler (loginRequest) ->
   # Don't handle unless we have an mturk login
   return unless loginRequest.hitId and loginRequest.assignmentId and loginRequest.workerId
 
-  # Probably only if user is already logged in, which would be an error.
+  # XXX It seems this isn't processed as part of a method call (no
+  # DDP._CurrentInvocation), but if it is, then this user find probably would
+  # fail and errors ensue.
   user = Meteor.users.findOne
     workerId: loginRequest.workerId
 
