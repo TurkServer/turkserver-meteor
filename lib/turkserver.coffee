@@ -228,3 +228,11 @@ Meteor.startup ->
 
   console.log "#{prefix} #{ipAddrNulls} IP address fields nulled out" if ipAddrNulls > 0
 
+  # 7/16/14 - the HitTypeId field is mistaken and misleading of the actual HITTypeId field.
+  hitTypeIdUpdates = 0
+  HITs.find({HitTypeId: $exists: true}).forEach (hit) ->
+    hitTypeIdUpdates++
+    HITs.update(hit._id, $unset: HitTypeId: null)
+
+  console.log "#{prefix} #{hitTypeIdUpdates} mistaken HitType fields nulled out" if hitTypeIdUpdates > 0
+

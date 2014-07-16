@@ -81,6 +81,14 @@ Meteor.publish "tsGroupLogs", (groupId, limit) ->
       limit: limit
     })
 
+# Get a HIT Type and make sure it is ready for use
+getAndCheckHitType = (hitTypeId) ->
+  hitType = HITTypes.findOne(HITTypeId: hitTypeId)
+  throw new Meteor.Error(403, "HITType not registered") unless hitType.HITTypeId
+  batch = Batches.findOne(hitType.batchId)
+  throw new Meteor.Error(403, "Batch not active; activate it first") unless batch.active
+  return hitType
+
 Meteor.methods
   "ts-admin-account-balance": ->
     TurkServer.checkAdmin()
@@ -123,8 +131,8 @@ Meteor.methods
 
   "ts-admin-create-hit": (hitTypeId, params) ->
     TurkServer.checkAdmin()
-    hitType = HITTypes.findOne(hitTypeId)
-    throw new Meteor.Error(403, "HITType not registered") unless hitType.HITTypeId
+
+    hitType = getAndCheckHitType(hitTypeId)
 
     params.HITTypeId = hitType.HITTypeId
     params.Question =
@@ -142,7 +150,7 @@ Meteor.methods
 
     HITs.insert
       HITId: hit
-      HitTypeId: hitType.HITTypeId
+      HITTypeId: hitType.HITTypeId
 
     return
 
@@ -185,7 +193,12 @@ Meteor.methods
 
   "ts-admin-extend-hit": (params) ->
     TurkServer.checkAdmin()
-    throw new Meteor.Error(400, "HIT ID not specified") unless params.HITId
+    check(params.HITId, String)
+
+    hit = HITs.findOne(HITId: params.HITId)
+
+    getAndCheckHitType(hit.HITTypeId)
+
     try
       TurkServer.mturk "ExtendHIT", params
 

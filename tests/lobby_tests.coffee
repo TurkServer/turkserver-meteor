@@ -36,7 +36,7 @@ if Meteor.isServer
       joinedUserId = null
       changedUserId = null
       leftUserId = null
-    after: -> # Can't use this for async
+    after: ->
 
   # Basic tests just to make sure joining/leaving works as intended
   Tinytest.addAsync "lobby - add user", withCleanup (test, next) ->
