@@ -393,7 +393,7 @@
             <td>{{> tsUserPill workerId=workerId }}</td>
             <td>
                 {{#each instances}}
-                {{> tsInstancePill id}}
+                {{> tsAdminAssignmentInstance }}
                 {{/each}}
             </td>
             <td>{{ipAddr}}</td>
@@ -409,7 +409,7 @@
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
-            <th style="width: 256px">Assignment</th>
+            <th style="width: 260px">Assignment</th>
             <th>Exit Data</th>
         </tr>
         </thead>
@@ -425,7 +425,7 @@
                     <dt>Instances</dt>
                     <dd>
                         {{#each instances}}
-                        {{> tsInstancePill id}}
+                        {{> tsAdminAssignmentInstance }}
                         {{/each}}
                     </dd>
                     <dt>Accepted</dt>

@@ -39,7 +39,7 @@ Template.tsBatchSelector.batches = -> Batches.find()
 Template.tsBatchSelector.noBatchSelection = -> not Session.get("_tsViewingBatchId")
 Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
 
-Template.tsInstancePill.instance = -> Experiments.findOne(""+@)
+Template.tsAdminAssignmentInstance.instance = -> Experiments.findOne(this.id)
 
 Template.tsUserPill.user = ->
   switch

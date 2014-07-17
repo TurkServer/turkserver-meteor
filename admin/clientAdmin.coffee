@@ -82,9 +82,14 @@ pillPopoverEvents =
       placement: "auto right"
       trigger: "manual"
       container: container
-    # TODO: Dynamic popover content, if necessary
-    # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      content: UI.toHTML Template.tsAdminGroupInfo.extend( data: UI.getElementData(e.target) )
+      # TODO: Dynamic popover content would be very helpful here.
+      # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
+      content: UI.toHTML Template.tsAdminAssignmentInstanceInfo.extend({
+        data: {
+          assignmentInstance: UI.getElementData(container.closest(".ts-assignment-instance")[0])
+          instance: UI.getElementData(e.target)
+        }
+      })
     }).popover("show")
 
     container.one("mouseleave", -> container.popover("destroy") )

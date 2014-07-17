@@ -1,5 +1,8 @@
 ###
   Reactive time functions
+
+  The instance time functions are also used in the admin interface to compute
+  individual users' stats.
 ###
 class TurkServer.Timers
   _currentAssignmentInstance = ->
@@ -11,13 +14,17 @@ class TurkServer.Timers
 
   _idleTime = (instance, serverTime) ->
     idleMillis = (instance.idleTime || 0)
-    # If we're idle, add the local idle time (as it's not updated from the server)
-    # TODO add a test for this part - difficult because user-status is a different package
-    if UserStatus.isIdle()
-      idleMillis += serverTime - UserStatus.lastActivity()
+    # If we're idle, add the time since we went idle
+    # TODO add a test for this part
+    if instance.lastIdle?
+      idleMillis += serverTime - instance.lastIdle
     return idleMillis
 
-  _disconnectedTime = (instance) -> instance.disconnectedTime || 0
+  _disconnectedTime = (instance, serverTime) ->
+    discMillis = instance.disconnectedTime || 0
+    if instance.lastDisconnect?
+      discMillis += serverTime - instance.lastDisconnect
+    return discMillis
 
   # Milliseconds elapsed since experiment start
   @elapsedTime: ->
@@ -25,11 +32,14 @@ class TurkServer.Timers
     return unless exp.startTime?
     return Math.max(0, TimeSync.serverTime() - exp.startTime)
 
+  # TODO: clean up code repetition below
+
   # Milliseconds elapsed since this user joined the experiment instance
   # This is slightly different than the above
-  @joinedTime: ->
-    return unless (instance = _currentAssignmentInstance())?
-    return _joinedTime(instance, TimeSync.serverTime())
+  @joinedTime: (instance) ->
+    return unless (instance ?= _currentAssignmentInstance())?
+    serverTime = instance.leaveTime || TimeSync.serverTime()
+    return _joinedTime(instance, serverTime)
 
   @remainingTime: ->
     return unless (exp = Experiments.findOne())?
@@ -41,20 +51,22 @@ class TurkServer.Timers
   ###
 
   # Milliseconds this user has been idle in the experiment
-  @idleTime: UI.emboxValue ->
-    return unless (instance = _currentAssignmentInstance())?
-    return _idleTime(instance, TimeSync.serverTime())
+  @idleTime: (instance) ->
+    return unless (instance ?= _currentAssignmentInstance())?
+    serverTime = instance.leaveTime || TimeSync.serverTime()
+    return _idleTime(instance, serverTime)
 
   # Milliseconds this user has been disconnected in the experiment
-  @disconnectedTime: UI.emboxValue (instance) ->
-    return unless (instance = _currentAssignmentInstance())?
-    return _disconnectedTime(instance)
+  @disconnectedTime: (instance) ->
+    return unless (instance ?= _currentAssignmentInstance())?
+    serverTime = instance.leaveTime || TimeSync.serverTime()
+    return _disconnectedTime(instance, serverTime)
 
-  @activeTime: =>
-    return unless (instance = _currentAssignmentInstance())?
+  @activeTime: (instance) ->
+    return unless (instance ?= _currentAssignmentInstance())?
     # Compute this using helper functions to avoid thrashing
-    serverTime = TimeSync.serverTime()
-    _joinedTime(instance, serverTime) - _idleTime(instance, serverTime) - _disconnectedTime(instance)
+    serverTime = instance.leaveTime || TimeSync.serverTime()
+    return _joinedTime(instance, serverTime) - _idleTime(instance, serverTime) - _disconnectedTime(instance, serverTime)
 
   # Milliseconds elapsed since round start
   @roundElapsedTime: ->
@@ -87,7 +99,6 @@ for own key of TurkServer.Timers
   helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1)
   (-> # Bind the function to the current value inside the closure
     func = TurkServer.Timers[key]
-    UI.registerHelper helperName, -> TurkServer.Util.formatMillis func()
+    UI.registerHelper helperName, ->
+      TurkServer.Util.formatMillis func.apply(this, arguments)
   )()
-
-

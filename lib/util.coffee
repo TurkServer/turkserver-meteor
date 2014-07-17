@@ -6,10 +6,11 @@ TurkServer.Util ?= {}
 
 TurkServer.Util.formatMillis = (millis) ->
   return unless millis? # Can be 0 in which case we should render it
-  diff = moment.utc(millis)
+  negative = (millis < 0)
+  diff = moment.utc(Math.abs(millis))
   time = diff.format("H:mm:ss")
   days = +diff.format("DDD") - 1
-  return (if days then days + "d " else "") + time
+  return (if negative then "-" else "") + (if days then days + "d " else "") + time
 
 TurkServer._mergeTreatments = (arr) ->
   fields =

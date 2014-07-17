@@ -23,3 +23,6 @@ if Meteor.isClient
 ###
 Tinytest.add "timers - formatMillis renders 0 properly", (test) ->
   test.equal TurkServer.Util.formatMillis(0), "0:00:00"
+
+Tinytest.add "timers - formatMillis renders negative values properly", (test) ->
+  test.equal TurkServer.Util.formatMillis(-1000), "-0:00:01"

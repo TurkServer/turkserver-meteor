@@ -39,15 +39,30 @@
     </dl>
 </template>
 
-<template name="tsInstancePill">
-    {{#with instance}}
-    <div class="ts-instance-pill-container">
+<template name="tsAdminAssignmentInstanceInfo">
+    {{#with assignmentInstance }}
+    <dl class="dl-horizontal ts-compact">
+        <dt>Active Time</dt><dd><b class="text-success">{{tsActiveTime this}}</b></dd>
+        <dt>Idle Time</dt><dd><b class="text-warning">{{tsIdleTime this}}</b></dd>
+        <dt>Disc. Time</dt><dd><b class="text-danger">{{tsDisconnectedTime this}}</b></dd>
+        <dt>Total Time</dt><dd><b>{{tsJoinedTime this}}</b></dd>
+    </dl>
+    {{/with}}
+    <br class="clearfix">
+    {{> tsAdminGroupInfo instance }}
+</template>
+
+<template name="tsAdminAssignmentInstance">
+    <div class="ts-assignment-instance">
+        {{#with instance}}
+        <div class="ts-instance-pill-container">
         <span class="label label-primary">
             <span class="glyphicon glyphicon-tasks"></span>
             {{users.length}}
         </span>
+        </div>
+        {{/with}}
     </div>
-    {{/with}}
 </template>
 
 <template name="tsUserPill">
