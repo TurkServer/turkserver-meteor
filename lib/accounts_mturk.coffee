@@ -117,7 +117,9 @@ Accounts.registerLoginHandler (loginRequest) ->
   # This does the work of triggering what happens next.
   Meteor.defer -> asst._loggedIn()
 
-  # TODO: set the login token ourselves so that the expiration interval is shorter.
+  # Because the login token `when` field is set by initialization date, not
+  # expiration date, we can't artificially make this login expire sooner here.
+  # So we'll need to aggressively prune logins when a HIT is submitted, instead.
 
   return {
     userId: userId,

@@ -27,8 +27,10 @@ Template.tsTimeOptions.displayFormatted = -> @local().format('hA [UTC]Z')
 TurkServer.submitExitSurvey = (results, panel) ->
   Meteor.call "ts-submit-exitdata", results, panel, (err, res) ->
     bootbox.alert(err) if err
-    TurkServer.submitHIT() if res
-    # TODO: log the user out here? Maybe doesn't matter because resume login will be disabled
+
+    if res
+      TurkServer.submitHIT()
+      # TODO: log the user out here? Maybe doesn't matter because resume login will be disabled
 
 TurkServer.submitHIT = -> UI.insert UI.render(Template.mturkSubmit), document.body
 

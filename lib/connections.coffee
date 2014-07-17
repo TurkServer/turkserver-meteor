@@ -404,7 +404,9 @@ UserStatus.events.on "connectionLogin", sessionReconnect
 UserStatus.events.on "connectionActive", sessionActive
 
 # This is triggered from individual connection changes via multiplexing in
-# user-status
+# user-status. Note that `observe` is used instead of `observeChanges` because
+# we're interested in the contents of the entire user document when someone goes
+# online/offline or idle/active.
 Meteor.startup ->
 
   Meteor.users.find({
@@ -475,13 +477,18 @@ Meteor.methods
     # mark assignment as completed and save the data
     asst.setCompleted(doc)
 
-    # TODO schedule this worker's resume token to be scavenged in the future
-
     # Update worker contact info
     # TODO don't overwrite panel data if we don't need to.
     asst.setWorkerData(panel) if panel?
 
+    # Destroy the token for this connection, so that a resume login will not
+    # be used for future HITs. Returning true should cause the HIT to submit on
+    # the client side, but if that doesn't work, the user will be logged out.
+    if (token = Accounts._getLoginToken(this.connection.id))
+      # This $pulls tokens from services.resume.loginTokens, and should work
+      # in the same way that Accounts._expireTokens effects cleanup.
+      Accounts.destroyToken(userId, token)
+
     # return true to auto submit the HIT
     return true
-
 

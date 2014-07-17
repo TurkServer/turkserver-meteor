@@ -1,41 +1,31 @@
 if Meteor.isServer
-  # Ensure batch exists
-  Batches.upsert "expClientBatch", $set: {}
 
   # Set up a treatment for testing
   TurkServer.ensureTreatmentExists
     name: "expClientTreatment"
     fooProperty: "bar"
 
-  hitId = "expClientHitId"
-  assignmentId = "expClientAssignmentId"
-  workerId = "expClientWorkerId"
-
-  # This is just a hack to ensure that a batch and assignment exists for
-  # users that login below, so that IP address is stored in the assignment
-  # in the onLogin callback
+  # Some functions to make sure things are set up for the client login
   Accounts.validateLoginAttempt (info) ->
     return unless info.allowed # Don't handle if login is being rejected
     userId = info.user._id
-    Partitioner.clearUserGroup(userId) # Remove any previous user group
 
-    # Store workerId for this user
-    Meteor.users.update userId,
-      $set: { workerId }
+    Partitioner.clearUserGroup(userId) # Remove any previous user group
+    return true
+
+  Accounts.onLogin (info) ->
+    userId = info.user._id
+
+    # Worker and assignment should have already been created at this point
+    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
 
     # Reset assignment for this worker
-    Assignments.upsert {hitId, assignmentId, workerId},
-      $set:
-        batchId: "expClientBatch"
-        status: "assigned"
+    Assignments.upsert asst.asstId,
       $unset: instances: null
 
-    batch = TurkServer.Batch.getBatch("expClientBatch")
-    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
-    batch.createInstance(["expClientTreatment"]).addAssignment(asst)
+    asst.getBatch().createInstance(["expClientTreatment"]).addAssignment(asst)
 
-    Meteor._debug "created assignment for remote client"
-    return true
+    Meteor._debug "Remote client logged in"
 
   Meteor.methods
     getAssignmentData: ->
@@ -59,7 +49,7 @@ if Meteor.isClient
 
   Tinytest.addAsync "experiment - client - login and creation of assignment metadata", (test, next) ->
     InsecureLogin.ready ->
-      test.ok()
+      test.isTrue Meteor.userId()
       next()
 
   Tinytest.addAsync "experiment - client - IP address saved", (test, next) ->
@@ -226,3 +216,5 @@ if Meteor.isClient
       test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
 
       next()
+
+  # TODO: add a test for submitting HIT and verify that resume token is removed

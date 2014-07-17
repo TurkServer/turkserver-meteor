@@ -18,11 +18,22 @@ InsecureLogin = {
 };
 
 if (Meteor.isClient) {
+  var hitId = "expClientHitId";
+  var assignmentId = "expClientAssignmentId";
+  var workerId = "expClientWorkerId";
+  var batchId = "expClientBatch";
+
   Accounts.callLoginMethod({
-    methodArguments: [{username: "InsecureLogin"}],
+    methodArguments: [{
+      hitId: hitId,
+      assignmentId: assignmentId,
+      workerId: workerId,
+      batchId: batchId,
+      test: true
+    }],
     userCallback: function (err) {
       if (err) throw err;
-      console.info("Insecure login successful!");
+      console.info("HIT login successful!");
       InsecureLogin.run();
     }
   });
@@ -31,25 +42,8 @@ if (Meteor.isClient) {
 }
 
 if (Meteor.isServer) {
-  // Meteor.users.remove({"username": "InsecureLogin"});
-
-  if (!Meteor.users.find({"username": "InsecureLogin"}).count()) {
-    Accounts.createUser({
-      username: "InsecureLogin",
-      email: "test@test.com",
-      password: "password",
-      profile: {name: "InsecureLogin"}
-    });
-  }
-
-  Accounts.registerLoginHandler(function (options) {
-    if (!options.username) return;
-
-    var user = Meteor.users.findOne({"username": options.username});
-    if (!user) return;
-
-    return {
-      userId: user._id
-    };
+  // Ensure batch exists
+  Batches.upsert("expClientBatch", {
+    $set: { active: true }
   });
 }
