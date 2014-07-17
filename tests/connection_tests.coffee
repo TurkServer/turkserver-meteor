@@ -66,7 +66,7 @@ Tinytest.add "connection - assignment object preserved upon creation", withClean
 
 Tinytest.add "connection - user added to lobby", withCleanup (test) ->
   asst = createAssignment()
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
   lobbyUsers = batch.lobby.getAssignments()
   user = Meteor.users.findOne(userId)
@@ -80,9 +80,9 @@ Tinytest.add "connection - user added to lobby", withCleanup (test) ->
 Tinytest.add "connection - user disconnecting and reconnecting to lobby", withCleanup (test) ->
   asst = createAssignment()
 
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
-  TestUtils.connCallbacks.userDisconnect { userId }
+  TestUtils.connCallbacks.sessionDisconnect { userId }
 
   lobbyUsers = batch.lobby.getAssignments()
   user = Meteor.users.findOne(userId)
@@ -90,7 +90,7 @@ Tinytest.add "connection - user disconnecting and reconnecting to lobby", withCl
   test.equal lobbyUsers.length, 0
   test.equal user.turkserver.state, "lobby"
 
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
   lobbyUsers = batch.lobby.getAssignments()
   user = Meteor.users.findOne(userId)
@@ -138,7 +138,7 @@ Tinytest.add "connection - improper submission of HIT", withCleanup (test) ->
 
 Tinytest.add "connection - set assignment as returned", withCleanup (test) ->
   asst = createAssignment()
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
   asst.setReturned()
 
@@ -151,7 +151,7 @@ Tinytest.add "connection - set assignment as returned", withCleanup (test) ->
 Tinytest.add "connection - user resuming into instance", withCleanup (test) ->
   asst = createAssignment()
   instance.addAssignment(asst)
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
   user = Meteor.users.findOne(userId)
 
@@ -164,7 +164,7 @@ Tinytest.add "connection - user resuming into exit survey", withCleanup (test) -
     $set:
       "turkserver.state": "exitsurvey"
 
-  TestUtils.connCallbacks.userReconnect { userId }
+  TestUtils.connCallbacks.sessionReconnect { userId }
 
   user = Meteor.users.findOne(userId)
 

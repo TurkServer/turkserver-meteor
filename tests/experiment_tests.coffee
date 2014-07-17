@@ -237,10 +237,11 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
   instance.addAssignment(asst)
 
-  TestUtils.connCallbacks.userDisconnect
+  TestUtils.connCallbacks.sessionDisconnect
     userId: expTestUserId
 
   test.isTrue disconnectContext
+  test.equal disconnectContext?.event, "disconnected"
   test.equal disconnectContext?.instance, instance
   test.equal disconnectContext?.userId, expTestUserId
 
@@ -253,10 +254,11 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   test.isTrue asstData.instances[0].joinTime
   test.isTrue (discTime = asstData.instances[0].lastDisconnect)
 
-  TestUtils.connCallbacks.userReconnect
+  TestUtils.connCallbacks.sessionReconnect
     userId: expTestUserId
 
   test.isTrue reconnectContext
+  test.equal reconnectContext?.event, "connected"
   test.equal reconnectContext?.instance, instance
   test.equal reconnectContext?.userId, expTestUserId
 
@@ -273,11 +275,12 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
 
   idleTime = new Date()
 
-  TestUtils.connCallbacks.userIdle
+  TestUtils.connCallbacks.sessionIdle
     userId: expTestUserId
     lastActivity: idleTime
 
   test.isTrue idleContext
+  test.equal idleContext?.event, "idle"
   test.equal idleContext?.instance, instance
   test.equal idleContext?.userId, expTestUserId
 
@@ -289,11 +292,12 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   offset = 1000
   activeTime = new Date(idleTime.getTime() + offset)
 
-  TestUtils.connCallbacks.userActive
+  TestUtils.connCallbacks.sessionActive
     userId: expTestUserId
     lastActivity: activeTime
 
   test.isTrue activeContext
+  test.equal activeContext?.event, "active"
   test.equal activeContext?.instance, instance
   test.equal activeContext?.userId, expTestUserId
 
@@ -305,11 +309,11 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   secondIdleTime = new Date(activeTime.getTime() + 5000)
   secondActiveTime = new Date(secondIdleTime.getTime() + offset)
 
-  TestUtils.connCallbacks.userIdle
+  TestUtils.connCallbacks.sessionIdle
     userId: expTestUserId
     lastActivity: secondIdleTime
 
-  TestUtils.connCallbacks.userActive
+  TestUtils.connCallbacks.sessionActive
     userId: expTestUserId
     lastActivity: secondActiveTime
 
@@ -324,11 +328,11 @@ Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (
 
   idleTime = new Date()
 
-  TestUtils.connCallbacks.userIdle
+  TestUtils.connCallbacks.sessionIdle
     userId: expTestUserId
     lastActivity: idleTime
 
-  TestUtils.connCallbacks.userDisconnect
+  TestUtils.connCallbacks.sessionDisconnect
     userId: expTestUserId
 
   asstData = Assignments.findOne(asst.asstId)
@@ -346,16 +350,16 @@ Tinytest.add "experiment - instance - idleness is cleared on reconnection", with
 
   idleTime = new Date()
 
-  TestUtils.connCallbacks.userDisconnect
+  TestUtils.connCallbacks.sessionDisconnect
     userId: expTestUserId
 
-  TestUtils.connCallbacks.userIdle
+  TestUtils.connCallbacks.sessionIdle
     userId: expTestUserId
     lastActivity: idleTime
 
   TestUtils.sleep(100)
 
-  TestUtils.connCallbacks.userReconnect
+  TestUtils.connCallbacks.sessionReconnect
     userId: expTestUserId
 
   asstData = Assignments.findOne(asst.asstId)
@@ -373,7 +377,7 @@ Tinytest.add "experiment - instance - teardown while disconnected", withCleanup 
   asst = TurkServer.Assignment.getCurrentUserAssignment(expTestUserId)
   instance.addAssignment(asst)
 
-  TestUtils.connCallbacks.userDisconnect
+  TestUtils.connCallbacks.sessionDisconnect
     userId: expTestUserId
 
   discTime = null
@@ -399,7 +403,7 @@ Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) -
 
   idleTime = new Date()
 
-  TestUtils.connCallbacks.userIdle
+  TestUtils.connCallbacks.sessionIdle
     userId: expTestUserId
     lastActivity: idleTime
 

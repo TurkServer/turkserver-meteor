@@ -45,8 +45,7 @@ Tinytest.add "assigners - tutorialGroup - initial lobby gets tutorial", withClea
   test.equal assigner.autoAssign, false
 
   asst = createAssignment()
-  TestUtils.connCallbacks.userReconnect
-    userId: asst.userId
+  TestUtils.connCallbacks.sessionReconnect {userId: asst.userId}
 
   TestUtils.sleep(150) # YES!!
 

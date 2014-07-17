@@ -17,7 +17,8 @@ class TurkServer.Assignment
     else
       data = Assignments.findOne(asstId)
       throw new Error("Assignment doesn't exist") unless data?
-      return _assignments[asstId] = new Assignment(asstId, data)
+      # Return this if another Fiber created it while we yielded
+      return _assignments[asstId] ?= new Assignment(asstId, data)
 
   @getCurrentUserAssignment: (userId) ->
     user = Meteor.users.findOne(userId)
@@ -259,17 +260,6 @@ class TurkServer.Assignment
   _getLastIdle: (instanceId) ->
     _.find(@getInstances(), (inst) -> inst.id is instanceId)?.lastIdle
 
-getActiveGroup = (userId) ->
-  return unless userId
-  # No side effects from admin, please
-  return if Meteor.users.findOne(userId)?.admin
-  return Partitioner.getUserGroup(userId)
-
-###
-  TODO: If/when simultaneous connections are supported, fix logic below
-  or just replace connections with users due to muxing implemented in user-status
-###
-
 attemptCallbacks = (callbacks, context, errMsg) ->
   for cb in callbacks
     try
@@ -277,16 +267,30 @@ attemptCallbacks = (callbacks, context, errMsg) ->
     catch e
       Meteor._debug errMsg, e
 
-###
-  Connect callbacks
-###
-
 connectCallbacks = []
+disconnectCallbacks = []
+idleCallbacks = []
+activeCallbacks = []
 
-userReconnect = (doc) ->
-  # Ensure user is in a valid state; add to lobby if not
-  user = Meteor.users.findOne(doc.userId)
+TurkServer.onConnect = (func) -> connectCallbacks.push(func)
+TurkServer.onDisconnect = (func) -> disconnectCallbacks.push(func)
+TurkServer.onIdle = (func) -> idleCallbacks.push(func)
+TurkServer.onActive = (func) -> activeCallbacks.push(func)
+
+# When getting user records in a session callback, we have to check if admin
+getUserNonAdmin = (userId) ->
+  user = Meteor.users.findOne(userId)
   return if not user? or user?.admin
+  return user
+
+###
+  Connect/disconnect callbacks
+
+  In the methods below, we use Partitioner.getUserGroup(userId) because
+  user.turkserver.group takes a moment to be propagated.
+###
+sessionReconnect = (doc) ->
+  return unless getUserNonAdmin(doc.userId)?
 
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
 
@@ -298,82 +302,82 @@ userReconnect = (doc) ->
       userAgent: doc.userAgent
     }
 
-  state = user?.turkserver?.state
+userReconnect = (user) ->
+  asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
+
+  # Ensure user is in a valid state; add to lobby if not
+  state = user.turkserver?.state
   if state is "lobby" or not state?
     asst._enterLobby()
     return
 
-  return unless (groupId = getActiveGroup(doc.userId))?
+  # We only call the group operations below if the user was in a group at the
+  # time of connection
+  return unless (groupId = Partitioner.getUserGroup(user._id))?
   asst._reconnected(groupId)
 
   TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
-      _userId: doc.userId
+      _userId: user._id
       _meta: "connected"
 
     attemptCallbacks(connectCallbacks, this, "Exception in user connect callback")
     return
-  , { userId: doc.userId }
+  , {
+      userId: user._id
+      event: "connected"
+    }
 
-TurkServer.onConnect = (func) ->
-  connectCallbacks.push func
+userDisconnect = (user) ->
+  asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
 
-###
-  Disconnect callbacks
-###
+  # If user was in lobby, remove them
+  asst._removeFromLobby()
 
-disconnectCallbacks = []
-
-userDisconnect = (doc) ->
-  user = Meteor.users.findOne(doc.userId)
-  return if not user? or user?.admin
-
-  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
-  asst?._removeFromLobby()
-
-  return unless (groupId = getActiveGroup(doc.userId))?
-  asst?._disconnected(groupId) # Needed during tests, as assignments are being removed from db
+  return unless (groupId = Partitioner.getUserGroup(user._id))?
+  asst._disconnected(groupId)
 
   TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
-      _userId: doc.userId
+      _userId: user._id
       _meta: "disconnected"
 
     attemptCallbacks(disconnectCallbacks, this, "Exception in user disconnect callback")
     return
-  , { userId: doc.userId }
-
-TurkServer.onDisconnect = (func) ->
-  disconnectCallbacks.push func
+  , {
+      userId: user._id
+      event: "disconnected"
+    }
 
 ###
   Idle and returning from idle
 ###
 
-idleCallbacks = []
-activeCallbacks = []
+userIdle = (user) ->
+  return unless (groupId = Partitioner.getUserGroup(user._id))?
 
-TurkServer.onIdle = (func) -> idleCallbacks.push(func)
-TurkServer.onActive = (func) -> idleCallbacks.push(func)
-
-userIdle = (doc) ->
-  return unless (groupId = getActiveGroup(doc.userId))?
-
-  asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
-  asst._isIdle(groupId, doc.lastActivity)
+  asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
+  asst._isIdle(groupId, user.status.lastActivity)
 
   TurkServer.Instance.getInstance(groupId).bindOperation ->
     TurkServer.log
-      _userId: doc.userId
+      _userId: user._id
       _meta: "idle"
-      _timestamp: doc.lastActivity # Overridden to a past value
+      _timestamp: user.status.lastActivity # Overridden to a past value
 
     attemptCallbacks(idleCallbacks, this, "Exception in user idle callback")
     return
-  , { userId: doc.userId }
+  , {
+      userId: user._id
+      event: "idle"
+    }
 
-userActive = (doc) ->
-  return unless (groupId = getActiveGroup(doc.userId))?
+# Because activity on any session will make a user active, we use this in
+# order to properly record the last activity time on the client
+sessionActive = (doc) ->
+  return unless getUserNonAdmin(doc.userId)?
+
+  return unless (groupId = Partitioner.getUserGroup(doc.userId))?
 
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
   asst._isActive(groupId, doc.lastActivity)
@@ -386,18 +390,62 @@ userActive = (doc) ->
 
     attemptCallbacks(activeCallbacks, this, "Exception in user active callback")
     return
-  , { userId: doc.userId }
+  , {
+      userId: doc.userId
+      event: "active"
+    }
 
-UserStatus.events.on "connectionLogin", userReconnect
-UserStatus.events.on "connectionLogout", userDisconnect
-UserStatus.events.on "connectionIdle", userIdle
-UserStatus.events.on "connectionActive", userActive
+###
+  Hook up callbacks to events and observers
+###
 
+UserStatus.events.on "connectionLogin", sessionReconnect
+# Logout / Idle are done at user level
+UserStatus.events.on "connectionActive", sessionActive
+
+# This is triggered from individual connection changes via multiplexing in
+# user-status
+Meteor.startup ->
+
+  Meteor.users.find({
+    "admin": {$exists: false} # Excluding admin
+    "status.online": true # User is online
+  }).observe({
+      added: userReconnect
+      removed: userDisconnect
+    })
+
+  Meteor.users.find({
+    "admin": {$exists: false} # Excluding admin
+    "status.idle": true # User is idle
+  }).observe({
+    added: userIdle
+  })
+
+###
+  Test handlers - assuming user-status is working correctly, we create these
+  convenience functions for testing users coming online and offline
+
+  TODO: we might want to make these tests end-to-end so that they ensure all of
+  the user-status functionality is working as well.
+###
 TestUtils.connCallbacks = {
-  userReconnect
-  userDisconnect
-  userIdle
-  userActive
+  sessionReconnect: (doc) ->
+    sessionReconnect(doc)
+    userReconnect( Meteor.users.findOne(doc.userId) )
+
+  sessionDisconnect: (doc) ->
+    userDisconnect( Meteor.users.findOne(doc.userId) )
+
+  sessionIdle: (doc) ->
+    # We need to set the status.lastActivity field here, as in user-status,
+    # because the callback expects to read its value
+    Meteor.users.update doc.userId,
+      $set: {"status.lastActivity": doc.lastActivity }
+
+    userIdle( Meteor.users.findOne(doc.userId) )
+
+  sessionActive: sessionActive
 }
 
 ###
