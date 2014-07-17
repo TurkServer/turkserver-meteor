@@ -27,6 +27,9 @@ UI.registerHelper "_tsRenderISOTime", (isoString) ->
   m = moment(isoString)
   return m.format("L LT") + " (" + m.fromNow() + ")"
 
+# https://github.com/kvz/phpjs/blob/master/functions/strings/nl2br.js
+nl2br = (str) -> (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2')
+
 Template.tsBatchSelector.events =
   "change select": (e) ->
     unless Session.equals("_tsViewingBatchId", e.target.value)
@@ -69,4 +72,4 @@ Template.tsDescList.value = ->
   switch
     when @value is false then "false"
     when _.isObject(@value) then JSON.stringify(@value)
-    else @value
+    else nl2br(@value)

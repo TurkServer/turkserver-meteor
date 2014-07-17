@@ -131,6 +131,10 @@ Template.tsAdminNewHit.events =
 
     hitTypeId = tmpl.find("select[name=hittype]").value
 
+    unless hitTypeId
+      bootbox.alert("HIT Type isn't registered")
+      return
+
     params =
       MaxAssignments: tmpl.find("input[name=maxAssts]").valueAsNumber
       LifetimeInSeconds: tmpl.find("input[name=lifetime]").valueAsNumber

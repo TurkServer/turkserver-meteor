@@ -97,10 +97,11 @@ Meteor.methods
     catch e
       throw new Meteor.Error(403, e.toString())
 
-  "ts-admin-register-hittype": (hitTypeId) ->
+  # This is the only method that uses the _id field of HITType instead of HITTypeId.
+  "ts-admin-register-hittype": (hitType_id) ->
     TurkServer.checkAdmin()
     # Build up the params to register the HIT Type
-    params = HITTypes.findOne(hitTypeId)
+    params = HITTypes.findOne(hitType_id)
     delete params._id
     delete params.batchId
 
@@ -119,14 +120,14 @@ Meteor.methods
 
     params.QualificationRequirement = quals
 
-    id = null
+    hitTypeId = null
     try
-      id = TurkServer.mturk "RegisterHITType", params
+      hitTypeId = TurkServer.mturk "RegisterHITType", params
     catch e
       throw new Meteor.Error(500, e.toString())
 
-    HITTypes.update hitTypeId,
-      $set: {HITTypeId: id}
+    HITTypes.update hitType_id,
+      $set: {HITTypeId: hitTypeId}
     return
 
   "ts-admin-create-hit": (hitTypeId, params) ->
