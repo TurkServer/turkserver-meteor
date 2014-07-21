@@ -1,4 +1,3 @@
-
 unescapeURL = (s) ->
   decodeURIComponent s.replace(/\+/g, "%20")
 
@@ -15,10 +14,16 @@ getURLParams = ->
 
 params = getURLParams()
 
-UI.registerHelper "hitParams", params
+hitIsViewing = params.assignmentId and params.assignmentId is "ASSIGNMENT_ID_NOT_AVAILABLE"
 
-UI.registerHelper "hitIsViewing",
-  params.assignmentId and params.assignmentId is "ASSIGNMENT_ID_NOT_AVAILABLE"
+# UI helpers for login
+UI.registerHelper "hitParams", params
+UI.registerHelper "hitIsViewing", hitIsViewing
+
+# Subscribe to the currently viewed batch if in the preview page
+# TODO: allow for reading meta properties later as well
+if hitIsViewing and params.batchId?
+  Meteor.subscribe "tsLoginBatches", params.batchId
 
 loginCallback = (err) ->
   return unless err
@@ -62,10 +67,18 @@ Template.tsTestingLogin.events =
     loginDialog?.modal('hide')
     loginDialog = null
 
+# Subscribe to the list of batches only when this dialog is open
+Template.tsTestingLogin.rendered = ->
+  @subHandle = Meteor.subscribe("tsLoginBatches")
+
+Template.tsTestingLogin.destroyed = ->
+  @subHandle.stop()
+
 Template.tsTestingLogin.batches = -> Batches.find()
 
 testLogin = ->
   # FIXME hack: never run this if we are live
+  return if hitIsViewing
   return if window.location.protocol is "https:" or window isnt window.parent
   # Don't try logging in if we are logged in or already have parameters
   return if Meteor.userId() or Session.get("_loginParams")
@@ -108,8 +121,8 @@ if loginParams
   Meteor._debug "Logging in with captured or stored parameters"
   mturkLogin(loginParams)
 else
-  # Give enough time to load before showing login dialog
-  Meteor.setTimeout testLogin, 1000 # TODO this is just a hack to ensure that Batch data appears
+  # Give enough time to log in some other way before showing login dialog
+  Meteor.setTimeout testLogin, 1000
 
 # TODO Testing disconnect and reconnect, remove later
 TurkServer.testingLogin = ->

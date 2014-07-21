@@ -106,12 +106,21 @@ Meteor.publish "tsCurrentExperiment", (group) ->
 
   return cursors
 
-# For test logins, need to publish the list of batches.
+# For the preview page and test logins, need to publish the list of batches.
 # TODO make this a bit more secure
-Meteor.publish null, ->
-  return Batches.find() unless @userId?
-  # Publish specific batch if logged in
+Meteor.publish "tsLoginBatches", (batchId) ->
+  # Never send the batch list to logged-in users.
+  return [] if @userId?
 
+  # If an erroneous batchId was sent, don't just send the whole list.
+  if arguments.length > 0 and batchId?
+    return Batches.find(batchId)
+  else
+    return Batches.find()
+
+Meteor.publish null, ->
+  return [] unless @userId?
+  # Publish specific batch if logged in
   # This should work for now because an assignment is made upon login
   return [] unless (workerId = Meteor.users.findOne(@userId)?.workerId)?
 
