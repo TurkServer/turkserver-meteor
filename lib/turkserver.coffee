@@ -224,8 +224,12 @@ Meteor.startup ->
     "ipAddr.0": {$exists: false}
   }).forEach (asst) ->
     ipAddrUpdates++
-    Assignments.update asst._id,
-      $set: { ipAddr: [ asst.ipAddr ] }
+    if asst.ipAddr is "127.0.0.1" # Delete meaningless entries when proxy was set wrong
+      Assignments.update asst._id,
+        $unset: { ipAddr: null }
+    else
+      Assignments.update asst._id,
+        $set: { ipAddr: [ asst.ipAddr ] }
 
   console.log "#{prefix} #{ipAddrUpdates} IP address fields updated" if ipAddrUpdates > 0
 

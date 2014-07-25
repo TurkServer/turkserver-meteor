@@ -415,28 +415,56 @@
         </thead>
         <tbody>
         {{#each completedAssts}}
-        <tr>
-            <td>
-                <dl class="dl-horizontal ts-compact">
-                    <dt>Worker</dt>
-                    <dd>{{> tsUserPill workerId=workerId }}</dd>
-                    <dt>IPs</dt>
-                    <dd>{{ipAddr}}</dd>
-                    <dt>Instances</dt>
-                    <dd>
-                        {{#each instances}}
-                        {{> tsAdminAssignmentInstance }}
-                        {{/each}}
-                    </dd>
-                    <dt>Accepted</dt>
-                    <dd>{{_tsRenderTime acceptTime}}</dd>
-                    <dt>Submitted</dt>
-                    <dd>{{_tsRenderTime submitTime}}</dd>
-                </dl>
-            </td>
-            <td>{{> tsDescList exitdata}}</td>
-        </tr>
+        {{> tsAdminCompletedAssignmentRow}}
         {{/each}}
         </tbody>
     </table>
+</template>
+
+<template name="tsAdminCompletedAssignmentRow">
+    <tr>
+        <td>
+            <dl class="dl-horizontal ts-compact">
+                <dt>Worker</dt>
+                <dd>{{> tsUserPill workerId=workerId }}</dd>
+                <dt>IPs</dt>
+                <dd>{{ipAddr}}</dd>
+                <dt>Instances</dt>
+                <dd>
+                    {{#each instances}}
+                    {{> tsAdminAssignmentInstance }}
+                    {{/each}}
+                </dd>
+                <dt>Accepted</dt>
+                <dd>{{_tsRenderTime acceptTime}}</dd>
+                <dt>Submitted</dt>
+                <dd>{{_tsRenderTime submitTime}}</dd>
+                <dt>Status</dt>
+                <dd>{{#if mturkStatus}}
+                    <span class="label {{labelStatus}}">{{mturkStatus}}</span>
+                    {{else}}
+                    <span class="label label-default">Unknown</span>
+                    <button class="btn btn-xs btn-info -ts-refresh-assignment">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </button>
+                    {{/if}}
+                </dd>
+                <dt>Bonus</dt>
+                <dd>
+                    {{#if bonusPayment}}
+                    {{bonusPayment}}
+                    {{#if bonusPaid}}
+                        <span class="label label-success"
+                              title="{{bonusPaid}}&#xA;{{bonusMessage}}">Paid</span>
+                    {{else}}
+                    <span class="label label-danger">Unpaid</span>
+                    {{/if}}
+                    {{else}}
+                    <i>not set</i>
+                    {{/if}}
+                </dd>
+            </dl>
+        </td>
+        <td>{{> tsDescList exitdata}}</td>
+    </tr>
 </template>

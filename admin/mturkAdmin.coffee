@@ -269,6 +269,18 @@ Template.tsAdminActiveAssignments.activeAssts = ->
   Assignments.find { status: "assigned" },
     { sort: acceptTime: 1 }
 
+Template.tsAdminCompletedAssignments.events
+  "click .-ts-refresh-assignment": ->
+    Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
+      bootbox.alert(err) if err?
+
 Template.tsAdminCompletedAssignments.completedAssts = ->
   Assignments.find { status: "completed" },
     { sort: submitTime: -1 }
+
+Template.tsAdminCompletedAssignmentRow.labelStatus = ->
+  switch @mturkStatus
+    when "Submitted" then "label-warning"
+    when "Approved" then "label-primary"
+    when "Rejected" then "label-danger"
+    else "label-default"

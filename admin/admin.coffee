@@ -277,6 +277,29 @@ Meteor.methods
       count++
     return count
 
+  "ts-admin-refresh-assignment": (asstId) ->
+    TurkServer.checkAdmin()
+    check(asstId, String)
+
+    asst = Assignments.findOne(asstId)
+    # Since MTurk AssignmentIds may be re-used, it's important we only query
+    # for completed assignments.
+    unless asst.status is "completed"
+      throw new Meteor.Error(403, "Assignment not completed")
+
+    try
+      asstData = TurkServer.mturk "GetAssignment", { AssignmentId: asst.assignmentId }
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    # Just check that it's actually the same worker here.
+    unless asst.workerId is asstData.workerId
+      throw new Meteor.Error(500, "Worker ID doesn't match")
+
+    Assignments.update asstId,
+      $set:
+        mturkStatus: asstData.AssignmentStatus
+
   "ts-admin-stop-experiment": (groupId) ->
     TurkServer.checkAdmin()
     check(groupId, String)
