@@ -293,7 +293,7 @@ Meteor.methods
       throw new Meteor.Error(500, e.toString())
 
     # Just check that it's actually the same worker here.
-    unless asst.workerId is asstData.workerId
+    unless asst.workerId is asstData.WorkerId
       throw new Meteor.Error(500, "Worker ID doesn't match")
 
     Assignments.update asstId,
