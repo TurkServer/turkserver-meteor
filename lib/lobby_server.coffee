@@ -4,6 +4,7 @@ EventEmitter = Npm.require('events').EventEmitter
 
 class TurkServer.Lobby
   constructor: (@batchId) ->
+    check(@batchId, String)
     @events = new EventEmitter()
 
   addAssignment: (asst) ->
@@ -48,6 +49,8 @@ class TurkServer.Lobby
       Meteor.defer => @events.emit "user-leave", asst
 
 # Publish lobby contents for a particular batch, as well as users
+# TODO can we simplify this by publishing users with turkserver.state = "lobby",
+# if we use batch IDs in a smart way?
 Meteor.publish "lobby", (batchId) ->
   sub = this
 

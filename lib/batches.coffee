@@ -2,6 +2,7 @@ class TurkServer.Batch
   _batches = {}
 
   @getBatch: (batchId) ->
+    check(batchId, String)
     if (batch = _batches[batchId])?
       return batch
     else
