@@ -98,6 +98,61 @@ class TurkServer.Assignment
     Assignments.update @asstId,
       $inc: bonusPayment: amount
 
+  # Get the current MTurk status for this assignment
+  refreshStatus: ->
+    # Since MTurk AssignmentIds may be re-used, it's important we only query
+    # for completed assignments.
+    unless @isCompleted()
+      throw new Error("Assignment not completed")
+
+    try
+      asstData = TurkServer.mturk "GetAssignment", { AssignmentId: @assignmentId }
+    catch e
+      throw new Meteor.Error(500, e.toString())
+
+    # Just check that it's actually the same worker here.
+    unless @workerId is asstData.WorkerId
+      throw new Error("Worker ID doesn't match")
+
+    Assignments.update @asstId,
+      $set:
+        mturkStatus: asstData.AssignmentStatus
+
+  _checkSubmittedStatus: ->
+    unless @isCompleted()
+      throw new Error("Assignment not completed")
+
+    mturkStatus = @_data().mturkStatus
+    if mturkStatus is "Approved" or mturkStatus is "Rejected"
+      throw new Error("Already approved or rejected")
+
+  approve: (message) ->
+    check(message, String)
+    @_checkSubmittedStatus()
+
+    TurkServer.mturk "ApproveAssignment",
+      AssignmentId: @assignmentId
+      RequesterFeedback: message
+
+    # TODO: if assignment is already approved, then update status as well
+
+    # If approved, update mturk status to reflect
+    Assignments.update @asstId,
+      $set:
+        mturkStatus: "Approved"
+
+  reject: (message) ->
+    check(message, String)
+    @_checkSubmittedStatus()
+
+    TurkServer.mturk "RejectAssignment",
+      AssignmentId: @assignmentId
+      RequesterFeedback: message
+
+    Assignments.update @asstId,
+      $set:
+        mturkStatus: "Rejected"
+
   # Pays the worker their bonus, if set, using the mturk API
   payBonus: (message) ->
     check(message, String)
@@ -332,7 +387,8 @@ userDisconnect = (user) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
 
   # If user was in lobby, remove them
-  asst._removeFromLobby()
+  # If they are disconnecting after completing an assignment, there will be no current assignment.
+  asst?._removeFromLobby()
 
   return unless (groupId = Partitioner.getUserGroup(user._id))?
   asst._disconnected(groupId)

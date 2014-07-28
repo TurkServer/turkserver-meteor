@@ -76,10 +76,13 @@ Meteor.publish "tsGroupUsers", (groupId) ->
 Meteor.publish "tsGroupLogs", (groupId, limit) ->
   return [] unless isAdmin(@userId)
 
-  return Logs.find({_groupId: groupId}, {
+  return [
+    Experiments.find(groupId),
+    Logs.find({_groupId: groupId}, {
       sort: {_timestamp: -1},
       limit: limit
     })
+  ]
 
 # Get a HIT Type and make sure it is ready for use
 getAndCheckHitType = (hitTypeId) ->
@@ -281,24 +284,8 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(asstId, String)
 
-    asst = Assignments.findOne(asstId)
-    # Since MTurk AssignmentIds may be re-used, it's important we only query
-    # for completed assignments.
-    unless asst.status is "completed"
-      throw new Meteor.Error(403, "Assignment not completed")
-
-    try
-      asstData = TurkServer.mturk "GetAssignment", { AssignmentId: asst.assignmentId }
-    catch e
-      throw new Meteor.Error(500, e.toString())
-
-    # Just check that it's actually the same worker here.
-    unless asst.workerId is asstData.WorkerId
-      throw new Meteor.Error(500, "Worker ID doesn't match")
-
-    Assignments.update asstId,
-      $set:
-        mturkStatus: asstData.AssignmentStatus
+    TurkServer.Assignment.getAssignment(asstId).refreshStatus()
+    return
 
   "ts-admin-stop-experiment": (groupId) ->
     TurkServer.checkAdmin()

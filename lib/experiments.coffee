@@ -16,7 +16,7 @@ class TurkServer.Instance
       return instance
     else
       throw new Error("Instance does not exist: " + groupId) unless Experiments.findOne(groupId)?
-      # TODO somehow the above call can block and an instance is created when it returns
+      # If something else got this at the same time, use that one
       return _instances[groupId] ?= new TurkServer.Instance(groupId)
 
   @currentInstance: ->
@@ -69,6 +69,11 @@ class TurkServer.Instance
     instance = Experiments.findOne(@groupId)
     return unless instance?
     return TurkServer._mergeTreatments Treatments.find({name: $in: instance.treatments})
+
+  # How long this experiment has been running, in milliseconds
+  getDuration: ->
+    instance = Experiments.findOne(@groupId)
+    return (instance.endTime || new Date) - instance.startTime
 
   # Close this instance and return people to the lobby
   teardown: ->
