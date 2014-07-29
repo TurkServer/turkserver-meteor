@@ -129,7 +129,10 @@ Template.tsAdminWatching.events =
 
 Template.tsAdminLayout.events(pillPopoverEvents)
 
-onlineUsers = -> Meteor.users.find(admin: {$exists: false}, "status.online": true)
+onlineUsers = -> Meteor.users.find({
+  admin: {$exists: false},
+  "status.online": true
+})
 
 Template.tsAdminOverview.events =
   "click .-ts-account-balance": ->
@@ -141,11 +144,14 @@ Template.tsAdminOverview.onlineUserCount = -> onlineUsers().count()
 Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
 Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
 
-# All non-admin users who are online
+# All non-admin users who are online, sorted by most recent login
 Template.tsAdminConnections.users = ->
-  Meteor.users.find
+  Meteor.users.find({
     admin: {$exists: false}
     "turkserver.state": {$exists: true}
+  }, {
+    sort: { "status.lastLogin.date" : -1 }
+  })
 
 Template.tsAdminConnectionMaintenance.events
   "click .-ts-cleanup-user-state": ->

@@ -135,8 +135,9 @@
         <tr>
             <th>User</th>
             <th>State</th>
-            <th>IP (Last)</th>
-            <th>User Agent (Last)</th>
+            <th>Last Login</th>
+            <th>IP</th>
+            <th>User Agent</th>
         </tr>
         </thead>
         <tbody>
@@ -144,8 +145,9 @@
         <tr>
             <td>{{> tsUserPill}}</td>
             <td><strong>{{turkserver.state}}</strong></td>
+            <td>{{_tsRenderTime status.lastLogin.date}}</td>
             <td>{{status.lastLogin.ipAddr}}</td>
-            <td>{{status.lastLogin.userAgent}}</td>
+            <td class="small">{{status.lastLogin.userAgent}}</td>
         </tr>
         {{/each}}
         </tbody>
