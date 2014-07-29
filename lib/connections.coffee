@@ -386,9 +386,12 @@ userReconnect = (user) ->
 userDisconnect = (user) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
 
+  # If they are disconnecting after completing an assignment, there will be no
+  # current assignment.
+  return unless asst?
+
   # If user was in lobby, remove them
-  # If they are disconnecting after completing an assignment, there will be no current assignment.
-  asst?._removeFromLobby()
+  asst._removeFromLobby()
 
   return unless (groupId = Partitioner.getUserGroup(user._id))?
   asst._disconnected(groupId)

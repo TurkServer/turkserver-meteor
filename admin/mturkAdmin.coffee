@@ -70,13 +70,48 @@ Template.tsAdminNewQual.events =
       QualificationTypeId: type
       Comparator: comp
 
-    if !!value
-      if parseInt(value)
-        qual.IntegerValue = value
-      else
-        qual.LocaleValue = value
+    try
+      switch comp
+        when "Exists", "DoesNotExist"
+          throw new Error("No value should be specified for Exists or DoesNotExist") if !!value
 
-    Qualifications.insert(qual)
+        when "In", "NotIn"
+          # Parse value as a comma-separated array
+          vals = []
+          type = null
+
+          # Check that they are all the same type
+          # TODO we don't check for the validity of the type here
+          for v in value.split(/[\s,]+/)
+            continue if !v
+
+            if numV = parseInt(v)
+              vals.push(numV)
+              newType = "Integer"
+            else
+              vals.push(v)
+              newType = "String"
+
+            throw new Error("Must be all Integers or Locales") if type? and newType isnt type
+            type = newType
+
+          throw new Error("Must specify at least one value for In or NotIn") unless type?
+
+          if type is "Integer"
+            qual.IntegerValue = vals
+          else
+            qual.LocaleValue = vals
+
+        else # Things with values
+          if !!value
+            if parseInt(value)
+              qual.IntegerValue = value
+            else
+              qual.LocaleValue = value
+
+      Qualifications.insert(qual)
+    catch e
+      bootbox.alert(e.toString())
 
 Template.tsAdminHits.events =
   "click tr": -> Session.set("_tsSelectedHIT", @_id)

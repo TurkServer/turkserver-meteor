@@ -91,6 +91,10 @@ Template.tsAdminConfigureBatch.events =
     Batches.update @_id, $set:
       active: false
 
+  "change input[name=allowReturns]": (e) ->
+    Batches.update @_id, $set:
+      allowReturns: e.target.checked
+
 Template.tsAdminConfigureBatch.selectedBatch = ->
   Batches.findOne(Session.get("_tsSelectedBatchId"))
 

@@ -30,8 +30,8 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
   # authentication
   unexpectedBatch: "This HIT is not recognized."
   batchInactive: "This task is currently not accepting new assignments."
-  batchLimit: "You've completed the maximum number of HITs allowed in this group. Please return this assignment."
-  simultaneousLimit: "You are already connected through another HIT. Please complete that one first."
+  batchLimit: "You've attempted or completed the maximum number of HITs allowed in this group. Please return this assignment."
+  simultaneousLimit: "You are already connected through another HIT, or you previously returned a HIT from this group. If you still have the HIT open, please complete that one first."
   alreadyCompleted: "You have already completed this HIT."
   # operations
   authErr: "You are not logged in"

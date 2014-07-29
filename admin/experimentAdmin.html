@@ -215,6 +215,13 @@
             <dd>{{> tsAdminBatchEditTreatments}}</dd>
         </dl>
 
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" name="allowReturns" checked={{allowReturns}}>
+                Allow re-attempts from workers who have returned HITs
+            </label>
+        </div>
+
         {{#if active}}
         <button class="btn btn-danger -ts-deactivate-batch">Make Inactive</button>
         {{else}}

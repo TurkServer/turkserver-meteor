@@ -145,8 +145,8 @@ if Meteor.isClient
 
       test.isTrue activeTime >= 0
 
-      test.equal UI._globalHelper("tsIdleTime")(), "0:00:00"
-      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:00"
+      test.equal UI._globalHelpers.tsIdleTime(), "0:00:00"
+      test.equal UI._globalHelpers.tsDisconnectedTime(), "0:00:00"
 
       next()
 
@@ -175,8 +175,8 @@ if Meteor.isClient
       test.isTrue Math.abs(activeTime + 3000 - joinedTime) < tol
       test.isTrue activeTime >= 0
 
-      test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
-      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
+      test.equal UI._globalHelpers.tsIdleTime(), "0:00:01"
+      test.equal UI._globalHelpers.tsDisconnectedTime(), "0:00:02"
 
       next()
 
@@ -212,8 +212,8 @@ if Meteor.isClient
       test.isTrue Math.abs(activeTime + 3000 - joinedTime) < tol
       test.isTrue activeTime >= 0 # Should not be negative
 
-      test.equal UI._globalHelper("tsIdleTime")(), "0:00:01"
-      test.equal UI._globalHelper("tsDisconnectedTime")(), "0:00:02"
+      test.equal UI._globalHelpers.tsIdleTime(), "0:00:01"
+      test.equal UI._globalHelpers.tsDisconnectedTime(), "0:00:02"
 
       next()
 

@@ -38,32 +38,37 @@ TurkServer.Util.assignQualification = (workerId, qualId) ->
 
 # Initialize some helpful qualifications
 Meteor.startup ->
-  return if Qualifications.find().count() > 0
-
   # US Worker
-  Qualifications.insert
-    name: "US Worker"
-    QualificationTypeId: "00000000000000000071"
-    Comparator: "EqualTo"
-    LocaleValue: "US"
+  Qualifications.upsert { name: "US Worker" },
+    $set:
+      QualificationTypeId: "00000000000000000071"
+      Comparator: "EqualTo"
+      LocaleValue: "US"
+
+  # US or CA worker
+  Qualifications.upsert { name: "US or CA Worker" },
+    $set:
+      QualificationTypeId: "00000000000000000071"
+      Comparator: "In"
+      LocaleValue: ["US", "CA"]
 
   # 100 HITs
-  Qualifications.insert
-    name: "> 100 HITs"
-    QualificationTypeId: "00000000000000000040"
-    Comparator: "GreaterThan"
-    IntegerValue: "100"
+  Qualifications.upsert { name: "> 100 HITs" },
+    $set:
+      QualificationTypeId: "00000000000000000040"
+      Comparator: "GreaterThan"
+      IntegerValue: "100"
 
   # 95% Approval
-  Qualifications.insert
-    name: "95% Approval"
-    QualificationTypeId: "000000000000000000L0"
-    Comparator: "GreaterThanOrEqualTo"
-    IntegerValue: "95"
+  Qualifications.upsert { name: "95% Approval" },
+    $set:
+      QualificationTypeId: "000000000000000000L0"
+      Comparator: "GreaterThanOrEqualTo"
+      IntegerValue: "95"
 
   # Adult Worker
-  Qualifications.insert
-    name: "Adult Worker"
-    QualificationTypeId: "00000000000000000060"
-    Comparator: "EqualTo"
-    IntegerValue: "1"
+  Qualifications.upsert { name: "Adult Worker" },
+    $set:
+      QualificationTypeId: "00000000000000000060"
+      Comparator: "EqualTo"
+      IntegerValue: "1"

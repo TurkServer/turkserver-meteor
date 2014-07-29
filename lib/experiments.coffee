@@ -12,6 +12,7 @@ class TurkServer.Instance
   _instances = {}
 
   @getInstance: (groupId) ->
+    check(groupId, String)
     if (instance = _instances[groupId])?
       return instance
     else
@@ -20,7 +21,9 @@ class TurkServer.Instance
       return _instances[groupId] ?= new TurkServer.Instance(groupId)
 
   @currentInstance: ->
-    @getInstance Partitioner.group()
+    inst = Partitioner.group()
+    return undefined unless inst?
+    @getInstance(inst)
 
   constructor: (@groupId) ->
     throw new Error("Instance already exists; use getInstance") if _instances[@groupId]

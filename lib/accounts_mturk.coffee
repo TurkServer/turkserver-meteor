@@ -64,22 +64,27 @@ authenticateWorker = (loginRequest) ->
       existingAsst.setReturned()
 
   ###
-    Not a reconnection; creating a new assignment
+    Not a reconnection; we may create a new assignment
   ###
+  batch = Batches.findOne(batchId)
+
   # Only active batches accept new HITs
-  if batchId? and not Batches.findOne(batchId)?.active
+  if batchId? and not batch?.active
     throw new Meteor.Error(403, ErrMsg.batchInactive)
 
-  # Check for limits
+  # Limits - simultaneously accepted HITs
   if Assignments.find({
     workerId: workerId,
-    status: { $ne: "completed" }
+    status: { $nin: [ "completed", "returned" ] }
   }).count() >= TurkServer.config.experiment.limit.simultaneous
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit)
 
+  # Limits for the given batch
   predicate =
     workerId: loginRequest.workerId
     batchId: batchId
+
+  predicate.status = { $ne: "returned" } if batch.acceptReturns
 
   if Assignments.find(predicate).count() >= TurkServer.config.experiment.limit.batch
     throw new Meteor.Error(403, ErrMsg.batchLimit)

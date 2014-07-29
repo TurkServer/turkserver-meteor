@@ -22,8 +22,6 @@ otherBatchId = "someOtherBatch"
 unless Batches.findOne(authBatchId)?
   Batches.insert(_id: authBatchId)
 
-Batches.update(authBatchId, $set: active: true)
-
 # Set up a dummy HIT type and HITs
 HITTypes.upsert HITTypeId: hitType,
   $set:
@@ -36,8 +34,10 @@ HITs.upsert HITId: hitId2,
 # We can use the after wrapper here because the tests are synchronous
 withCleanup = TestUtils.getCleanupWrapper
   before: ->
-  after: -> # We can use this due to synchronicity
-    Batches.update(authBatchId, $set: active: true)
+    Batches.update authBatchId,
+      $set: active: true
+      $unset: acceptReturns: null
+  after: ->
     # Only remove assignments created here to avoid side effects on server-client tests
     Assignments.remove($or: [ {batchId: authBatchId}, {batchId: otherBatchId} ])
 
@@ -275,6 +275,58 @@ Tinytest.add "auth - limit - too many total", withCleanup (test) ->
 
   test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
 
+Tinytest.add "auth - limit - returns not allowed in batch", withCleanup (test) ->
+  Assignments.insert
+    batchId: authBatchId
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+    status: "returned"
+  # Should not trigger concurrent limit
+
+  testFunc = -> TestUtils.authenticateWorker
+    batchId: authBatchId
+    hitId: hitId2
+    assignmentId : assignmentId2
+    workerId: workerId
+
+  test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
+
+Tinytest.add "auth - limit - returns allowed in batch", withCleanup (test) ->
+  Batches.update(authBatchId, $set: acceptReturns: true)
+
+  Assignments.insert
+    batchId: authBatchId
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+    status: "returned"
+
+  asst = TestUtils.authenticateWorker
+    batchId: authBatchId
+    hitId: hitId2,
+    assignmentId : assignmentId2
+    workerId: workerId
+
+  prevRecord = Assignments.findOne
+    hitId: hitId
+    assignmentId: assignmentId
+    workerId: workerId
+
+  newRecord = Assignments.findOne
+    hitId: hitId2
+    assignmentId: assignmentId2
+    workerId: workerId
+
+  test.isTrue(asst)
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+
+  test.equal(prevRecord.status, "returned")
+  test.equal(prevRecord.batchId, authBatchId)
+
+  test.equal(newRecord.status, "assigned")
+  test.equal(newRecord.batchId, authBatchId)
+
 Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) ->
   Assignments.insert
     batchId: otherBatchId
@@ -309,6 +361,7 @@ Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) -
   test.equal(newRecord.status, "assigned")
   test.equal(newRecord.batchId, authBatchId)
 
+# Worker is used for the test below
 Meteor.users.upsert "testWorker", $set: {workerId: "testingWorker"}
 
 Tinytest.add "auth - testing HIT login doesn't require existing HIT", withCleanup (test) ->

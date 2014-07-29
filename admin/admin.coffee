@@ -108,8 +108,14 @@ Meteor.methods
       qual = Qualifications.findOne(qualId)
       delete qual._id
       delete qual.name
+
+      # Integer value is fine as array or not, but
       # Get the locale into its weird structure
-      qual.LocaleValue = { Country: qual.LocaleValue } if qual.LocaleValue
+      if Array.isArray(qual.LocaleValue)
+        qual.LocaleValue = ({ Country: locale } for locale in qual.LocaleValue)
+      else if qual.LocaleValue
+        qual.LocaleValue = { Country: qual.LocaleValue }
+
       quals.push qual
 
     params.QualificationRequirement = quals
