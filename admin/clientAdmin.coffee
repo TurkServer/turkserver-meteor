@@ -16,11 +16,7 @@ class TSAdminController extends RouteController
       @setLayout("tsContainer")
       @render("tsAdminWatching")
       pause()
-  layout: "tsAdminLayout"
-  action: ->
-    # TODO remove this when EventedMind/iron-router#607 is merged, next release after 0.7.1
-    @setLayout("tsAdminLayout")
-    @render()
+  layoutTemplate: "tsAdminLayout"
 
 Router.map ->
   @route "turkserver/mturk",

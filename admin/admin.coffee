@@ -56,22 +56,13 @@ offlineFindOptions =
 # Necessary to watch completed experiments.
 Meteor.publish "tsGroupUsers", (groupId) ->
   return [] unless isAdmin(@userId)
-  sub = this
+
   exp = Experiments.findOne(groupId)
-  return unless exp
+  return [] unless exp
 
   # This won't update if users changes, but it shouldn't after an experiment is completed
   # TODO Just return everything here; we don't know what the app subscription was using
-  subHandle = Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions).observeChanges
-    added: (id, fields) ->
-      sub.added "users", id, fields
-    changed: (id, fields) ->
-      sub.changed "users", id, fields
-    removed: (id) ->
-      sub.removed "users", id
-
-  sub.ready()
-  sub.onStop -> subHandle.stop()
+  return Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions)
 
 Meteor.publish "tsGroupLogs", (groupId, limit) ->
   return [] unless isAdmin(@userId)
