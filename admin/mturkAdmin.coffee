@@ -302,7 +302,7 @@ Template.tsAdminAssignmentMaintenance.events
 
 Template.tsAdminActiveAssignments.activeAssts = ->
   Assignments.find { status: "assigned" },
-    { sort: acceptTime: 1 }
+    { sort: acceptTime: -1 }
 
 Template.tsAdminCompletedAssignments.events
   "click .-ts-refresh-assignment": ->

@@ -35,7 +35,7 @@ Template.tsAdminActiveExperiments.experiments = ->
   Experiments.find
     endTime: {$exists: false}
   ,
-    sort: { startTime: 1 }
+    sort: { startTime: -1 }
 
 Template.tsAdminActiveExperiments.numUsers = numUsers
 
@@ -43,7 +43,7 @@ Template.tsAdminCompletedExperiments.experiments = ->
   Experiments.find
     endTime: {$exists: true}
   ,
-    sort: { startTime: 1 }
+    sort: { startTime: -1 }
 
 Template.tsAdminCompletedExperiments.duration = ->
   TurkServer.Util.duration(@endTime - @startTime)
