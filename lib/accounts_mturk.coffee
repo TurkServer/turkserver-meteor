@@ -84,7 +84,7 @@ authenticateWorker = (loginRequest) ->
     workerId: loginRequest.workerId
     batchId: batchId
 
-  predicate.status = { $ne: "returned" } if batch.acceptReturns
+  predicate.status = { $ne: "returned" } if batch.allowReturns
 
   if Assignments.find(predicate).count() >= TurkServer.config.experiment.limit.batch
     throw new Meteor.Error(403, ErrMsg.batchLimit)

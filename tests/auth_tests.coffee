@@ -36,7 +36,7 @@ withCleanup = TestUtils.getCleanupWrapper
   before: ->
     Batches.update authBatchId,
       $set: active: true
-      $unset: acceptReturns: null
+      $unset: allowReturns: null
   after: ->
     # Only remove assignments created here to avoid side effects on server-client tests
     Assignments.remove($or: [ {batchId: authBatchId}, {batchId: otherBatchId} ])
@@ -293,7 +293,7 @@ Tinytest.add "auth - limit - returns not allowed in batch", withCleanup (test) -
   test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
 
 Tinytest.add "auth - limit - returns allowed in batch", withCleanup (test) ->
-  Batches.update(authBatchId, $set: acceptReturns: true)
+  Batches.update(authBatchId, $set: allowReturns: true)
 
   Assignments.insert
     batchId: authBatchId

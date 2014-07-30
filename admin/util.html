@@ -94,7 +94,7 @@
         <dd>{{#if status.lastLogin.date}}
             {{_tsRenderTime status.lastLogin.date}} <i>from</i>
             {{status.lastLogin.ipAddr}};
-            <i>{{status.lastLogin.userAgent}}</i>
+            <span class="small">{{status.lastLogin.userAgent}}</span>
             {{else}}
             {{_tsRenderTime status.lastLogin}}
             {{/if}}</dd>

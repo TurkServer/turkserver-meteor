@@ -117,6 +117,7 @@ class TurkServer.Assignment
     Assignments.update @asstId,
       $set:
         mturkStatus: asstData.AssignmentStatus
+    return asstData.AssignmentStatus
 
   _checkSubmittedStatus: ->
     unless @isCompleted()

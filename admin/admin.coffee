@@ -183,6 +183,8 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(params.HITId, String)
     check(params.HITTypeId, String)
+
+    # TODO: don't allow change if the old HIT Type has a different batchId from the new one
     try
       TurkServer.mturk "ChangeHITTypeOfHIT", params
       @unblock() # If successful, refresh the HIT
