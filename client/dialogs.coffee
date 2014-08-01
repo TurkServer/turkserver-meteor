@@ -38,6 +38,7 @@ TurkServer.ensureUsername = ->
       usernameDialog = null
       return
 
+    # TODO: stop the username dialog popping up during the subscription process
     username = Meteor.users.findOne(userId, fields: {username: 1})?.username
 
     if username and usernameDialog

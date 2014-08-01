@@ -31,6 +31,93 @@ Template.tsAdminExperimentMaintenance.events
         bootbox.alert(err) if err?
         bootbox.alert(res + " instances stopped") if res?
 
+Template.tsAdminExperimentTimeline.rendered = ->
+  svg = d3.select(this.find("svg"))
+  $svg = this.$("svg")
+
+  margin =
+    bottom: 30
+
+  chartHeight = $svg.height() - margin.bottom
+
+  x = d3.scale.linear()
+    .range([0, $svg.width()])
+
+  y = d3.scale.ordinal()
+    .rangeBands([0, $svg.height() - margin.bottom], 0.2)
+
+  xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom")
+    .tickFormat( (date) -> new Date(date).toLocaleTimeString() )
+
+  svgX = svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0,#{chartHeight})")
+
+  svgXgrid = svg.append("g")
+    .attr("class", "x grid")
+
+  chart = svg.append("g")
+
+  redraw = (bars) ->
+    # Update x axis
+    svgX.call(xAxis)
+
+    # Update x grid
+    grid = svgXgrid.selectAll("line.grid")
+      .data(x.ticks(10))
+
+    grid.enter()
+      .append("line")
+      .attr("class", "grid")
+
+    grid.exit().remove()
+
+    grid.attr
+      x1: x
+      x2: x
+      y1: 0
+      y2: chartHeight
+
+    # Update bar positions
+    bars ?= chart.selectAll(".bar")
+    bars.attr
+      x: (e) -> x(e.startTime)
+      width: (e) -> x(e.endTime || maxEnd) - x(e.startTime)
+      y: (e) -> y(e._id)
+      height: y.rangeBand()
+
+  this.autorun ->
+    # TODO make a reactive array for this; massive performance increase :)
+    exps = Experiments.find({}, {sort: {startTime: 1}}).fetch()
+
+    # compute new domains
+    maxEnd = d3.max(exps, (e) -> e.endTime)
+
+    # Set domain on first render
+    x.domain( [d3.min(exps, (e) -> e.startTime), maxEnd] ) if Deps.currentComputation.firstRun
+    y.domain( _.map(exps, (e) -> e._id) )
+
+    bars = chart.selectAll(".bar")
+      .data(exps, (e) -> e._id )
+
+    bars.enter()
+      .append("rect")
+      .attr("class", "bar")
+
+    bars.exit().remove()
+
+    redraw(bars)
+
+  # Set zoom **after** x axis has been initialized
+  zoom = d3.behavior.zoom()
+  .x(x)
+  .scaleExtent([1, 20])
+  .on("zoom", redraw)
+
+  svg.call(zoom)
+
 Template.tsAdminActiveExperiments.experiments = ->
   Experiments.find
     endTime: {$exists: false}

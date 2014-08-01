@@ -5,6 +5,8 @@
 
     {{> tsAdminExperimentMaintenance }}
 
+    {{> tsAdminExperimentTimeline }}
+
     {{> tsAdminActiveExperiments }}
     {{> tsAdminCompletedExperiments }}
 </template>
@@ -16,6 +18,10 @@
             <button class="btn btn-danger -ts-stop-all-experiments">Stop All Experiments</button>
         </div>
     </div>
+</template>
+
+<template name="tsAdminExperimentTimeline">
+    <svg width="100%" height="300"></svg>
 </template>
 
 <template name="tsAdminActiveExperiments">
