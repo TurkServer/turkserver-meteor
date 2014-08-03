@@ -5,8 +5,10 @@ Template.tsAdminExperiments.events
     e.preventDefault()
 
     Router.go "experiments",
-      days: t.find("input[name=filter_days]").valueAsNumber || 7
-      limit: t.find("input[name=filter_limit]").valueAsNumber || 200
+      days: t.find("input[name=filter_days]").valueAsNumber ||
+        TurkServer.adminSettings.defaultDaysThreshold
+      limit: t.find("input[name=filter_limit]").valueAsNumber ||
+        TurkServer.adminSettings.defaultLimit
 
   "click .-ts-watch-experiment": ->
     groupId = @_id
@@ -16,7 +18,7 @@ Template.tsAdminExperiments.events
 
     Meteor.call "ts-admin-join-group", groupId, (err, res) ->
       return unless err
-      Router.go(currentRoute)
+      Router.go(currentRoute.path)
       bootbox.alert(err.reason)
 
   "click .-ts-experiment-logs": ->

@@ -67,10 +67,16 @@ Assignments._ensureIndex
   workerId: 1
   status: 1
 
-# Allow lookup of assignments by batch
+# Allow lookup of assignments by batch and submitTime (completed vs incomplete)
 Assignments._ensureIndex
   batchId: 1
-  acceptTime: 1
+  submitTime: 1
+
+# TODO deprecated index
+try
+  Assignments._dropIndex
+    batchId: 1
+    acceptTime: 1
 
 ###
   Data publications

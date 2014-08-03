@@ -375,6 +375,8 @@
 
     {{> tsAdminAssignmentMaintenance }}
 
+    <p><b>{{numAssignments}} active assignments.</b></p>
+
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
@@ -405,6 +407,16 @@
     {{#tsBatchMessage}}
     Viewing completed assignments in batch <b>{{name}}</b>.
     {{/tsBatchMessage}}
+
+    <form class="form-inline ts-admin-assignment-filter">
+        Showing up to
+        <input class="form-control" name="filter_limit" type="number" value="{{limit}}">
+        completed assignments from the last
+        <input class="form-control" name="filter_days" type="number" value="{{days}}">
+        days.
+        <button class="btn btn-primary" type="submit">Update</button>
+        <b>{{numAssignments}} assignments found.</b>
+    </form>
 
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>

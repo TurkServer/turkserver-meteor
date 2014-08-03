@@ -4,13 +4,17 @@ isAdmin = (userId) -> userId? and Meteor.users.findOne(userId)?.admin
 # Only admin gets server facts
 Facts.setUserIdFilter(isAdmin)
 
+###
+  TODO eliminate unnecessary fields sent over below
+###
+
+# Publish all admin data for /turkserver
 Meteor.publish "tsAdmin", ->
   return [] unless isAdmin(@userId)
 
-  # Publish all admin data
   return [
     Batches.find(),
-    Workers.find(),
+    Treatments.find(),
     Qualifications.find(),
     HITTypes.find(),
     HITs.find(),
@@ -23,28 +27,70 @@ userFindOptions =
     username: 1
     workerId: 1
 
-# Batch-specific filters for assignments, experiment instances, and lobby
-Meteor.publish "tsAdminState", (batchId, groupId) ->
+Meteor.publish "tsAdminUsers", (groupId) ->
   return [] unless isAdmin(@userId)
 
+  # When in a group, override whatever user publication the group sends with our fields
+  # TODO Don't publish all users for /turkserver
+  return Meteor.users.find({}, userFindOptions)
+
+# Don't return status here as the user is not connected to this experiment
+offlineFindOptions =
+  fields:
+    turkserver: 1
+    username: 1
+    workerId: 1
+
+# Helper publish function to get users for experiments that have ended.
+# Necessary to watch completed experiments.
+Meteor.publish "tsGroupUsers", (groupId) ->
+  return [] unless isAdmin(@userId)
+
+  exp = Experiments.findOne(groupId)
+  return [] unless exp
+
+  # This won't update if users changes, but it shouldn't after an experiment is completed
+  # TODO Just return everything here; we don't know what the app subscription was using
+  return Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions)
+
+# Get a date that is `days` away from `date`, locked to day boundaries
+# See https://kadira.io/academy/improve-cpu-and-network-usage/
+getDateFloor = (date, days) ->
+  timestamp = date.valueOf()
+  closestDay = timestamp - (timestamp % (24 * 3600 * 1000))
+  return new Date(closestDay + days * 24 * 3600 * 1000)
+
+Meteor.publish "tsAdminWorkers", ->
+  return [] unless isAdmin(@userId)
+  return Workers.find()
+
+Meteor.publish "tsAdminActiveAssignments", (batchId) ->
+  return [] unless isAdmin(@userId)
   check(batchId, String)
 
-  # When in a group, override whatever user publication the group sends with our fields
-  # TODO Don't publish all users
-  cursors = [ Meteor.users.find({}, userFindOptions) ]
-  # Send nothing else, specific experiment/treatment sent in tsCurrentExperiment
-  return cursors if groupId?
+  # TODO this isn't fully indexed
+  return Assignments.find({
+    batchId,
+    submitTime: null,
+    status: "assigned"
+  })
 
-  # Return nothing if no batch is selected
-  batchSelector = if batchId then {batchId} else undefined
+Meteor.publish "tsAdminCompletedAssignments", (batchId, days, limit) ->
+  return [] unless isAdmin(@userId)
+  check(batchId, String)
+  check(days, Number)
+  check(limit, Number)
 
-  # TODO only publish assigned/completed assignments
-  # TODO reduce number of fields sent over
-  cursors.push Assignments.find(batchSelector)
-  cursors.push LobbyStatus.find(batchSelector)
-  cursors.push Treatments.find()
+  threshold = getDateFloor(new Date, -days)
 
-  return cursors
+  # effectively { status: "completed" } but there is an index on submitTime
+  return Assignments.find({
+    batchId,
+    submitTime: { $gte: threshold }
+  }, {
+    sort: { submitTime: -1 }
+    limit: limit
+  })
 
 # Publish a single instance to the admin.
 Meteor.publish "tsAdminInstance", (instance) ->
@@ -67,9 +113,7 @@ Meteor.publish "tsAdminBatchCompletedExperiments", (batchId, days, limit) ->
   check(days, Number)
   check(limit, Number)
 
-  # TODO: lock threshold to day boundaries for more effective re-queries
-  threshold = new Date
-  threshold.setDate(threshold.getDate() - days)
+  threshold = getDateFloor(new Date, -days)
 
   return Experiments.find({
     batchId,
@@ -78,25 +122,6 @@ Meteor.publish "tsAdminBatchCompletedExperiments", (batchId, days, limit) ->
     sort: { endTime: -1 }
     limit: limit
   })
-
-# Don't return status here as the user is not connected to this experiment
-offlineFindOptions =
-  fields:
-    turkserver: 1
-    username: 1
-    workerId: 1
-
-# Helper publish function to get users for experiments that have ended.
-# Necessary to watch completed experiments.
-Meteor.publish "tsGroupUsers", (groupId) ->
-  return [] unless isAdmin(@userId)
-
-  exp = Experiments.findOne(groupId)
-  return [] unless exp
-
-  # This won't update if users changes, but it shouldn't after an experiment is completed
-  # TODO Just return everything here; we don't know what the app subscription was using
-  return Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions)
 
 Meteor.publish "tsGroupLogs", (groupId, limit) ->
   return [] unless isAdmin(@userId)

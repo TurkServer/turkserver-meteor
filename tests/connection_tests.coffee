@@ -25,7 +25,7 @@ createAssignment = ->
     hitId
     assignmentId
     workerId
-    acceptTime: Date.now()
+    acceptTime: new Date()
     status: "assigned"
   }
 
@@ -49,7 +49,7 @@ Tinytest.add "connection - get existing assignment creates and preserves object"
     hitId
     assignmentId
     workerId
-    acceptTime: Date.now()
+    acceptTime: new Date()
     status: "assigned"
   }
 

@@ -1,3 +1,8 @@
+TurkServer.adminSettings =
+  # Thresholds for ghetto pagination
+  defaultDaysThreshold: 7
+  defaultLimit: 200
+
 # This controller handles the behavior of all admin templates
 class TSAdminController extends RouteController
   onBeforeAction: (pause) ->
@@ -38,15 +43,28 @@ Router.map ->
     path: "turkserver/workers",
     controller: TSAdminController
     template: "tsAdminWorkers"
+    waitOn: -> Meteor.subscribe("tsAdminWorkers")
+
   @route "activeAssignments",
     path: "turkserver/assignments/active",
     controller: TSAdminController
     template: "tsAdminActiveAssignments"
+    waitOn: ->
+      return unless (batchId = Session.get("_tsViewingBatchId"))?
+      return Meteor.subscribe("tsAdminActiveAssignments", batchId)
 
   @route "completedAssignments",
-    path: "turkserver/assignments/completed",
+    path: "turkserver/assignments/completed/:days?/:limit?",
     controller: TSAdminController
     template: "tsAdminCompletedAssignments"
+    waitOn: ->
+      return unless (batchId = Session.get("_tsViewingBatchId"))?
+      days = parseInt(@params.days) || TurkServer.adminSettings.defaultDaysThreshold
+      limit = parseInt(@params.limit) || TurkServer.adminSettings.defaultLimit
+      return Meteor.subscribe("tsAdminCompletedAssignments", batchId, days, limit)
+    data: ->
+      days: @params.days || TurkServer.adminSettings.defaultDaysThreshold
+      limit: @params.limit || TurkServer.adminSettings.defaultLimit
 
   @route "connections",
     path: "turkserver/connections",
@@ -56,6 +74,10 @@ Router.map ->
     path: "turkserver/lobby",
     controller: TSAdminController
     template: "tsAdminLobby"
+    waitOn: ->
+      return unless (batchId = Session.get("_tsViewingBatchId"))?
+      # Same sub as normal lobby clients
+      return Meteor.subscribe("lobby", batchId)
 
   @route "experiments",
     path: "turkserver/experiments/:days?/:limit?",
@@ -63,15 +85,15 @@ Router.map ->
     template: "tsAdminExperiments",
     waitOn: ->
       return unless (batchId = Session.get("_tsViewingBatchId"))?
-      days = parseInt(@params.days) || 7
-      limit = parseInt(@params.limit) || 200
+      days = parseInt(@params.days) || TurkServer.adminSettings.defaultDaysThreshold
+      limit = parseInt(@params.limit) || TurkServer.adminSettings.defaultLimit
       return [
         Meteor.subscribe("tsAdminBatchRunningExperiments", batchId, logSubErrors)
         Meteor.subscribe "tsAdminBatchCompletedExperiments", batchId, days, limit, logSubErrors
       ]
     data: ->
-      days: @params.days || 7
-      limit: @params.limit || 200
+      days: @params.days || TurkServer.adminSettings.defaultDaysThreshold
+      limit: @params.limit || TurkServer.adminSettings.defaultLimit
 
   @route "turkserver/logs/:groupId/:count",
     controller: TSAdminController
@@ -83,22 +105,32 @@ Router.map ->
     controller: TSAdminController
     template: "tsAdminManage"
 
-# Subscribe to admin data if we are an admin user.
-# On rerun, subscription is automatically stopped
+###
+   Subscribe to admin data if we are an admin user, and in the admin interface
+###
 Deps.autorun ->
-  Meteor.subscribe("tsAdmin") if TurkServer.isAdmin()
+  path = Router.current()?.path
+  return unless path?.indexOf("/turkserver") >= 0 and TurkServer.isAdmin()
+  # Re-subscribes should be a no-op; no arguments
+  Meteor.subscribe("tsAdmin")
 
-# Resubscribe when group changes
-# Separate this one from the above to avoid re-runs for just a group change
+###
+  Subscribe to user data and resubscribe when group changes
+  Separated from the above to avoid re-runs for just a group change
+###
 Deps.autorun ->
   return unless TurkServer.isAdmin()
-  # must pass in different args to actually effect it
-  Meteor.subscribe("tsAdminState", Session.get("_tsViewingBatchId"), Partitioner.group())
+  path = Router.current()?.path
+  # Only subscribe if in admin interface, or assigned to a group
+  return unless path?.indexOf("/turkserver") >= 0 or (group = Partitioner.group())?
+  # must pass in different args for group to actually effect changes
+  Meteor.subscribe("tsAdminUsers", group)
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->
   return unless TurkServer.isAdmin()
-  Meteor.subscribe "tsGroupUsers", Partitioner.group()
+  return unless (group = Partitioner.group())?
+  Meteor.subscribe "tsGroupUsers", group
 
 pillPopoverEvents =
   # Show assignment instance info

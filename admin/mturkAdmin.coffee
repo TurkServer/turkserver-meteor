@@ -300,18 +300,31 @@ Template.tsAdminAssignmentMaintenance.events
         bootbox.alert(err) if err?
         bootbox.alert(res + " assignments canceled") if res?
 
+numAssignments = -> Assignments.find().count()
+
+Template.tsAdminActiveAssignments.numAssignments = numAssignments
+
 Template.tsAdminActiveAssignments.activeAssts = ->
-  Assignments.find { status: "assigned" },
-    { sort: acceptTime: -1 }
+  Assignments.find {}, { sort: acceptTime: -1 }
 
 Template.tsAdminCompletedAssignments.events
+  "submit form.ts-admin-assignment-filter": (e, t) ->
+    e.preventDefault()
+
+    Router.go "completedAssignments",
+      days: t.find("input[name=filter_days]").valueAsNumber ||
+        TurkServer.adminSettings.defaultDaysThreshold
+      limit: t.find("input[name=filter_limit]").valueAsNumber ||
+        TurkServer.adminSettings.defaultLimit
+
   "click .-ts-refresh-assignment": ->
     Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
       bootbox.alert(err) if err?
 
+Template.tsAdminCompletedAssignments.numAssignments = numAssignments
+
 Template.tsAdminCompletedAssignments.completedAssts = ->
-  Assignments.find { status: "completed" },
-    { sort: submitTime: -1 }
+  Assignments.find {}, { sort: submitTime: -1 }
 
 Template.tsAdminCompletedAssignmentRow.labelStatus = ->
   switch @mturkStatus
