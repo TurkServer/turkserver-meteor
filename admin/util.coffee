@@ -39,7 +39,12 @@ Template.tsBatchSelector.batches = -> Batches.find()
 Template.tsBatchSelector.noBatchSelection = -> not Session.get("_tsViewingBatchId")
 Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
 
-Template.tsAdminAssignmentInstance.instance = -> Experiments.findOne(this.id)
+Template.tsAdminInstance.rendered = ->
+  # Subscribe to instance with whatever we rendered with
+  this.autorun ->
+    Meteor.subscribe "tsAdminInstance", Blaze.getCurrentData()
+
+Template.tsAdminInstance.instance = -> Experiments.findOne(@+"")
 
 Template.tsUserPill.user = ->
   switch

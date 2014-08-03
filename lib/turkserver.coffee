@@ -28,6 +28,12 @@ Experiments.deny(always)
 Logs.deny(always)
 RoundTimers.deny(always)
 
+# Create an index on experiments
+Experiments._ensureIndex({
+  batchId: 1,
+  endTime: 1 # non-sparse ensures that running experiments are indexed
+})
+
 ###
   Workers
   Assignments

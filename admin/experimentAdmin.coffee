@@ -1,6 +1,13 @@
 treatments = -> Treatments.find()
 
 Template.tsAdminExperiments.events
+  "submit form.-ts-admin-experiment-filter": (e, t) ->
+    e.preventDefault()
+
+    Router.go "experiments",
+      days: t.find("input[name=filter_days]").valueAsNumber || 7
+      limit: t.find("input[name=filter_limit]").valueAsNumber || 200
+
   "click .-ts-watch-experiment": ->
     groupId = @_id
     currentRoute = Router.current()
@@ -20,6 +27,8 @@ Template.tsAdminExperiments.events
     expId = @_id
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
       Meteor.call "ts-admin-stop-experiment", expId if res
+
+Template.tsAdminExperiments.numExperiments = -> Experiments.find().count()
 
 numUsers = -> @users?.length
 
@@ -49,7 +58,8 @@ Template.tsAdminExperimentTimeline.rendered = ->
   xAxis = d3.svg.axis()
     .scale(x)
     .orient("bottom")
-    .tickFormat( (date) -> new Date(date).toLocaleTimeString() )
+    .ticks(5) # Dates are long
+    .tickFormat( (date) -> new Date(date).toLocaleString() )
 
   svgX = svg.append("g")
     .attr("class", "x axis")
@@ -66,7 +76,7 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
     # Update x grid
     grid = svgXgrid.selectAll("line.grid")
-      .data(x.ticks(10))
+      .data(x.ticks(10)) # More gridlines than above
 
     grid.enter()
       .append("line")
@@ -82,22 +92,38 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
     # Update bar positions
     bars ?= chart.selectAll(".bar")
+    # Need to guard against missing values upon load
     bars.attr
       x: (e) -> x(e.startTime)
-      width: (e) -> x(e.endTime || maxEnd) - x(e.startTime)
+      width: (e) -> ( x(e.endTime || new Date) - x(e.startTime) )
       y: (e) -> y(e._id)
       height: y.rangeBand()
 
+  zoom = d3.behavior.zoom()
+    .scaleExtent([1, 20])
+    .on("zoom", redraw)
+
+  svg.call(zoom)
+
   this.autorun ->
     # TODO make a reactive array for this; massive performance increase :)
-    exps = Experiments.find({}, {sort: {startTime: 1}}).fetch()
+    exps = Experiments.find({}, {
+      sort: {startTime: 1},
+      fields: {startTime: 1, endTime: 1}
+    }).fetch()
 
     # compute new domains
-    maxEnd = d3.max(exps, (e) -> e.endTime)
+    minStart = d3.min(exps, (e) -> e.startTime) || new Date
+    maxEnd = d3.max(exps, (e) -> e.endTime) || new Date
 
-    # Set domain on first render
-    x.domain( [d3.min(exps, (e) -> e.startTime), maxEnd] ) if Deps.currentComputation.firstRun
+    # TODO don't update x domain in response to changing data after first render
+    # However, we cannot use Deps.currentComputation.firstRun here as data may not
+    # be ready on first run.
+    x.domain( [minStart, maxEnd] )
     y.domain( _.map(exps, (e) -> e._id) )
+
+    # Set zoom **after** x axis has been initialized
+    zoom.x(x)
 
     bars = chart.selectAll(".bar")
       .data(exps, (e) -> e._id )
@@ -109,14 +135,6 @@ Template.tsAdminExperimentTimeline.rendered = ->
     bars.exit().remove()
 
     redraw(bars)
-
-  # Set zoom **after** x axis has been initialized
-  zoom = d3.behavior.zoom()
-  .x(x)
-  .scaleExtent([1, 20])
-  .on("zoom", redraw)
-
-  svg.call(zoom)
 
 Template.tsAdminActiveExperiments.experiments = ->
   Experiments.find

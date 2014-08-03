@@ -18,39 +18,70 @@ class TSAdminController extends RouteController
       pause()
   layoutTemplate: "tsAdminLayout"
 
+logSubErrors =
+  onError: (e) -> console.log(e)
+
 Router.map ->
-  @route "turkserver/mturk",
+  @route "overview",
+    path: "/turkserver",
+    controller: TSAdminController
+    template: "tsAdminOverview"
+  @route "mturk",
+    path: "turkserver/mturk",
     controller: TSAdminController
     template: "tsAdminMTurk"
-  @route "turkserver/hits",
+  @route "hits",
+    path: "turkserver/hits",
     controller: TSAdminController
     template: "tsAdminHits"
-  @route "turkserver/workers",
+  @route "workers",
+    path: "turkserver/workers",
     controller: TSAdminController
     template: "tsAdminWorkers"
-  @route "turkserver/assignments",
+  @route "activeAssignments",
+    path: "turkserver/assignments/active",
     controller: TSAdminController
-    template: "tsAdminAssignments"
-  @route "turkserver/connections",
+    template: "tsAdminActiveAssignments"
+
+  @route "completedAssignments",
+    path: "turkserver/assignments/completed",
+    controller: TSAdminController
+    template: "tsAdminCompletedAssignments"
+
+  @route "connections",
+    path: "turkserver/connections",
     controller: TSAdminController
     template: "tsAdminConnections"
-  @route "turkserver/lobby",
+  @route "lobby",
+    path: "turkserver/lobby",
     controller: TSAdminController
     template: "tsAdminLobby"
-  @route "turkserver/experiments",
+
+  @route "experiments",
+    path: "turkserver/experiments/:days?/:limit?",
     controller: TSAdminController
     template: "tsAdminExperiments",
+    waitOn: ->
+      return unless (batchId = Session.get("_tsViewingBatchId"))?
+      days = parseInt(@params.days) || 7
+      limit = parseInt(@params.limit) || 200
+      return [
+        Meteor.subscribe("tsAdminBatchRunningExperiments", batchId, logSubErrors)
+        Meteor.subscribe "tsAdminBatchCompletedExperiments", batchId, days, limit, logSubErrors
+      ]
+    data: ->
+      days: @params.days || 7
+      limit: @params.limit || 200
+
   @route "turkserver/logs/:groupId/:count",
     controller: TSAdminController
     template: "tsAdminLogs"
     waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, parseInt(@params.count))
     data: -> Experiments.findOne(@params.groupId)
-  @route "turkserver/manage",
+  @route "manage",
+    path: "turkserver/manage",
     controller: TSAdminController
     template: "tsAdminManage"
-  @route "turkserver",
-    controller: TSAdminController
-    template: "tsAdminOverview"
 
 # Subscribe to admin data if we are an admin user.
 # On rerun, subscription is automatically stopped
@@ -70,6 +101,7 @@ Deps.autorun ->
   Meteor.subscribe "tsGroupUsers", Partitioner.group()
 
 pillPopoverEvents =
+  # Show assignment instance info
   "mouseenter .ts-instance-pill-container": (e) ->
     container = $(e.target)
 
@@ -80,13 +112,14 @@ pillPopoverEvents =
       container: container
       # TODO: Dynamic popover content would be very helpful here.
       # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      content: Blaze.toHTML Blaze.With {
-          assignmentInstance: UI.getElementData(container.closest(".ts-assignment-instance")[0])
-          instance: UI.getElementData(e.target)
-        }, -> Template.tsAdminAssignmentInstanceInfo
+      content: Blaze.toHTML Blaze.With(UI.getElementData(e.target), -> Template.tsAdminAssignmentInstanceInfo)
     }).popover("show")
 
     container.one("mouseleave", -> container.popover("destroy") )
+
+  # Show instance info in modal
+  "click .ts-instance-pill-container": (e) ->
+    TurkServer._displayModal UI.renderWithData(Template.tsAdminInstance, UI.getElementData(e.target).id)
 
   "mouseenter .ts-user-pill-container": (e) ->
     container = $(e.target)

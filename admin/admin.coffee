@@ -27,6 +27,8 @@ userFindOptions =
 Meteor.publish "tsAdminState", (batchId, groupId) ->
   return [] unless isAdmin(@userId)
 
+  check(batchId, String)
+
   # When in a group, override whatever user publication the group sends with our fields
   # TODO Don't publish all users
   cursors = [ Meteor.users.find({}, userFindOptions) ]
@@ -40,10 +42,42 @@ Meteor.publish "tsAdminState", (batchId, groupId) ->
   # TODO reduce number of fields sent over
   cursors.push Assignments.find(batchSelector)
   cursors.push LobbyStatus.find(batchSelector)
-  cursors.push Experiments.find(batchSelector)
   cursors.push Treatments.find()
 
   return cursors
+
+# Publish a single instance to the admin.
+Meteor.publish "tsAdminInstance", (instance) ->
+  return [] unless isAdmin(@userId)
+  check(instance, String)
+  return Experiments.find(instance)
+
+# Two separate publications for running and completed experiments, because
+# it's hard to do both endTime: null and endTime > some date while sorting by
+# endTime desc, because null sorts below any value.
+Meteor.publish "tsAdminBatchRunningExperiments", (batchId) ->
+  return [] unless isAdmin(@userId)
+  check(batchId, String)
+
+  return Experiments.find({batchId, endTime: null})
+
+Meteor.publish "tsAdminBatchCompletedExperiments", (batchId, days, limit) ->
+  return [] unless isAdmin(@userId)
+  check(batchId, String)
+  check(days, Number)
+  check(limit, Number)
+
+  # TODO: lock threshold to day boundaries for more effective re-queries
+  threshold = new Date
+  threshold.setDate(threshold.getDate() - days)
+
+  return Experiments.find({
+    batchId,
+    endTime: { $gte: threshold }
+  }, {
+    sort: { endTime: -1 }
+    limit: limit
+  })
 
 # Don't return status here as the user is not connected to this experiment
 offlineFindOptions =

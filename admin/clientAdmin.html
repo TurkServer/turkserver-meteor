@@ -48,58 +48,60 @@
 </template>
 
 <template name="tsAdminLayout">
-    <div class="container ts-admin-layout">
-        <div class="navbar navbar-default">
-            <ul class="nav navbar-nav">
-                <li>
-                    <a href="/turkserver">Overview</a>
-                </li>
-                <li>
-                    <a href="/turkserver/mturk">MTurk</a>
-                </li>
-                <li>
-                    <a href="/turkserver/hits">HITs</a>
-                </li>
-                <li>
-                    <a href="/turkserver/workers">Workers</a>
-                </li>
-                <li>
-                    <a href="/turkserver/connections">Connections</a>
-                </li>
-                <li>
-                    <a href="/turkserver/assignments">Assignments</a>
-                </li>
-                <li>
-                    <a href="/turkserver/lobby">Lobby</a>
-                </li>
-                <li>
-                    <a href="/turkserver/experiments">Experiments</a>
-                </li>
-                <li>
-                    <a href="/turkserver/manage">Manage</a>
-                </li>
-            </ul>
-
-            <form class="navbar-form navbar-right">
-                {{> tsBatchSelector}}
-            </form>
-
-            <ul class="nav navbar-right">
-                <li class="navbar-text">
-                    {{> loginButtons align="right"}}
-                </li>
-            </ul>
-        </div>
-
-        {{!
-            Another solution to the popover clipping
-            container class below makes sure that inner rows line up
-        }}
-        <div class="ts-admin-body">
-            <div class="container ts-scroll-parent">
-                {{> yield}}
+    <div class="container ts-admin-layout ts-inherit-height">
+        <div class="row ts-inherit-height">
+            <div class="col-md-2">
+                {{> tsAdminNav}}
+            </div>
+            <div class="col-md-10 ts-inherit-height">
+                <div class="container ts-admin-body ts-scroll-parent">
+                    {{> yield}}
+                </div>
             </div>
         </div>
+    </div>
+</template>
+
+<template name="tsAdminNav">
+    <div class="ts-admin-sidebar affix well">
+        <ul class="nav nav-stacked">
+            <li>
+                <a href="{{pathFor 'overview'}}">Overview</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'mturk'}}">MTurk</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'hits'}}">HITs</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'workers'}}">Workers</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'connections'}}">Connections</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'activeAssignments'}}">Assignments - Active</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'completedAssignments'}}">Assignments - Completed</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'lobby'}}">Lobby</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'experiments'}}">Experiments</a>
+            </li>
+            <li>
+                <a href="{{pathFor 'manage'}}">Manage</a>
+            </li>
+        </ul>
+
+        <form class="form-inline">
+            {{> tsBatchSelector}}
+        </form>
+
+        {{> loginButtons}}
     </div>
 </template>
 

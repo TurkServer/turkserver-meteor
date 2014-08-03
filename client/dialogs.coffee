@@ -25,6 +25,17 @@ Meteor.startup ->
               Please check your Internet connection.</h3>"""
       return
 
+TurkServer._displayModal = (materializedTemplate, options) ->
+  # minimum options to get message to show
+  options ?= { message: " " }
+  dialog = bootbox.dialog(options)
+  # Take out the thing that bootbox rendered
+  dialog.find(".bootbox-body").remove()
+
+  # Since bootbox/bootstrap uses jQuery, this should clean up itself
+  UI.insert(materializedTemplate, dialog.find(".modal-body")[0])
+  return dialog
+
 TurkServer.ensureUsername = ->
   ###
     Capture username after logging in

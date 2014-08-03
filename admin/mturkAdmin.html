@@ -359,17 +359,6 @@
     </div>
 </template>
 
-<template name="tsAdminAssignments">
-    {{#tsBatchMessage}}
-        Viewing assignments created in batch <b>{{name}}</b>.
-    {{/tsBatchMessage}}
-
-    {{> tsAdminAssignmentMaintenance }}
-
-    {{> tsAdminActiveAssignments}}
-    {{> tsAdminCompletedAssignments}}
-</template>
-
 <template name="tsAdminAssignmentMaintenance">
     <div class="row">
         <div class="well span12">
@@ -380,7 +369,12 @@
 </template>
 
 <template name="tsAdminActiveAssignments">
-    <h3>Active Assignments</h3>
+    {{#tsBatchMessage}}
+    Viewing active assignments in batch <b>{{name}}</b>.
+    {{/tsBatchMessage}}
+
+    {{> tsAdminAssignmentMaintenance }}
+
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
@@ -408,7 +402,10 @@
 </template>
 
 <template name="tsAdminCompletedAssignments">
-    <h3>Completed Assignments</h3>
+    {{#tsBatchMessage}}
+    Viewing completed assignments in batch <b>{{name}}</b>.
+    {{/tsBatchMessage}}
+
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
