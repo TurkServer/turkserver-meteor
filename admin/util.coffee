@@ -46,25 +46,31 @@ Template.tsAdminInstance.rendered = ->
 
 Template.tsAdminInstance.instance = -> Experiments.findOne(@+"")
 
-Template.tsUserPill.user = ->
-  switch
-    when @userId then Meteor.users.findOne(@userId)
-    when @workerId then Meteor.users.findOne(workerId: @workerId)
-    else @ # Object was already passed in
-
-Template.tsUserPill.labelClass = ->
+userLabelClass = ->
   switch
     when @status?.idle then "label-warning"
     when @status?.online then "label-success"
     else "label-default"
 
-Template.tsUserPill.identifier = ->
+userIdentifier = ->
   if @username
     @username
   else if @workerId
     "(" + @workerId + ")"
   else
     "(" + @_id + ")"
+
+Template.tsAdminWorkerItem.labelClass = userLabelClass
+Template.tsAdminWorkerItem.identifier = userIdentifier
+
+Template.tsUserPill.user = ->
+  switch
+    when @userId then Meteor.users.findOne(@userId)
+    when @workerId then Meteor.users.findOne(workerId: @workerId)
+    else @ # Object was already passed in
+
+Template.tsUserPill.labelClass = userLabelClass
+Template.tsUserPill.identifier = userIdentifier
 
 Template.tsDescList.properties = ->
   result = []

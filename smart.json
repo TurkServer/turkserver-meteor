@@ -11,6 +11,7 @@
         "x-editable-bootstrap": "1.5.1",
         "iron-router": {},
         "moment": {},
+        "autocomplete": {},
         "collection-hooks": {},
         "partitioner": {},
         "user-status": {}

@@ -313,9 +313,27 @@
 </template>
 
 <template name="tsAdminWorkers">
-    {{> tsAdminPanel}}
+    <form class="form-inline">
+        <h3>Search Workers:</h3>
+        {{> inputAutocomplete settings=settings class="form-control" placeholder="Enter WorkerId..."}}
+    </form>
 
-    {{> tsAdminEmail}}
+    {{#if workerId}}
+    <p>Found worker: {{> tsUserPill workerId=workerId}}</p>
+
+    <h3>Panel Status</h3>
+
+    {{> tsDescList workerData}}
+
+    <h3>Active/Returned Assignments</h3>
+
+    {{> tsAdminActiveAssignmentsTable cursor=workerActiveAssts }}
+
+    <h3>Completed Assignments</h3>
+
+    {{> tsAdminCompletedAssignmentsTable cursor=workerCompletedAssts }}
+
+    {{/if}}
 </template>
 
 <template name="tsAdminPanel">
@@ -326,6 +344,8 @@
     <svg width="100%" height="300">
 
     </svg>
+
+    {{> tsAdminEmail}}
 </template>
 
 <template name="tsAdminEmail">
@@ -377,30 +397,7 @@
 
     <p><b>{{numAssignments}} active assignments.</b></p>
 
-    <table class="table table-condensed table-striped ts-admin-table">
-        <thead>
-        <tr>
-            <th style="width: 100px">Worker ID</th>
-            <th style="width: 90px">Experiment Instances</th>
-            <th style="width: 90px">IP Address</th>
-            <th style="width: 170px">Acceptance Time</th>
-        </tr>
-        </thead>
-        <tbody>
-        {{#each activeAssts}}
-        <tr>
-            <td>{{> tsUserPill workerId=workerId }}</td>
-            <td>
-                {{#each instances}}
-                {{> tsAdminAssignmentInstance }}
-                {{/each}}
-            </td>
-            <td>{{ipAddr}}</td>
-            <td>{{_tsRenderTime acceptTime}}</td>
-        </tr>
-        {{/each}}
-        </tbody>
-    </table>
+    {{> tsAdminActiveAssignmentsTable cursor=activeAssts }}
 </template>
 
 <template name="tsAdminCompletedAssignments">
@@ -418,6 +415,39 @@
         <b>{{numAssignments}} assignments found.</b>
     </form>
 
+    {{> tsAdminCompletedAssignmentsTable cursor=completedAssts }}
+</template>
+
+<template name="tsAdminActiveAssignmentsTable">
+    <table class="table table-condensed table-striped ts-admin-table">
+        <thead>
+        <tr>
+            <th style="width: 100px">Worker ID</th>
+            <th style="width: 90px">Experiment Instances</th>
+            <th style="width: 90px">IP Address</th>
+            <th style="width: 170px">Acceptance Time</th>
+            <th style="width: 100px">Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each cursor}}
+        <tr>
+            <td>{{> tsUserPill workerId=workerId }}</td>
+            <td>
+                {{#each instances}}
+                {{> tsAdminAssignmentInstance }}
+                {{/each}}
+            </td>
+            <td>{{ipAddr}}</td>
+            <td>{{_tsRenderTime acceptTime}}</td>
+            <td>{{status}}</td>
+        </tr>
+        {{/each}}
+        </tbody>
+    </table>
+</template>
+
+<template name="tsAdminCompletedAssignmentsTable">
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
         <tr>
@@ -426,8 +456,8 @@
         </tr>
         </thead>
         <tbody>
-        {{#each completedAssts}}
-        {{> tsAdminCompletedAssignmentRow}}
+        {{#each cursor}}
+        {{> tsAdminCompletedAssignmentRow }}
         {{/each}}
         </tbody>
     </table>

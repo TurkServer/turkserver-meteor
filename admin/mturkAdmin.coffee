@@ -179,6 +179,38 @@ Template.tsAdminNewHit.events =
 
 Template.tsAdminNewHit.hitTypes = hitTypes
 
+Template.tsAdminWorkers.settings = {
+  position: "bottom",
+  limit: 5,
+  rules: [
+    {
+      collection: Meteor.users,
+      field: "workerId",
+      template: Template.tsAdminWorkerItem
+      callback: (user) ->
+        Router.go("workers", {workerId: user.workerId}) if user.workerId?
+    }
+  ]
+}
+
+Template.tsAdminWorkers.workerData = -> Workers.findOne(@workerId)
+
+Template.tsAdminWorkers.workerActiveAssts = ->
+  Assignments.find({
+    workerId: @workerId,
+    status: { $ne: "completed" }
+  }, {
+    sort: acceptTime: -1
+  })
+
+Template.tsAdminWorkers.workerCompletedAssts = ->
+  Assignments.find({
+    workerId: @workerId,
+    status: "completed"
+  }, {
+    sort: submitTime: -1
+  })
+
 Template.tsAdminPanel.rendered = ->
   svg = d3.select(@find("svg"))
   $svg = @$("svg")

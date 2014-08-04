@@ -39,10 +39,21 @@ Router.map ->
     path: "turkserver/hits",
     controller: TSAdminController
     template: "tsAdminHits"
+  # No sub needed - done with autocomplete
   @route "workers",
-    path: "turkserver/workers",
+    path: "turkserver/workers/:workerId?",
     controller: TSAdminController
     template: "tsAdminWorkers"
+    waitOn: ->
+      return unless (workerId = this.params.workerId)?
+      Meteor.subscribe("tsAdminWorkerData", workerId)
+    data: ->
+      workerId: this.params.workerId
+
+  @route "panel",
+    path: "turkserver/panel",
+    controller: TSAdminController
+    template: "tsAdminPanel"
     waitOn: -> Meteor.subscribe("tsAdminWorkers")
 
   @route "activeAssignments",

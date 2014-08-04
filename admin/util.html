@@ -61,6 +61,11 @@
     </div>
 </template>
 
+<!-- Template for displaying a worker in a dropdown list -->
+<template name="tsAdminWorkerItem">
+    {{workerId}} <span class="label {{labelClass}}">{{identifier}}</span>
+</template>
+
 <template name="tsUserPill">
     {{#with user}}
     <div class="ts-user-pill-container">

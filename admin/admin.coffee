@@ -60,6 +60,17 @@ getDateFloor = (date, days) ->
   closestDay = timestamp - (timestamp % (24 * 3600 * 1000))
   return new Date(closestDay + days * 24 * 3600 * 1000)
 
+# Data for a single worker
+Meteor.publish "tsAdminWorkerData", (workerId) ->
+  return [] unless isAdmin(@userId)
+  check(workerId, String)
+
+  # TODO also return users here if they are not all published
+  return [
+    Workers.find(workerId),
+    Assignments.find({workerId})
+  ]
+
 Meteor.publish "tsAdminWorkers", ->
   return [] unless isAdmin(@userId)
   return Workers.find()
