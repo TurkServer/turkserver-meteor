@@ -6,6 +6,7 @@ withCleanup = TestUtils.getCleanupWrapper
     batchId = Batches.insert({})
     batch = TurkServer.Batch.getBatch(batchId)
   after: ->
+    Experiments.remove { batchId: batch.batchId }
     Assignments.remove { batchId: batch.batchId }
 
 tutorialTreatments = [ "tutorial" ]
@@ -120,7 +121,129 @@ Tinytest.add "assigners - tutorialGroup - final send to exit survey", withCleanu
   test.equal user.turkserver.state, "exitsurvey"
   test.length instances, 2
 
+###
+  Multi-group assigner
+###
 
+TurkServer.ensureTreatmentExists
+  name: "tutorial"
 
+TurkServer.ensureTreatmentExists
+  name: "parallel_worlds"
 
+groupConfigMulti = TurkServer.Assigners.TutorialMultiGroupAssigner.generateConfig([
+  1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1
+], [ "parallel_worlds" ])
 
+Tinytest.add "assigners - tutorialMultiGroup - initial lobby gets tutorial", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
+    tutorialTreatments, groupConfigMulti)
+  batch.setAssigner(assigner)
+
+  asst = createAssignment()
+  TestUtils.connCallbacks.sessionReconnect {userId: asst.userId}
+
+  TestUtils.sleep(150) # YES!!
+
+  user = Meteor.users.findOne(asst.userId)
+  instances = asst.getInstances()
+
+  # should be in experiment
+  test.equal user.turkserver.state, "experiment"
+  test.length instances, 1
+  # should not be in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
+  # should be in a tutorial
+  exp = Experiments.findOne(instances[0].id)
+  test.equal exp.treatments, tutorialTreatments
+
+Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
+    tutorialTreatments, groupConfigMulti)
+
+  # Say we are in the middle of the group of 32: index 10
+  for conf, i in groupConfigMulti
+    break if i == 10
+
+    instance = batch.createInstance(conf.treatments)
+    instance.setup()
+    ( instance.addAssignment(createAssignment()) for j in [1..conf.size] )
+
+  conf = groupConfigMulti[10]
+  instance = batch.createInstance(conf.treatments)
+  instance.setup()
+  ( instance.addAssignment(createAssignment()) for j in [1..(conf.size/2)] )
+
+  batch.setAssigner(assigner)
+
+  test.equal assigner.currentGroup, 10
+  test.equal assigner.currentInstance, instance
+  test.equal assigner.currentFilled, 16
+
+Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
+    tutorialTreatments, groupConfigMulti)
+  batch.setAssigner(assigner)
+
+  asst = createAssignment()
+  # Pretend we already have two instances done
+  Assignments.update asst.asstId,
+    $push: {
+      instances: {
+        $each: [
+          { id: Random.id() },
+          { id: Random.id() }
+        ]
+      }
+    }
+
+  TestUtils.connCallbacks.sessionReconnect({userId: asst.userId})
+
+  TestUtils.sleep(100)
+
+  user = Meteor.users.findOne(asst.userId)
+  instances = asst.getInstances()
+
+  test.equal user.turkserver.state, "exitsurvey"
+  test.length instances, 2
+
+Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
+    tutorialTreatments, groupConfigMulti)
+  batch.setAssigner(assigner)
+
+  assts = (createAssignment() for i in [1..128])
+
+  # Pretend they have all done the tutorial
+  for asst in assts
+    Assignments.update asst.asstId,
+      $push: { instances: { id: Random.id() } }
+
+  # Make them all join simultaneously - lobby join is deferred
+  (TestUtils.connCallbacks.sessionReconnect({userId: asst.userId}) for asst in assts)
+
+  TestUtils.sleep(500) # Give enough time for everything to assign
+
+  exps = Experiments.find({batchId: batch.batchId}, {sort: {startTime: 1}}).fetch()
+
+  # Check that the groups have the right size and treatments
+  i = 0
+  while i < groupConfigMulti.length
+    group = groupConfigMulti[i]
+    exp = exps[i]
+
+    test.equal(exp.treatments[0], group.treatments[0])
+    test.equal(exp.treatments[1], group.treatments[1])
+
+    if group.size
+      test.equal(exp.users.length, group.size)
+    else # absorbing group
+      test.equal(exp.users.length, 16)
+    i++
+
+  # Test resetting
+  batch.lobby.events.emit("reset-multi-groups")
+
+  test.equal assigner.currentGroup, -1
+  test.equal assigner.currentInstance, null
+  test.equal assigner.currentFilled, 0
