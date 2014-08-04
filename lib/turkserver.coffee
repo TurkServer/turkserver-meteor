@@ -261,3 +261,23 @@ Meteor.startup ->
 
   console.log "#{prefix} #{hitTypeIdUpdates} mistaken HitType fields nulled out" if hitTypeIdUpdates > 0
 
+  # 8/4/14 - update worker schema
+  workerPanelUpdates = 0
+  Workers.find(times: $exists: true).forEach (worker) ->
+    workerPanelUpdates++
+
+    # Find first completed assignment for this worker.
+    # TODO hack that works for crisis mapping, but maybe not other situations.
+    earliestCompletedAsst = Assignments.findOne({
+      workerId: worker._id,
+      submitTime: $exists: true
+    }, { sort: submitTime: 1 })
+
+    Workers.update worker._id,
+      $set:
+        available:
+          times: worker.times
+          updated: new Date(earliestCompletedAsst.submitTime) # may be a timestamp
+      $unset: times: null
+
+  console.log "#{prefix} #{workerPanelUpdates} worker panel schemas updated" if workerPanelUpdates > 0

@@ -286,8 +286,8 @@ Template.tsAdminPanel.rendered = ->
   @handle = Workers.find().observeChanges
     added: (id, fields) ->
       # Only use data from workers who agreed to be contacted
-      return unless fields.contact and fields.times?
-      for time in fields.times
+      return unless fields.contact and fields.available?
+      for time in fields.available.times
         # normalize into buckets
         continue unless time # Ignore invalid (empty) entries
         data[time] ?= 0

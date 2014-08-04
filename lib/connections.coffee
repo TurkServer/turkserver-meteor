@@ -538,8 +538,16 @@ Meteor.methods
     asst.setCompleted(doc)
 
     # Update worker contact info
+    # TODO update API for writing panel data.
     # TODO don't overwrite panel data if we don't need to.
-    asst.setWorkerData(panel) if panel?
+    if panel?
+      asst.setWorkerData {
+        contact: panel.contact
+        available: {
+          times: panel.times
+          updated: new Date
+        }
+      }
 
     # Destroy the token for this connection, so that a resume login will not
     # be used for future HITs. Returning true should cause the HIT to submit on
