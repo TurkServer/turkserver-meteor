@@ -352,31 +352,91 @@
     <h3>E-mail workers</h3>
 
     <div class="row">
-        <div class="col-md-6 well">
-            <form>
-                <div class="form-group">
-                    <label>Subject:</label>
-                    <input class="form-control" name="subject" type="text" required>
-                </div>
-                <div class="form-group">
-                    <label>Message:</label>
-                    <textarea class="form-control" name="message" required></textarea>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="selection" value="all" checked>All Panel Workers
-                    </label>
-                </div>
-                <div class="radio">
-                    <label>
-                        <input type="radio" name="selection" value="qual">Workers with qualification:
-                    </label>
-                    <input class="form-control" style="width: 200px; display: inline-block" type="text" name="qualification">
-                </div>
-                <button class="btn btn-primary" type="submit">Notify Workers</button>
-            </form>
+        <div class="col-md-6">
+            <table class="table table-condensed table-striped ts-admin-table">
+                <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Recipients</th>
+                    <th>Sent</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#each messages}}
+                <tr>
+                    <td>{{subject}}</td>
+                    <td>{{recipients.length}}</td>
+                    <td>{{#with sentTime}}
+                        {{_tsRenderTime this}}
+                        {{else}}
+                        <i>not sent</i>
+                        {{/with}}
+                    </td>
+                </tr>
+                {{/each}}
+                </tbody>
+            </table>
         </div>
+        {{> tsAdminEmailMessage }}
     </div>
+</template>
+
+<template name="tsAdminEmailMessage">
+    <div class="col-md-6 well">
+        {{#with selectedMessage}}
+
+        <p class="text-muted">Message {{_id}}</p>
+        <dl>
+            <dt>Subject</dt>
+            <dd>{{subject}}</dd>
+            <dt>Message</dt>
+            <dd>{{{_tsnl2br message}}}</dd>
+            <dt>Recipients</dt>
+            <dd>{{recipients.length}}</dd>
+        </dl>
+        <button class="btn btn-primary ts-admin-send-message">Send</button>
+
+        {{#unless sentTime}}
+        <button class="btn btn-danger ts-admin-delete-message">Delete</button>
+        {{else}}
+        <button class="btn btn-warning ts-admin-resend-message">Resend</button>
+        {{/unless}}
+
+        {{else}}
+        {{> tsAdminNewEmail}}
+        {{/with}}
+    </div>
+</template>
+
+<template name="tsAdminNewEmail">
+    <form class="ts-admin-new-message">
+        <div class="form-group">
+            <label>Subject:</label>
+            <input class="form-control" name="subject" type="text" required>
+        </div>
+        <div class="form-group">
+            <label>Message:</label>
+            <textarea class="form-control" name="message" rows="10" required></textarea>
+        </div>
+        <fieldset>Recipients</fieldset>
+        <div class="radio">
+            <label>
+                <input type="radio" name="recipients" value="" checked>Add later
+            </label>
+        </div>
+        <div class="radio">
+            <label>
+                <input type="radio" name="recipients" value="copy">Copy from:
+            </label>
+            <select class="form-control inline width-long" name="copyFrom">
+                <option value="" disabled selected>Select e-mail...</option>
+                {{#each messages}}
+                <option value="{{_id}}">{{subject}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Create Message</button>
+    </form>
 </template>
 
 <template name="tsAdminAssignmentMaintenance">

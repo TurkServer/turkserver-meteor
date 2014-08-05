@@ -161,24 +161,27 @@ Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanu
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
     tutorialTreatments, groupConfigMulti)
 
+  borkedGroup = 10
+  filledAmount = 16
+
   # Say we are in the middle of the group of 32: index 10
   for conf, i in groupConfigMulti
-    break if i == 10
+    break if i == borkedGroup
 
     instance = batch.createInstance(conf.treatments)
     instance.setup()
     ( instance.addAssignment(createAssignment()) for j in [1..conf.size] )
 
-  conf = groupConfigMulti[10]
+  conf = groupConfigMulti[borkedGroup]
   instance = batch.createInstance(conf.treatments)
   instance.setup()
-  ( instance.addAssignment(createAssignment()) for j in [1..(conf.size/2)] )
+  ( instance.addAssignment(createAssignment()) for j in [1..filledAmount] )
 
   batch.setAssigner(assigner)
 
-  test.equal assigner.currentGroup, 10
+  test.equal assigner.currentGroup, borkedGroup
   test.equal assigner.currentInstance, instance
-  test.equal assigner.currentFilled, 16
+  test.equal assigner.currentFilled, filledAmount
 
 Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup (test) ->
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
@@ -220,9 +223,11 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
       $push: { instances: { id: Random.id() } }
 
   # Make them all join simultaneously - lobby join is deferred
-  (TestUtils.connCallbacks.sessionReconnect({userId: asst.userId}) for asst in assts)
+  for asst in assts
+    # TODO some sort of weirdness (write fence?) prevents us from deferring these
+    TestUtils.connCallbacks.sessionReconnect({userId: asst.userId})
 
-  TestUtils.sleep(500) # Give enough time for everything to assign
+  TestUtils.sleep(500) # Give enough time for lobby functions to process
 
   exps = Experiments.find({batchId: batch.batchId}, {sort: {startTime: 1}}).fetch()
 
@@ -240,6 +245,8 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
     else # absorbing group
       test.equal(exp.users.length, 16)
     i++
+
+  test.length exps, groupConfigMulti.length
 
   # Test resetting
   batch.lobby.events.emit("reset-multi-groups")

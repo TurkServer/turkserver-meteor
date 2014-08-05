@@ -166,13 +166,15 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
 
     for exp, i in existing
       count = exp.users?.length || 0
-      if count is @groupConfig[i].size
+      target = @groupConfig[i].size
+      if count is target
         continue
-      else if count > @groupConfig[i].size
+      else if count > target
         throw new Error("Unable to match with existing groups")
       else if i isnt existing.length - 1 # This better be the last one
         throw new Error("Unable to match with existing groups")
       else
+        Meteor._debug "Initializing multi-group assigner to group #{i} (#{count}/#{target})"
         @currentGroup = i
         @currentFilled = count
         @currentInstance = TurkServer.Instance.getInstance(exp._id)
@@ -186,7 +188,7 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
       @currentFilled = 0
 
   userJoined: (asst) ->
-    # TODO if users join way after we assigned, it is probably time to start a new set. For now we accomplish that by restarting the server.
+    # TODO if users join way after we assigned, it is probably time to start a new set. For now we accomplish that by restarting the server or hitting the reset above.
     instances = asst.getInstances()
     if instances.length is 0
       @lobby.pluckUsers( [asst.userId] )
@@ -197,6 +199,10 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
     else
       @assignNext( asst )
 
+  ###
+    TODO: not sure if all the race condition guards below are necessary.
+    Taking them out seems to have no effect on the test.
+  ###
   assignNext: (asst) ->
     # It's imperative we do not do any yielding operations while updating counters
     if not @currentInstance? or @currentFilled is @groupConfig[@currentGroup].size

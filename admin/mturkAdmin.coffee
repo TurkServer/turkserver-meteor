@@ -302,7 +302,38 @@ Template.tsAdminPanel.destroyed = ->
 Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
 Template.tsAdminPanel.workerTotal = -> Workers.find().count()
 
+Template.tsAdminEmail.messages = -> WorkerEmails.find({}, {sort: {sentTime: -1}})
+
 Template.tsAdminEmail.events
+  "click tr": -> Session.set("_tsSelectedEmailId", @_id)
+
+Template.tsAdminEmailMessage.selectedMessage = ->
+  emailId = Session.get("_tsSelectedEmailId")
+  return WorkerEmails.findOne(emailId) if emailId?
+
+Template.tsAdminEmailMessage.events
+  "click .ts-admin-send-message": ->
+    Meteor.call "ts-admin-send-message", @_id, (err, res) ->
+      if err?
+        bootbox.alert(err)
+      else
+        bootbox.alert("#{res} workers notified!")
+
+  "click .ts-admin-resend-message": ->
+    Meteor.call "ts-admin-resend-message", @_id, (err) ->
+      bootbox.alert(err) if err?
+
+  "click .ts-admin-delete-message": ->
+    Meteor.call "ts-admin-delete-message", @_id, (err) ->
+      bootbox.alert(err) if err?
+
+Template.tsAdminNewEmail.messages = ->
+  WorkerEmails.find({}, {
+    fields: {subject: 1},
+    sort: {sentTime: -1}
+  })
+
+Template.tsAdminNewEmail.events
   "submit form": (e, t) ->
     e.preventDefault()
     $sub = t.$("input[name=subject]")
@@ -311,17 +342,18 @@ Template.tsAdminEmail.events
     subject = $sub.val()
     message = $msg.val()
 
-    selector = { contact: true }
-    if t.$("input[name=selection]:checked").val() is "qual"
-      $.extend(selector, {"quals.id": t.$("input[name=qualification]").val() } )
+    if t.$("input[name=recipients]:checked").val() is "copy"
+      copyFromId = t.$("select[name=copyFrom]").val()
+      unless copyFromId?
+        bootbox.alert("Select an e-mail to copy recipients from")
+        return
 
-    Meteor.call "ts-admin-notify-workers", subject, message, selector, (err, res) ->
+    Meteor.call "ts-admin-create-message", subject, message, copyFromId, (err, res) ->
       if err?
         bootbox.alert(err)
       else
-        bootbox.alert(res + " workers notified!")
-        $sub.val('')
-        $msg.val('')
+        # Display the new message
+        Session.set("_tsSelectedEmailId", res)
 
 Template.tsAdminAssignmentMaintenance.events
   "click .-ts-cancel-assignments": ->

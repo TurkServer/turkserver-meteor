@@ -30,6 +30,8 @@ UI.registerHelper "_tsRenderISOTime", (isoString) ->
 # https://github.com/kvz/phpjs/blob/master/functions/strings/nl2br.js
 nl2br = (str) -> (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2')
 
+UI.registerHelper "_tsnl2br", nl2br
+
 Template.tsBatchSelector.events =
   "change select": (e) ->
     unless Session.equals("_tsViewingBatchId", e.target.value)

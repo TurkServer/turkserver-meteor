@@ -38,6 +38,7 @@ Experiments._ensureIndex({
   Workers
   Assignments
 
+  WorkerEmails
   Qualifications
   HITTypes
   HITs
@@ -46,6 +47,7 @@ Experiments._ensureIndex({
 Workers.allow(adminOnly)
 Assignments.deny(always)
 
+WorkerEmails.allow(adminOnly)
 Qualifications.allow(adminOnly)
 HITTypes.allow(adminOnly)
 HITs.allow(adminOnly)

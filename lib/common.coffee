@@ -22,6 +22,7 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 @Workers = new Meteor.Collection("ts.workers")
 @Assignments = new Meteor.Collection("ts.assignments")
 
+@WorkerEmails = new Meteor.Collection("ts.workeremails")
 @Qualifications = new Meteor.Collection("ts.qualifications")
 @HITTypes = new Meteor.Collection("ts.hittypes")
 @HITs = new Meteor.Collection("ts.hits")

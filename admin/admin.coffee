@@ -73,7 +73,10 @@ Meteor.publish "tsAdminWorkerData", (workerId) ->
 
 Meteor.publish "tsAdminWorkers", ->
   return [] unless isAdmin(@userId)
-  return Workers.find()
+  return [
+    Workers.find(),
+    WorkerEmails.find()
+  ]
 
 Meteor.publish "tsAdminActiveAssignments", (batchId) ->
   return [] unless isAdmin(@userId)
@@ -300,22 +303,40 @@ Meteor.methods
     emitter.emit.apply(emitter, Array::slice.call(arguments, 1)) # Event and any other arguments
     return
 
-  "ts-admin-notify-workers": (subject, message, selector) ->
+  "ts-admin-create-message": (subject, message, copyFromId) ->
     TurkServer.checkAdmin()
     check(subject, String)
     check(message, String)
 
-    workers = Workers.find(selector).map((w) -> w._id)
-    return 0 unless workers.length > 0
+    if copyFromId?
+      recipients = WorkerEmails.findOne(copyFromId)?.recipients
+
+    recipients ?= []
+
+    return WorkerEmails.insert({ subject, message, recipients })
+
+  "ts-admin-send-message": (emailId) ->
+    TurkServer.checkAdmin()
+    check(emailId, String)
+
+    email = WorkerEmails.findOne(emailId)
+    recipients = email.recipients
+
+    check(email.subject, String)
+    check(email.message, String)
+    check(recipients, Array)
+
+    throw new Error(403, "No recipients on e-mail") if recipients.length is 0
+
     count = 0
 
-    while workers.length > 0
+    while recipients.length > 0
       # Notify workers 50 at a time
-      chunk = workers.splice(0, 50)
+      chunk = recipients.splice(0, 50)
 
       params =
-        Subject: subject
-        MessageText: message
+        Subject: email.subject
+        MessageText: email.message
         WorkerId: chunk
 
       try
@@ -326,7 +347,33 @@ Meteor.methods
       count += chunk.length
       Meteor._debug(count + " workers notified")
 
+      # Record which workers got the e-mail in case something breaks
+      Workers.update({_id: $in: chunk}, {
+        $push: {emailsReceived: emailId}
+      }, {multi: true})
+
+    # Record date that this was sent
+    WorkerEmails.update emailId,
+      $set: sentTime: new Date
+
     return count
+
+  # TODO implement this
+  "ts-admin-resend-message": (emailId) ->
+    TurkServer.checkAdmin()
+    check(emailId, String)
+
+    throw new Meteor.Error(500, "Not implemented")
+
+  "ts-admin-delete-message": (emailId) ->
+    TurkServer.checkAdmin()
+    check(emailId, String)
+
+    email = WorkerEmails.findOne(emailId)
+    throw new Meteor.Error(403, "Email has already been sent") if email.sentTime
+
+    WorkerEmails.remove(emailId)
+    return
 
   "ts-admin-cleanup-user-state": ->
     # Find all users that are state: experiment but don't have an active assignment
