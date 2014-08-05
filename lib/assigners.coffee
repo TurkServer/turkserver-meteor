@@ -159,6 +159,7 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
 
     existing = Experiments.find({
       batchId: @batch.batchId
+      treatments: $nin: @tutorialTreatments
       startTime: { $gte: new Date(Date.now() - 12 * 3600 * 1000) }
     }, {
       sort: startTime: 1
@@ -168,21 +169,28 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
       count = exp.users?.length || 0
       target = @groupConfig[i].size
       if count is target
-        continue
+        console.log "Group of size #{target} already filled in #{exp._id}"
+        @currentGroup = i
+        @currentFilled = count
+        @currentInstance = TurkServer.Instance.getInstance(exp._id)
       else if count > target
         throw new Error("Unable to match with existing groups")
       else if i isnt existing.length - 1 # This better be the last one
         throw new Error("Unable to match with existing groups")
       else
-        Meteor._debug "Initializing multi-group assigner to group #{i} (#{count}/#{target})"
         @currentGroup = i
         @currentFilled = count
         @currentInstance = TurkServer.Instance.getInstance(exp._id)
         break # We set the counter to the last assigned group.
 
+    if @currentGroup >= 0
+      target = @groupConfig[@currentGroup].size
+      console.log "Initializing multi-group assigner to group #{@currentGroup} (#{@currentFilled}/#{target})"
+
     # Provide a quick way to re-set the assignment for multi-groups
     @lobby.events.on "reset-multi-groups", =>
       console.log "Resetting multi-group assigner"
+      @stopped = false
       @currentInstance = null
       @currentGroup = -1
       @currentFilled = 0
@@ -204,6 +212,13 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
     Taking them out seems to have no effect on the test.
   ###
   assignNext: (asst) ->
+    # Check if the last group has already been stopped.
+    if @currentGroup is @groupConfig.length - 1 and Experiments.findOne(@currentInstance.groupId)?.endTime
+      @stopped = true
+      console.log "Stopping automatic multi-group assignment"
+
+    return if @stopped # Don't assign if experiments are done
+
     # It's imperative we do not do any yielding operations while updating counters
     if not @currentInstance? or @currentFilled is @groupConfig[@currentGroup].size
       # Move on and create new group

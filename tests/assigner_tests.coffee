@@ -170,7 +170,17 @@ Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanu
 
     instance = batch.createInstance(conf.treatments)
     instance.setup()
-    ( instance.addAssignment(createAssignment()) for j in [1..conf.size] )
+
+    for j in [1..conf.size]
+      asst = createAssignment()
+
+      # Pretend like this instance did the tutorial
+      tutorialInstance = batch.createInstance(tutorialTreatments)
+      tutorialInstance.setup()
+      tutorialInstance.addAssignment(asst)
+      tutorialInstance.teardown()
+
+      instance.addAssignment(asst)
 
   conf = groupConfigMulti[borkedGroup]
   instance = batch.createInstance(conf.treatments)
@@ -182,6 +192,36 @@ Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanu
   test.equal assigner.currentGroup, borkedGroup
   test.equal assigner.currentInstance, instance
   test.equal assigner.currentFilled, filledAmount
+
+Tinytest.add "assigners - tutorialMultiGroup - resumes on group boundary", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
+    tutorialTreatments, groupConfigMulti)
+
+  borkedGroup = 2
+
+  # Say we are in the middle of the group of 32: index 10
+  for conf, i in groupConfigMulti
+    break if i == borkedGroup
+
+    instance = batch.createInstance(conf.treatments)
+    instance.setup()
+
+    for j in [1..conf.size]
+      asst = createAssignment()
+
+      # Pretend like this instance did the tutorial
+      tutorialInstance = batch.createInstance(tutorialTreatments)
+      tutorialInstance.setup()
+      tutorialInstance.addAssignment(asst)
+      tutorialInstance.teardown()
+
+      instance.addAssignment(asst)
+
+  batch.setAssigner(assigner)
+
+  test.equal assigner.currentGroup, borkedGroup - 1
+  test.equal assigner.currentInstance, instance
+  test.equal assigner.currentFilled, groupConfigMulti[borkedGroup - 1].size
 
 Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup (test) ->
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
@@ -248,9 +288,35 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
 
   test.length exps, groupConfigMulti.length
 
-  # Test resetting
+  # Test auto-stopping
+  lastInstance = TurkServer.Instance.getInstance(exps[exps.length - 1]._id)
+  lastInstance.teardown()
+
+  slackerAsst = createAssignment()
+
+  Assignments.update slackerAsst.asstId,
+    $push: { instances: { id: Random.id() } }
+
+  TestUtils.connCallbacks.sessionReconnect({userId: slackerAsst.userId})
+
+  TestUtils.sleep(150)
+
+  # assigner should have stopped
+  test.equal assigner.stopped, true
+
+  # ensure that user is still in lobby
+  user = Meteor.users.findOne(slackerAsst.userId)
+  instances = slackerAsst.getInstances()
+
+  # should still be in lobby
+  test.equal user.turkserver.state, "lobby"
+  test.length instances, 1
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 1
+
+  # Test resetting, if we launch new set a different day
   batch.lobby.events.emit("reset-multi-groups")
 
+  test.equal assigner.stopped, false
   test.equal assigner.currentGroup, -1
   test.equal assigner.currentInstance, null
   test.equal assigner.currentFilled, 0

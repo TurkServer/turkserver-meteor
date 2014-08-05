@@ -116,7 +116,8 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
     # compute new domains
     minStart = d3.min(exps, (e) -> e.startTime) || new Date
-    maxEnd = d3.max(exps, (e) -> e.endTime) || new Date
+    # a running experiment hasn't ended yet :)
+    maxEnd = d3.max(exps, (e) -> e.endTime || new Date)
 
     # TODO don't update x domain in response to changing data after first render
     # However, we cannot use Deps.currentComputation.firstRun here as data may not
