@@ -21,10 +21,6 @@ Template.tsAdminExperiments.events
       Router.go(currentRoute.path)
       bootbox.alert(err.reason)
 
-  "click .-ts-experiment-logs": ->
-    groupId = @_id
-    Router.go("/turkserver/logs/#{groupId}/100")
-
   "click .-ts-stop-experiment": ->
     expId = @_id
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
@@ -158,8 +154,19 @@ Template.tsAdminCompletedExperiments.duration = ->
 
 Template.tsAdminCompletedExperiments.numUsers = numUsers
 
+Template.tsAdminLogs.experiment = -> Experiments.findOne(@instance)
 Template.tsAdminLogs.logEntries = -> Logs.find({}, {sort: _timestamp: -1})
 Template.tsAdminLogs.entryData = -> _.omit(@, "_id", "_userId", "_groupId", "_timestamp")
+
+Template.tsAdminLogs.events
+  "submit form.ts-admin-log-filter": (e, t) ->
+    e.preventDefault()
+    count = t.find("input[name=count]").valueAsNumber
+    return unless count
+
+    Router.go "logs",
+      groupId: @instance,
+      count: count
 
 Template.tsAdminTreatments.treatments = treatments
 Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0

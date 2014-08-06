@@ -106,11 +106,15 @@ Router.map ->
       days: @params.days || TurkServer.adminSettings.defaultDaysThreshold
       limit: @params.limit || TurkServer.adminSettings.defaultLimit
 
-  @route "turkserver/logs/:groupId/:count",
+  @route "logs",
+    path: "turkserver/logs/:groupId/:count",
     controller: TSAdminController
     template: "tsAdminLogs"
     waitOn: -> Meteor.subscribe("tsGroupLogs", @params.groupId, parseInt(@params.count))
-    data: -> Experiments.findOne(@params.groupId)
+    data: ->
+      instance: @params.groupId
+      count: @params.count
+
   @route "manage",
     path: "turkserver/manage",
     controller: TSAdminController

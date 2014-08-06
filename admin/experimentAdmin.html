@@ -67,9 +67,10 @@
                 <button class="btn btn-xs btn-primary -ts-watch-experiment">
                     <span class="glyphicon glyphicon-camera"></span> Watch
                 </button>
-                <button class="btn btn-xs btn-success -ts-experiment-logs">
+                <a class="btn btn-xs btn-success"
+                   href='{{pathFor "logs" groupId=_id count=100}}'>
                     <span class="glyphicon glyphicon-list-alt"></span> Logs
-                </button>
+                </a>
                 <button class="btn btn-xs btn-danger -ts-stop-experiment">
                     <span class="glyphicon glyphicon-ban-circle"></span> Stop
                 </button>
@@ -114,9 +115,10 @@
                 <button class="btn btn-xs btn-primary -ts-watch-experiment">
                     <span class="glyphicon glyphicon-camera"></span> Watch
                 </button>
-                <button class="btn btn-xs btn-success -ts-experiment-logs">
+                <a class="btn btn-xs btn-success"
+                   href='{{pathFor "logs" groupId=_id count=100}}'>
                     <span class="glyphicon glyphicon-list-alt"></span> Logs
-                </button>
+                </a>
             </td>
         </tr>
         {{/each}}
@@ -126,11 +128,16 @@
 </template>
 
 <template name="tsAdminLogs">
-    <h3>Showing Logs For:</h3>
-
     <div class="well">
-        {{> tsAdminGroupInfo}}
+        {{> tsAdminGroupInfo experiment}}
     </div>
+
+    <form class="form-inline ts-admin-log-filter">
+        Showing up to
+        <input class="form-control" name="count" type="number" min="1" value="{{count}}">
+        log entries.
+        <button class="btn btn-primary" type="submit">Update</button>
+    </form>
 
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
@@ -150,6 +157,7 @@
         {{/each}}
         </tbody>
     </table>
+
 </template>
 
 <template name="tsAdminManage">

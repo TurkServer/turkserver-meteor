@@ -187,6 +187,12 @@ Template.tsAdminWorkers.settings = {
       collection: Meteor.users,
       field: "workerId",
       template: Template.tsAdminWorkerItem
+      # Match on workerId or username
+      selector: (match) ->
+        $or: [
+          { workerId: { $regex: "^" + match.toUpperCase() } },
+          { username: { $regex: match, $options: "i" } }
+        ]
       callback: (user) ->
         Router.go("workers", {workerId: user.workerId}) if user.workerId?
     }
