@@ -214,6 +214,23 @@ Tinytest.add "connection - pay worker bonus", withCleanup (test) ->
   test.equal asstData.bonusMessage, message
   test.instanceOf asstData.bonusPaid, Date
 
+Tinytest.add "connection - throw on set/inc payment when bonus paid", withCleanup (test) ->
+  asst = createAssignment()
+
+  Assignments.update asst.asstId,
+    $set:
+      bonusPayment: 0.01
+      bonusPaid: new Date
+      bonusMessage: "blah"
+
+  amount = 1.00
+
+  test.throws -> asst.setPayment(amount)
+  test.equal asst.getPayment(), 0.01
+
+  test.throws -> asst.addPayment(1.50)
+  test.equal asst.getPayment(), 0.01
+
 Tinytest.add "connection - throw on double payments", withCleanup (test) ->
   asst = createAssignment()
 

@@ -183,7 +183,13 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
         @currentInstance = TurkServer.Instance.getInstance(exp._id)
         break # We set the counter to the last assigned group.
 
-    if @currentGroup >= 0
+    if @currentInstance?.isEnded()
+      console.log "Most recent group is ended; resetting multi-group assigner "
+      @currentInstance = null
+      @currentGroup = -1
+      @currentFilled = 0
+
+    else if @currentGroup >= 0
       target = @groupConfig[@currentGroup].size
       console.log "Initializing multi-group assigner to group #{@currentGroup} (#{@currentFilled}/#{target})"
 

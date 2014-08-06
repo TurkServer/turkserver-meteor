@@ -88,15 +88,26 @@ class TurkServer.Assignment
   # Sets the payment amount for this assignment, replacing any existing value
   setPayment: (amount) ->
     check(amount, Number)
-    Assignments.update @asstId,
-      $set:
-        bonusPayment: amount
+    updated = Assignments.update({
+      _id: @asstId,
+      bonusPaid: null
+    }, {
+      $set: { bonusPayment: amount }
+    })
+
+    throw new Error("Cant modify bonus already paid") if updated is 0
 
   # Adds (or subtracts) an amount to the payment for this assignment
   addPayment: (amount) ->
     check(amount, Number)
-    Assignments.update @asstId,
+    updated = Assignments.update({
+      _id: @asstId,
+      bonusPaid: null
+    }, {
       $inc: bonusPayment: amount
+    })
+
+    throw new Error("Cant modify bonus already paid") if updated is 0
 
   # Get the current MTurk status for this assignment
   refreshStatus: ->

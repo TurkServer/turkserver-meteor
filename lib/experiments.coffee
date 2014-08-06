@@ -46,9 +46,7 @@ class TurkServer.Instance
 
   addAssignment: (asst) ->
     check(asst, TurkServer.Assignment)
-    if Experiments.findOne({_id: @groupId, endTime: $exists: true})?
-      throw new Error("Cannot add a user to an instance that has ended.")
-      return
+    throw new Error("Cannot add a user to an instance that has ended.") if @isEnded()
 
     # Add a user to this instance
     Partitioner.setUserGroup(asst.userId, @groupId)
@@ -77,6 +75,8 @@ class TurkServer.Instance
   getDuration: ->
     instance = Experiments.findOne(@groupId)
     return (instance.endTime || new Date) - instance.startTime
+
+  isEnded: -> Experiments.findOne({_id: @groupId, endTime: $exists: true})?
 
   # Close this instance and return people to the lobby
   teardown: ->

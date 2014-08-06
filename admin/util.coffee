@@ -40,6 +40,7 @@ Template.tsBatchSelector.events =
 Template.tsBatchSelector.batches = -> Batches.find()
 Template.tsBatchSelector.noBatchSelection = -> not Session.get("_tsViewingBatchId")
 Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
+Template.tsBatchSelector.viewingBatchId = -> Session.get("_tsViewingBatchId")
 
 Template.tsAdminInstance.rendered = ->
   # Subscribe to instance with whatever we rendered with
