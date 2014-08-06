@@ -21,7 +21,7 @@ withCleanup = TestUtils.getCleanupWrapper
 
     # Clean up emails and workers created for testing e-mails
     WorkerEmails.remove({})
-    Workers.remove({test: "email"})
+    Workers.remove({test: "admin"})
 
     TestUtils.mturkAPI.handler = null
     TurkServer.checkAdmin = _checkAdmin
@@ -92,7 +92,7 @@ Tinytest.add "admin - email - create message from existing", withCleanup (test) 
 
 Tinytest.add "admin - email - send and record message", withCleanup (test) ->
   # Create fake workers
-  workerIds = ( Workers.insert({test: "email"}) for x in [1..100] )
+  workerIds = ( Workers.insert({test: "admin"}) for x in [1..100] )
   test.equal workerIds.length, 100
 
   subject = "test sending"
@@ -126,3 +126,48 @@ Tinytest.add "admin - email - send and record message", withCleanup (test) ->
 
   # Test that sent date was recorded
   test.instanceOf WorkerEmails.findOne(emailId).sentTime, Date
+
+Tinytest.add "admin - assign worker qualification", withCleanup (test) ->
+  qual = "blahblah"
+  value = 2
+  workerId = Workers.insert({})
+
+  TestUtils.mturkAPI.handler = (op, params) ->
+    test.equal op, "AssignQualification"
+    test.equal params.QualificationTypeId, qual
+    test.equal params.WorkerId, workerId
+    test.equal params.IntegerValue, value
+    test.equal params.SendNotification, false
+
+  TurkServer.Util.assignQualification(workerId, qual, value, false)
+
+  # Check that worker has been updated
+  worker = Workers.findOne(workerId)
+  test.equal worker.quals[0].id, qual
+  test.equal worker.quals[0].value, 2
+
+Tinytest.add "admin - update worker qualification", withCleanup (test) ->
+  qual = "blahblah"
+  value = 10
+
+  workerId = Workers.insert({
+    quals: [ {
+      id: qual
+      value: 2
+    } ]
+  })
+
+  TestUtils.mturkAPI.handler = (op, params) ->
+    test.equal op, "UpdateQualificationScore"
+    test.equal params.QualificationTypeId, qual
+    test.equal params.SubjectId, workerId
+    test.equal params.IntegerValue, value
+
+  TurkServer.Util.assignQualification(workerId, qual, value, false)
+
+  # Check that worker has been updated
+  worker = Workers.findOne(workerId)
+
+  test.length worker.quals, 1
+  test.equal worker.quals[0].id, qual
+  test.equal worker.quals[0].value, value

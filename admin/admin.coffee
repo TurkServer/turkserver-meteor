@@ -376,6 +376,7 @@ Meteor.methods
     return
 
   "ts-admin-cleanup-user-state": ->
+    TurkServer.checkAdmin()
     # Find all users that are state: experiment but don't have an active assignment
     # This shouldn't have to be used in most cases
     Meteor.users.find({"turkserver.state": "experiment"}).map (user) ->

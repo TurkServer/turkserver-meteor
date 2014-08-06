@@ -22,18 +22,44 @@ TurkServer.mturk = (op, params) ->
 TurkServer.Util ?= {}
 
 # Assign a qualification and store it in the workers collection
-TurkServer.Util.assignQualification = (workerId, qualId) ->
-  TurkServer.mturk "AssignQualification",
-    WorkerId: workerId
-    QualificationTypeId: qualId
+TurkServer.Util.assignQualification = (workerId, qualId, value, notify=true) ->
+  check(workerId, String)
+  check(qualId, String)
+  check(value, Match.Integer)
 
-  # Update worker collection if succeeded (no throw)
-  Workers.update workerId,
-    $push:
-      quals: {
-        id: qualId
-        value: 1
+  # TODO make this more efficient
+  throw new Error("Unknown worker") unless Workers.findOne(workerId)?
+
+  # If worker already has this qual, update the value
+  if Workers.findOne({_id: workerId, "quals.id": qualId})?
+
+    TurkServer.mturk "UpdateQualificationScore",
+      SubjectId: workerId
+      QualificationTypeId: qualId
+      IntegerValue: value
+
+    Workers.update({
+      _id: workerId,
+      "quals.id": qualId
+    }, {
+      $set: {
+        "quals.$.value": value
       }
+    })
+  else
+    TurkServer.mturk "AssignQualification",
+      WorkerId: workerId
+      QualificationTypeId: qualId
+      IntegerValue: value
+      SendNotification: notify
+
+    # Update worker collection if succeeded (no throw)
+    Workers.update workerId,
+      $push:
+        quals: {
+          id: qualId
+          value: value
+        }
   return
 
 # Initialize some helpful qualifications
