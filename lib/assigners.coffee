@@ -122,10 +122,15 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
   Assign people to a tutorial treatment and then sequentially to different sized
   groups. Used for the crisis mapping experiment.
 
+  groupArray = e.g. [ 16, 16 ]
   groupConfig = [ { size: x, treatments: [ stuff ] }, ... ]
+
+  After the last group is filled, there is no more assignment.
 ###
 class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigner
+
   # bespoke algorithm for generating config.
+  # TODO unit test this
   @generateConfig: (sizeArray, otherTreatments) ->
     for size in _.uniq(sizeArray)
       TurkServer.ensureTreatmentExists({name: "group_#{size}", groupSize: size})
@@ -135,24 +140,43 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
       treatments: ["group_#{size}"].concat(otherTreatments)
     } for size in sizeArray)
 
-    # Last absorbing group has no size param or treatment
-    config.push({
-      treatments: otherTreatments
-    })
-
     return config
 
-  constructor: (@tutorialTreatments, @groupConfig) ->
+  constructor: (@tutorialTreatments, @groupTreatments, @groupArray) ->
 
   initialize: ->
     super
+
+    @configure()
+
+    # Provide a quick way to re-set the assignment for multi-groups
+    @lobby.events.on "reset-multi-groups", =>
+      console.log "Resetting multi-group assigner with ", @groupArray
+      @stopped = false
+      @currentInstance = null
+      @currentGroup = -1
+      @currentFilled = 0
+
+    @lobby.events.on "reconfigure-multi-groups", @configure
+
+  configure: (groupArray, lookBackHours = 6) =>
+
+    if groupArray
+      @groupArray = groupArray
+      @stopped = false
+      console.log "Reconfiguring multi-group assigner with", @groupArray
+    else
+      console.log "Initial setup of multi-group assigner with", @groupArray
+
+    @groupConfig = TutorialMultiGroupAssigner.generateConfig(@groupArray, @groupTreatments)
     # If we resurrected in the middle of a server restart, pick up where we
     # left off.
 
-    # TODO it's a bit of a hack to look for the last 12 hours, but it seems to
+    # TODO it's a bit of a hack to look for the last 6 hours, but it seems to
     # be the only way to find a threshold where new experiments (1 day later)
     # won't pick up from previous ones and yet we give experiments in progress
-    # enough time to finish.
+    # enough time to finish if there are any problems.
+    # TODO we need to make this support running multiple batches in a day.
     @currentInstance = null
     @currentGroup = -1 # i.e. before the start of the array
     @currentFilled = 0
@@ -160,7 +184,7 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
     existing = Experiments.find({
       batchId: @batch.batchId
       treatments: $nin: @tutorialTreatments
-      startTime: { $gte: new Date(Date.now() - 12 * 3600 * 1000) }
+      startTime: { $gte: new Date(Date.now() - lookBackHours * 3600 * 1000) }
     }, {
       sort: startTime: 1
     }).fetch()
@@ -173,33 +197,26 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
         @currentGroup = i
         @currentFilled = count
         @currentInstance = TurkServer.Instance.getInstance(exp._id)
-      else if count > target
-        throw new Error("Unable to match with existing groups")
-      else if i isnt existing.length - 1 # This better be the last one
-        throw new Error("Unable to match with existing groups")
+      else if count > target or
+      i isnt existing.length - 1 or
+      !_.isEqual(exp.treatments, @groupConfig[i].treatments)
+        # Group sizes either don't match or this isn't the last one
+        console.log("Unable to match with existing groups, starting over")
+        @currentInstance = null
+        @currentGroup = -1 # i.e. before the start of the array
+        @currentFilled = 0
+        break
       else
         @currentGroup = i
         @currentFilled = count
         @currentInstance = TurkServer.Instance.getInstance(exp._id)
+        console.log "Initializing multi-group assigner to group #{@currentGroup} (#{@currentFilled}/#{target})"
         break # We set the counter to the last assigned group.
 
-    if @currentInstance?.isEnded()
-      console.log "Most recent group is ended; resetting multi-group assigner "
-      @currentInstance = null
-      @currentGroup = -1
-      @currentFilled = 0
+    # TODO after reconfiguring, we may want to re-assign any users in the lobby.
 
-    else if @currentGroup >= 0
-      target = @groupConfig[@currentGroup].size
-      console.log "Initializing multi-group assigner to group #{@currentGroup} (#{@currentFilled}/#{target})"
-
-    # Provide a quick way to re-set the assignment for multi-groups
-    @lobby.events.on "reset-multi-groups", =>
-      console.log "Resetting multi-group assigner"
-      @stopped = false
-      @currentInstance = null
-      @currentGroup = -1
-      @currentFilled = 0
+  currentGroupFilled: ->
+    @currentFilled is @groupConfig[@currentGroup].size
 
   userJoined: (asst) ->
     # TODO if users join way after we assigned, it is probably time to start a new set. For now we accomplish that by restarting the server or hitting the reset above.
@@ -213,20 +230,22 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
     else
       @assignNext( asst )
 
-  ###
-    TODO: not sure if all the race condition guards below are necessary.
-    Taking them out seems to have no effect on the test.
-  ###
   assignNext: (asst) ->
-    # Check if the last group has already been stopped.
-    if @currentGroup is @groupConfig.length - 1 and Experiments.findOne(@currentInstance.groupId)?.endTime
-      @stopped = true
-      console.log "Stopping automatic multi-group assignment"
-
     return if @stopped # Don't assign if experiments are done
 
+    # Check if the last group has already been stopped.
+    if @currentGroup is @groupConfig.length - 1 and @currentInstance?.isEnded()
+      @stopped = true
+      console.log "Final group has finished, stopping automatic multi-group assignment"
+      return
+
+    if @currentGroup is @groupConfig.length - 1 and @currentGroupFilled()
+      @stopped = true
+      console.log "Final group has filled, stopping automatic multi-group assignment"
+      return
+
     # It's imperative we do not do any yielding operations while updating counters
-    if not @currentInstance? or @currentFilled is @groupConfig[@currentGroup].size
+    if not @currentInstance? or @currentGroupFilled()
       # Move on and create new group
       newGroup = @currentGroup + 1
 
@@ -235,8 +254,8 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
 
       # Update group counters only once, if we are the first fiber to arrive here
       if @currentGroup is newGroup
-        # New group already created. Try again, recursively
-        @assignNext(asst)
+        # New group already created. Try again on the next tick
+        Meteor.defer => @assignNext(asst)
         return
       else
         # First to return from create instance. Put the user in this instance.
@@ -250,6 +269,12 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
 
   # Do not create multiple instances if multiple fibers arrive at a full
   # instance simultaneously
+  #
+  # Yes, this is necessary! During the experiment where we basically DDoSed
+  # ourselves, we saw that the getInstance function was called before
+  # createInstance returned, resulting in an error when we tried to create a new
+  # TurkServer.Instance at the very end of it - a rare but hard to see bug that
+  # is now fixed.
   safeCreateInstance: (treatments) ->
     if @creatingInstanceId?
       return TurkServer.Instance.getInstance(@creatingInstanceId)

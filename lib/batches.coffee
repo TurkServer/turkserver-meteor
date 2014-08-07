@@ -30,7 +30,9 @@ class TurkServer.Batch
       TurkServer.log
         _meta: "created"
 
-    return new TurkServer.Instance(groupId)
+    # To prevent bugs if the instance is referenced before this returns, we
+    # need to go through getInstance.
+    return TurkServer.Instance.getInstance(groupId)
 
   getTreatments: -> Batches.findOne(@batchId).treatments
 

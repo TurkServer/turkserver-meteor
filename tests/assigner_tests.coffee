@@ -131,13 +131,11 @@ TurkServer.ensureTreatmentExists
 TurkServer.ensureTreatmentExists
   name: "parallel_worlds"
 
-groupConfigMulti = TurkServer.Assigners.TutorialMultiGroupAssigner.generateConfig([
-  1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1
-], [ "parallel_worlds" ])
+multiGroupTreatments = [ "parallel_worlds" ]
 
 Tinytest.add "assigners - tutorialMultiGroup - initial lobby gets tutorial", withCleanup (test) ->
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
-    tutorialTreatments, groupConfigMulti)
+    tutorialTreatments, multiGroupTreatments, [16, 16])
   batch.setAssigner(assigner)
 
   asst = createAssignment()
@@ -158,8 +156,14 @@ Tinytest.add "assigners - tutorialMultiGroup - initial lobby gets tutorial", wit
   test.equal exp.treatments, tutorialTreatments
 
 Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanup (test) ->
+  groupArr = [ 1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1 ]
+
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
-    tutorialTreatments, groupConfigMulti)
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Generate the config that the group assigner would have
+  groupConfigMulti = TurkServer.Assigners.TutorialMultiGroupAssigner
+    .generateConfig(groupArr, multiGroupTreatments)
 
   borkedGroup = 10
   filledAmount = 16
@@ -194,8 +198,14 @@ Tinytest.add "assigners - tutorialMultiGroup - resumes from partial", withCleanu
   test.equal assigner.currentFilled, filledAmount
 
 Tinytest.add "assigners - tutorialMultiGroup - resumes on group boundary", withCleanup (test) ->
+  groupArr = [ 1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1 ]
+
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
-    tutorialTreatments, groupConfigMulti)
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Generate the config that the group assigner would have
+  groupConfigMulti = TurkServer.Assigners.TutorialMultiGroupAssigner
+    .generateConfig(groupArr, multiGroupTreatments)
 
   borkedGroup = 2
 
@@ -223,9 +233,19 @@ Tinytest.add "assigners - tutorialMultiGroup - resumes on group boundary", withC
   test.equal assigner.currentInstance, instance
   test.equal assigner.currentFilled, groupConfigMulti[borkedGroup - 1].size
 
+  # Test reconfiguration into new groups
+  newArray = [16, 16]
+  assigner.configure(newArray)
+
+  test.equal assigner.groupArray, newArray
+  test.equal assigner.currentGroup, -1
+  test.equal assigner.currentInstance, null
+  test.equal assigner.currentFilled, 0
+
 Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup (test) ->
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
-    tutorialTreatments, groupConfigMulti)
+    tutorialTreatments, multiGroupTreatments, [16, 16])
+
   batch.setAssigner(assigner)
 
   asst = createAssignment()
@@ -251,9 +271,15 @@ Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup
   test.length instances, 2
 
 Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment", withCleanup (test) ->
+  groupArr = [ 1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1 ]
+
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
-    tutorialTreatments, groupConfigMulti)
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
   batch.setAssigner(assigner)
+
+  # Get the config that the group assigner would have
+  groupConfigMulti = assigner.groupConfig
 
   assts = (createAssignment() for i in [1..128])
 
@@ -280,13 +306,14 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
     test.equal(exp.treatments[0], group.treatments[0])
     test.equal(exp.treatments[1], group.treatments[1])
 
-    if group.size
-      test.equal(exp.users.length, group.size)
-    else # absorbing group
-      test.equal(exp.users.length, 16)
+    test.equal(exp.users.length, group.size)
+
     i++
 
   test.length exps, groupConfigMulti.length
+
+  # Should have 16 people in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 16
 
   # Test auto-stopping
   lastInstance = TurkServer.Instance.getInstance(exps[exps.length - 1]._id)
@@ -311,12 +338,13 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
   # should still be in lobby
   test.equal user.turkserver.state, "lobby"
   test.length instances, 1
-  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 1
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 17
 
   # Test resetting, if we launch new set a different day
   batch.lobby.events.emit("reset-multi-groups")
 
   test.equal assigner.stopped, false
+  test.equal assigner.groupArray, groupArr # Still same config
   test.equal assigner.currentGroup, -1
   test.equal assigner.currentInstance, null
   test.equal assigner.currentFilled, 0

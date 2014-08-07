@@ -297,6 +297,8 @@ Meteor.methods
 
   "ts-admin-lobby-event": (batchId, event) ->
     TurkServer.checkAdmin()
+    check(batchId, String)
+
     batch = TurkServer.Batch.getBatch(batchId)
     throw new Meteor.Error(500, "Batch #{batchId} does not exist") unless batch?
     emitter = batch.lobby.events
