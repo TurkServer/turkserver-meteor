@@ -354,7 +354,7 @@ getUserNonAdmin = (userId) ->
   Connect/disconnect callbacks
 
   In the methods below, we use Partitioner.getUserGroup(userId) because
-  user.turkserver.group takes a moment to be propagated.
+  user.group takes a moment to be propagated.
 ###
 sessionReconnect = (doc) ->
   return unless getUserNonAdmin(doc.userId)?
