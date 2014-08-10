@@ -174,7 +174,7 @@
     ],
     [
       "natestrauser:x-editable-bootstrap",
-      "1.5.1"
+      "1.5.2-meteor0.9.1"
     ],
     [
       "npm-bcrypt",
