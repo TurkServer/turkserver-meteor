@@ -271,7 +271,7 @@ Tinytest.add "assigners - tutorialMultiGroup - send to exit survey", withCleanup
   test.length instances, 2
 
 Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment", withCleanup (test) ->
-  groupArr = [ 1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32, 16, 8, 4, 4, 2, 2, 1, 1, 1, 1 ]
+  groupArr = [ 1, 1, 1, 1, 2, 2, 4, 4, 8, 16, 32 ]
 
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
     tutorialTreatments, multiGroupTreatments, groupArr)
@@ -281,7 +281,7 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
   # Get the config that the group assigner would have
   groupConfigMulti = assigner.groupConfig
 
-  assts = (createAssignment() for i in [1..128])
+  assts = (createAssignment() for i in [1..80])
 
   # Pretend they have all done the tutorial
   for asst in assts
@@ -312,8 +312,8 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
 
   test.length exps, groupConfigMulti.length
 
-  # Should have 16 people in lobby
-  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 16
+  # Should have people in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 8
 
   # Test auto-stopping
   lastInstance = TurkServer.Instance.getInstance(exps[exps.length - 1]._id)
@@ -338,7 +338,7 @@ Tinytest.add "assigners - tutorialMultiGroup - simultaneous multiple assignment"
   # should still be in lobby
   test.equal user.turkserver.state, "lobby"
   test.length instances, 1
-  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 17
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 9
 
   # Test resetting, if we launch new set a different day
   batch.lobby.events.emit("reset-multi-groups")

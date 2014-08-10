@@ -18,21 +18,23 @@ class TurkServer.Batch
     throw new Error("Batch already exists; use getBatch") if _batches[@batchId]?
     @lobby = new TurkServer.Lobby(@batchId)
 
+  # Creating an instance does not set it up, or initialize the start time.
   createInstance: (treatmentNames, fields) ->
     fields = _.extend fields || {},
-      startTime: new Date
       batchId: @batchId
       treatments: treatmentNames || []
 
     groupId = Experiments.insert(fields)
 
-    Partitioner.bindGroup groupId, ->
+    # To prevent bugs if the instance is referenced before this returns, we
+    # need to go through getInstance.
+    instance = TurkServer.Instance.getInstance(groupId)
+
+    instance.bindOperation ->
       TurkServer.log
         _meta: "created"
 
-    # To prevent bugs if the instance is referenced before this returns, we
-    # need to go through getInstance.
-    return TurkServer.Instance.getInstance(groupId)
+    return instance
 
   getTreatments: -> Batches.findOne(@batchId).treatments
 

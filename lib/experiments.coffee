@@ -41,7 +41,9 @@ class TurkServer.Instance
       TurkServer.log
         _meta: "initialized"
         treatmentData: @instance.treatment()
+
       (handler.call(@) for handler in init_queue)
+
       return
 
   addAssignment: (asst) ->
@@ -55,6 +57,13 @@ class TurkServer.Instance
       { $addToSet: { users: asst.userId } }
     Meteor.users.update asst.userId,
       $set: { "turkserver.state": "experiment" }
+
+    # Set experiment start time if this was first person to join
+    Experiments.update({
+      _id: @groupId, startTime: null
+    }, {
+      $set: { startTime: new Date }
+    })
 
     # Record instance Id in Assignment
     asst._joinInstance(@groupId)
