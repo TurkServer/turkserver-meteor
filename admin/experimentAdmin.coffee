@@ -98,14 +98,14 @@ Template.tsAdminExperimentTimeline.rendered = ->
       height: y.rangeBand()
 
   zoom = d3.behavior.zoom()
-    .scaleExtent([1, 20])
+    .scaleExtent([1, 100])
     .on("zoom", redraw)
 
   svg.call(zoom)
 
   this.autorun ->
     # TODO make a reactive array for this; massive performance increase :)
-    exps = Experiments.find({}, {
+    exps = Experiments.find({startTime: $exists: true}, {
       sort: {startTime: 1},
       fields: {startTime: 1, endTime: 1}
     }).fetch()

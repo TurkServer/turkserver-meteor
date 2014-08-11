@@ -118,6 +118,194 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
       @instance.addAssignment(asst)
     # Otherwise, wait for assignment event
 
+ensureGroupTreatments = (sizeArray) ->
+  for size in _.uniq(sizeArray)
+    TurkServer.ensureTreatmentExists({name: "group_#{size}", groupSize: size})
+  return
+
+###
+  Assigner that puts people into a tutorial and then random groups, with
+
+  - Pre-allocation of groups for costly operations before users arrive
+  - A waiting room that can hold the first arriving users
+  - Completely random assignment into different groups
+  - Restarting and resuming assignment from where it left off
+  - A final "buffer" group to accommodate stragglers after randomization is done
+
+  This was created for executing the crisis mapping experiment.
+###
+class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.Assigner
+
+  @generateConfig: (sizeArray, otherTreatments) ->
+    ensureGroupTreatments(sizeArray)
+
+    config = ({
+      size: size,
+      treatments: ["group_#{size}"].concat(otherTreatments)
+    } for size in sizeArray)
+
+    # Create a buffer group for everyone else
+    config.push({
+      treatments: otherTreatments
+    })
+
+    return config
+
+  constructor: (@tutorialTreatments, @groupTreatments, @groupArray) ->
+
+  initialize: ->
+    super
+
+    @configure()
+
+    @lobby.events.on "setup-instances", @setup
+    @lobby.events.on "configure", @configure
+    @lobby.events.on "auto-assign", @assignAll
+
+  # If pre-allocated instances don't exist, create and initialize them
+  setup: (lookBackHours = 6) =>
+    console.log "Creating new set of instances for randomized groups"
+
+    existing = Experiments.find({
+      batchId: @batch.batchId
+      treatments: $nin: @tutorialTreatments
+      $or: [
+        { startTime: { $gte: new Date(Date.now() - lookBackHours * 3600 * 1000) } },
+        { startTime: null }
+      ]
+    }).fetch()
+
+    if existing.length > 0
+      console.log "Not creating new instances as recent ones already exist"
+      return
+
+    @groupConfig = TutorialRandomizedGroupAssigner.generateConfig(@groupArray, @groupTreatments)
+
+    # create and setup instances
+    for config in @groupConfig
+      instance = @batch.createInstance(config.treatments)
+      instance.setup()
+
+    # Configure randomization with these groups
+    @configure(undefined, lookBackHours)
+
+  # TODO remove the restriction that groupArray has to be passed in sorted
+  configure: (groupArray, lookBackHours = 6) =>
+    if groupArray?
+      @groupArray = groupArray
+      console.log "Configuring randomized group assigner with", @groupArray
+    else
+      console.log "Initialization of randomized group assigner with", @groupArray
+
+    @groupConfig = TutorialRandomizedGroupAssigner.generateConfig(@groupArray, @groupTreatments)
+
+    # Check if existing created instances exist
+    existing = Experiments.find({
+      batchId: @batch.batchId
+      treatments: $nin: @tutorialTreatments
+      $or: [
+        { startTime: { $gte: new Date(Date.now() - lookBackHours * 3600 * 1000) } },
+        { startTime: null }
+      ]
+    }, {
+      transform: (exp) ->
+        exp.treatmentData = TurkServer.Instance.getInstance(exp._id).treatment()
+        return exp
+    }).fetch()
+
+    if existing.length < @groupConfig.length
+      console.log "Not setting up randomization: #{existing.length} existing groups"
+      return
+
+    # Sort existing experiments by smallest groups first for matching purposes.
+    # The buffer group goes to the end.
+    existing.sort (a, b) ->
+      if not a.treatmentData.groupSize? # b comes first
+        return 1
+      else if not b.treatmentData.groupSize? # a comes first
+        return -1
+      else
+        return a.treatmentData.groupSize - b.treatmentData.groupSize
+
+    availableSlots = []
+
+    # Compute remaining slots on existing groups
+    existing.forEach (exp) =>
+      filled = exp.users?.length || 0
+
+      unless exp.treatmentData.groupSize?
+        console.log "#{exp._id} (buffer) has #{filled} users"
+        @bufferInstanceId = exp._id
+        return
+
+      target = exp.treatmentData.groupSize
+      remaining = Math.max(0, target - filled) # In case some bug overfilled it
+
+      console.log "#{exp._id} has #{remaining} slots left (#{filled}/#{target})"
+      availableSlots.push(exp._id) for x in [0...remaining]
+
+      @autoAssign = true if filled > 0
+
+    if @autoAssign
+      console.log "Enabled auto-assign as instances currently have users"
+
+    # Shuffle the available slots
+    @instanceSlots = _.shuffle(availableSlots)
+    @instanceSlotIndex = 0
+
+    console.log "#{@instanceSlots.length} randomization slots remaining"
+
+  userJoined: (asst) ->
+    instances = asst.getInstances()
+    if instances.length is 0
+      @lobby.pluckUsers( [asst.userId] )
+      @assignToNewInstance([asst], @tutorialTreatments)
+    else if instances.length is 2
+      @lobby.pluckUsers( [asst.userId] )
+      asst.showExitSurvey()
+    else if @autoAssign
+      # Put me in, coach!
+      @assignNext(asst)
+
+    # Otherwise, wait for auto-assignment event
+    return
+
+  # Randomly assign all users in the lobby who have done the tutorial
+  assignAll: =>
+    unless @instanceSlots?
+      console.log "Can't auto-assign as we haven't been set up yet"
+      return
+
+    currentAssignments = @lobby.getAssignments()
+    @autoAssign = true # Randomly assign future users after this
+
+    assts = _.filter currentAssignments, (asst) ->
+      asst.getInstances().length is 1
+
+    @assignNext(asst) for asst in assts
+    return
+
+  assignNext: (asst) ->
+    if @instanceSlotIndex >= @instanceSlots.length
+      bufferInstance = TurkServer.Instance.getInstance(@bufferInstanceId)
+
+      if bufferInstance.isEnded()
+        console.log "Not assigning #{asst.asstId} as buffer has ended"
+        return
+
+      @lobby.pluckUsers( [asst.userId] )
+      bufferInstance.addAssignment(asst)
+      return
+
+    nextInstId = @instanceSlots[@instanceSlotIndex]
+    @instanceSlotIndex++
+
+    instance = TurkServer.Instance.getInstance(nextInstId)
+
+    @lobby.pluckUsers( [asst.userId] )
+    instance.addAssignment(asst)
+    return
+
 ###
   Assign people to a tutorial treatment and then sequentially to different sized
   groups. Used for the crisis mapping experiment.
@@ -132,8 +320,7 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
   # bespoke algorithm for generating config.
   # TODO unit test this
   @generateConfig: (sizeArray, otherTreatments) ->
-    for size in _.uniq(sizeArray)
-      TurkServer.ensureTreatmentExists({name: "group_#{size}", groupSize: size})
+    ensureGroupTreatments(sizeArray)
 
     config = ({
       size: size,

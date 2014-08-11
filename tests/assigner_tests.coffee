@@ -121,10 +121,7 @@ Tinytest.add "assigners - tutorialGroup - final send to exit survey", withCleanu
   test.equal user.turkserver.state, "exitsurvey"
   test.length instances, 2
 
-###
-  Multi-group assigner
-###
-
+# Setup for multi tests below
 TurkServer.ensureTreatmentExists
   name: "tutorial"
 
@@ -132,6 +129,336 @@ TurkServer.ensureTreatmentExists
   name: "parallel_worlds"
 
 multiGroupTreatments = [ "parallel_worlds" ]
+
+###
+  Randomized multi-group assigner
+###
+
+Tinytest.add "assigners - tutorialRandomizedGroup - initial lobby gets tutorial", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, [8, 16, 32])
+
+  batch.setAssigner(assigner)
+
+  asst = createAssignment()
+  TestUtils.connCallbacks.sessionReconnect {userId: asst.userId}
+
+  TestUtils.sleep(150)
+
+  user = Meteor.users.findOne(asst.userId)
+  instances = asst.getInstances()
+
+  # should be in experiment
+  test.equal user.turkserver.state, "experiment"
+  test.length instances, 1
+  # should not be in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
+  # should be in a tutorial
+  exp = Experiments.findOne(instances[0].id)
+  test.equal exp.treatments, tutorialTreatments
+
+Tinytest.add "assigners - tutorialRandomizedGroup - send to exit survey", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, [8, 16, 32])
+
+  batch.setAssigner(assigner)
+
+  asst = createAssignment()
+  # Pretend we already have two instances done
+  Assignments.update asst.asstId,
+    $push: {
+      instances: {
+        $each: [
+          { id: Random.id() },
+          { id: Random.id() }
+        ]
+      }
+    }
+
+  TestUtils.connCallbacks.sessionReconnect({userId: asst.userId})
+
+  TestUtils.sleep(100)
+
+  user = Meteor.users.findOne(asst.userId)
+  instances = asst.getInstances()
+
+  test.equal user.turkserver.state, "exitsurvey"
+  test.length instances, 2
+
+Tinytest.add "assigners - tutorialRandomizedGroup - set up instances", withCleanup (test) ->
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, [8, 16, 32])
+
+  batch.setAssigner(assigner)
+
+  assigner.setup()
+
+  # Verify that four instances were created with the right treatments
+  created = Experiments.find({ batchId: batch.batchId }).fetch()
+
+  test.length created, 4
+
+  # Sort by group size and test
+  created.sort (a, b) ->
+    if a.treatments[0] is "parallel_worlds" then 1
+    else if b.treatments[0] is "parallel_worlds" then -1
+    # grab the part after "group_"
+    else parseInt(a.treatments[0].substring(6)) - parseInt(b.treatments[0].substring(6))
+
+  test.equal created[0].treatments, [ "group_8", "parallel_worlds" ]
+  test.equal created[1].treatments, [ "group_16", "parallel_worlds" ]
+  test.equal created[2].treatments, [ "group_32", "parallel_worlds" ]
+  # Buffer group
+  test.equal created[3].treatments, [ "parallel_worlds" ]
+
+  # Test that there are 56 randomization slots now with the right allocation
+  test.isFalse assigner.autoAssign
+  test.isTrue assigner.bufferInstanceId
+
+  test.length assigner.instanceSlots, 56
+  test.equal assigner.instanceSlotIndex, 0
+
+  allocation = _.countBy(assigner.instanceSlots, Object)
+  test.equal allocation[created[0]._id], 8
+  test.equal allocation[created[1]._id], 16
+  test.equal allocation[created[2]._id], 32
+
+  # Calling setup again should not do anything
+  assigner.setup()
+
+  test.length Experiments.find({ batchId: batch.batchId }).fetch(), 4
+
+Tinytest.add "assigners - tutorialRandomizedGroup - pick up existing instances", withCleanup (test) ->
+  groupArr = [8, 16, 32]
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Generate the config that the group assigner would have
+  groupConfig = TurkServer.Assigners.TutorialRandomizedGroupAssigner
+    .generateConfig(groupArr, multiGroupTreatments)
+
+  created = []
+
+  for conf, i in groupConfig
+    instance = batch.createInstance(conf.treatments)
+    instance.setup()
+
+    created.push(instance.groupId)
+
+  batch.setAssigner(assigner)
+
+  # Test that there are 56 randomization slots now with the right allocation
+  test.isFalse assigner.autoAssign
+  test.isTrue assigner.bufferInstanceId
+
+  test.length assigner.instanceSlots, 56
+  test.equal assigner.instanceSlotIndex, 0
+
+  allocation = _.countBy(assigner.instanceSlots, Object)
+  test.equal allocation[created[0]], 8
+  test.equal allocation[created[1]], 16
+  test.equal allocation[created[2]], 32
+
+Tinytest.add "assigners - tutorialRandomizedGroup - resume with partial allocation", withCleanup (test) ->
+  groupArr = [8, 16, 32]
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Generate the config that the group assigner would have
+  groupConfig = TurkServer.Assigners.TutorialRandomizedGroupAssigner
+    .generateConfig(groupArr, multiGroupTreatments)
+
+  created = []
+
+  for conf, i in groupConfig
+    instance = batch.createInstance(conf.treatments)
+    instance.setup()
+
+    # Fill each group half full
+    for j in [1..conf.size/2]
+      asst = createAssignment()
+
+      # Pretend like this instance did the tutorial
+      tutorialInstance = batch.createInstance(tutorialTreatments)
+      tutorialInstance.setup()
+      tutorialInstance.addAssignment(asst)
+      tutorialInstance.teardown()
+
+      instance.addAssignment(asst)
+
+    created.push(instance.groupId)
+
+  # Run it
+  batch.setAssigner(assigner)
+
+  # Test that there are 28 randomization slots now with the right allocation
+  # auto-assign should be enabled because there are people in it
+  test.isTrue assigner.autoAssign
+  test.isTrue assigner.bufferInstanceId
+
+  test.length assigner.instanceSlots, 28
+  test.equal assigner.instanceSlotIndex, 0
+
+  allocation = _.countBy(assigner.instanceSlots, Object)
+  test.equal allocation[created[0]], 8/2
+  test.equal allocation[created[1]], 16/2
+  test.equal allocation[created[2]], 32/2
+
+Tinytest.add "assigners - tutorialRandomizedGroup - resume with fully allocated groups", withCleanup (test) ->
+  groupArr = [8, 16, 32]
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Generate the config that the group assigner would have
+  groupConfig = TurkServer.Assigners.TutorialRandomizedGroupAssigner
+    .generateConfig(groupArr, multiGroupTreatments)
+
+  created = []
+
+  for conf, i in groupConfig
+    instance = batch.createInstance(conf.treatments)
+    instance.setup()
+
+    # Fill each group half full
+    for j in [1..conf.size]
+      asst = createAssignment()
+
+      # Pretend like this instance did the tutorial
+      tutorialInstance = batch.createInstance(tutorialTreatments)
+      tutorialInstance.setup()
+      tutorialInstance.addAssignment(asst)
+      tutorialInstance.teardown()
+
+      instance.addAssignment(asst)
+
+    created.push(instance.groupId)
+
+  # Run it
+  batch.setAssigner(assigner)
+
+  # auto-assign should be enabled because there are people in it
+  test.isTrue assigner.autoAssign
+  test.isTrue assigner.bufferInstanceId
+
+  test.length assigner.instanceSlots, 0
+  test.equal assigner.instanceSlotIndex, 0
+
+Tinytest.add "assigners - tutorialRandomizedGroup - assign with waiting room and sequential", withCleanup (test) ->
+  groupArr = [8, 16, 32]
+
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  batch.setAssigner(assigner)
+
+  assigner.setup() # Create instances
+
+  test.isFalse assigner.autoAssign
+  test.length assigner.instanceSlots, 56
+  test.equal assigner.instanceSlotIndex, 0
+
+  # Get the config that the group assigner would have
+  groupConfigMulti = assigner.groupConfig
+
+  assts = (createAssignment() for i in [1..64])
+
+  # Pretend they have all done the tutorial
+  for asst in assts
+    Assignments.update asst.asstId,
+      $push: { instances: { id: Random.id() } }
+
+  # Make the first half join
+  for i in [0..27]
+    TestUtils.connCallbacks.sessionReconnect({userId: assts[i].userId})
+
+  TestUtils.sleep(500) # Give enough time for lobby functions to process
+
+  # should have 32 users in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 28
+
+  # Run auto-assign
+  assigner.assignAll()
+
+  test.isTrue assigner.autoAssign
+  test.length assigner.instanceSlots, 56
+  test.equal assigner.instanceSlotIndex, 28
+
+  TestUtils.sleep(500) # Give enough time for lobby functions to process
+  # should have 0 users in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
+
+  exps = Experiments.find({ batchId: batch.batchId }).fetch()
+
+  # Check that the groups have the right size and treatments
+  totalAdded = 0
+  for exp in exps
+    instance = TurkServer.Instance.getInstance(exp._id)
+    groupSize = instance.treatment().groupSize
+
+    if groupSize?
+      users = instance.users()
+      test.isTrue users.length < groupSize
+      totalAdded += users.length
+    else # Buffer group should be empty
+      test.length instance.users(), 0
+
+  test.equal totalAdded, 28
+
+  # Fill in remaining users
+  for i in [28..63]
+    TestUtils.connCallbacks.sessionReconnect({userId: assts[i].userId})
+
+  test.isTrue assigner.autoAssign
+  test.length assigner.instanceSlots, 56
+  test.equal assigner.instanceSlotIndex, 56
+
+  TestUtils.sleep(800)
+
+  # Should have no one in lobby
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 0
+
+  # All groups should be filled with 8 in buffer
+  totalAdded = 0
+  for exp in exps
+    instance = TurkServer.Instance.getInstance(exp._id)
+    groupSize = instance.treatment().groupSize
+
+    users = instance.users()
+
+    if groupSize?
+      test.length users, groupSize
+      totalAdded += users.length
+    else # Buffer group should have 8 users
+      test.length users, 8
+      totalAdded += users.length
+
+  test.equal totalAdded, 64
+
+  # Test auto-stopping
+  lastInstance = TurkServer.Instance.getInstance(assigner.bufferInstanceId)
+  lastInstance.teardown()
+
+  slackerAsst = createAssignment()
+
+  Assignments.update slackerAsst.asstId,
+    $push: { instances: { id: Random.id() } }
+
+  TestUtils.connCallbacks.sessionReconnect({userId: slackerAsst.userId})
+
+  TestUtils.sleep(150)
+
+  # ensure that user is still in lobby
+  user = Meteor.users.findOne(slackerAsst.userId)
+  instances = slackerAsst.getInstances()
+
+  # should still be in lobby
+  test.equal user.turkserver.state, "lobby"
+  test.length instances, 1
+  test.equal LobbyStatus.find(batchId: batch.batchId).count(), 1
+
+###
+  Multi-group assigner
+###
 
 Tinytest.add "assigners - tutorialMultiGroup - initial lobby gets tutorial", withCleanup (test) ->
   assigner = new TurkServer.Assigners.TutorialMultiGroupAssigner(
