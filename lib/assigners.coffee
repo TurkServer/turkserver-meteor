@@ -175,14 +175,24 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
       ]
     }).fetch()
 
-    if existing.length > 0
-      console.log "Not creating new instances as recent ones already exist"
+    # Reuse buffer instance if it already exists
+    if existing.length > 0 and _.any(existing, (exp) -> exp.startTime? )
+      console.log "Not creating new instances as recently started ones already exist"
       return
 
     @groupConfig = TutorialRandomizedGroupAssigner.generateConfig(@groupArray, @groupTreatments)
 
+    if existing.length is @groupConfig.length
+      console.log "Not creating new instances as we already have the expected number"
+      return
+
     # create and setup instances
     for config in @groupConfig
+      # TODO hack if the buffer instance already exists, don't create it
+      if _.isEqual(config.treatments, @groupTreatments) and _.any(existing, (exp) => _.isEqual(exp.treatments, @groupTreatments))
+        console.log "Skipping creating buffer as it already exists"
+        continue
+
       instance = @batch.createInstance(config.treatments)
       instance.setup()
 
@@ -300,8 +310,13 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
     nextInstId = @instanceSlots[@instanceSlotIndex]
     @instanceSlotIndex++
 
-    # TODO check for ended-ness here.
     instance = TurkServer.Instance.getInstance(nextInstId)
+
+    if instance.isEnded()
+      console.log "Skipping assignment to slot for ended instance #{instance.groupId}"
+      # Recursively try to assign to the next slot
+      @assignNext(asst)
+      return
 
     @lobby.pluckUsers( [asst.userId] )
     instance.addAssignment(asst)
