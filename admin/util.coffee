@@ -49,6 +49,17 @@ Template.tsAdminInstance.rendered = ->
 
 Template.tsAdminInstance.instance = -> Experiments.findOne(@+"")
 
+Template.tsAdminPayBonus.events
+  "submit form": (e, t) ->
+    e.preventDefault()
+    amount = t.find("input[name=amount]").valueAsNumber
+    reason = t.find("textarea[name=reason]").value
+
+    Meteor.call "ts-admin-pay-bonus", @_id, amount, reason, (err) ->
+      bootbox.alert(err) if err
+    # Close the modal
+    $(t.firstNode).closest(".bootbox.modal").modal('hide')
+
 userLabelClass = ->
   switch
     when @status?.idle then "label-warning"

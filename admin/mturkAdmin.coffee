@@ -387,14 +387,21 @@ Template.tsAdminCompletedAssignments.events
       limit: t.find("input[name=filter_limit]").valueAsNumber ||
         TurkServer.adminSettings.defaultLimit
 
-  "click .-ts-refresh-assignment": ->
-    Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
-      bootbox.alert(err) if err?
-
 Template.tsAdminCompletedAssignments.numAssignments = numAssignments
 
 Template.tsAdminCompletedAssignments.completedAssts = ->
   Assignments.find {}, { sort: submitTime: -1 }
+
+Template.tsAdminCompletedAssignmentsTable.events
+  "click .ts-admin-refresh-assignment": ->
+    Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
+      bootbox.alert(err) if err?
+
+  "click .ts-admin-unset-bonus": ->
+    Meteor.call("ts-admin-unset-bonus", this._id)
+
+  "click .ts-admin-pay-bonus": ->
+    TurkServer._displayModal UI.renderWithData(Template.tsAdminPayBonus, this)
 
 Template.tsAdminCompletedAssignmentRow.labelStatus = ->
   switch @mturkStatus

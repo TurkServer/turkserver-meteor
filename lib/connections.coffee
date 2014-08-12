@@ -87,13 +87,17 @@ class TurkServer.Assignment
 
   # Sets the payment amount for this assignment, replacing any existing value
   setPayment: (amount) ->
-    check(amount, Number)
+    check(amount, Match.OneOf(Number, null))
+
+    modifier = if amount?
+      { $set: { bonusPayment: amount } }
+    else
+      { $unset: { bonusPayment: null } }
+
     updated = Assignments.update({
       _id: @asstId,
       bonusPaid: null
-    }, {
-      $set: { bonusPayment: amount }
-    })
+    }, modifier)
 
     throw new Error("Cant modify bonus already paid") if updated is 0
 

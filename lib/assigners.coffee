@@ -300,6 +300,7 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
     nextInstId = @instanceSlots[@instanceSlotIndex]
     @instanceSlotIndex++
 
+    # TODO check for ended-ness here.
     instance = TurkServer.Instance.getInstance(nextInstId)
 
     @lobby.pluckUsers( [asst.userId] )

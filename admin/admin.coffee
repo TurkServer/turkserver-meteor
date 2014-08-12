@@ -406,6 +406,26 @@ Meteor.methods
     TurkServer.Assignment.getAssignment(asstId).refreshStatus()
     return
 
+  "ts-admin-unset-bonus": (asstId) ->
+    TurkServer.checkAdmin()
+    check(asstId, String)
+
+    TurkServer.Assignment.getAssignment(asstId).setPayment(null)
+
+  "ts-admin-pay-bonus": (asstId, amount, reason) ->
+    TurkServer.checkAdmin()
+    check(asstId, String)
+    check(amount, Number)
+    check(reason, String)
+
+    asst = TurkServer.Assignment.getAssignment(asstId)
+    try
+      asst.setPayment(amount)
+      asst.payBonus(reason)
+    catch e
+      throw new Meteor.Error(403, e.toString())
+    return
+
   "ts-admin-stop-experiment": (groupId) ->
     TurkServer.checkAdmin()
     check(groupId, String)

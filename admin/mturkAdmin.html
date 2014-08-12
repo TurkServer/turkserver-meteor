@@ -546,7 +546,7 @@
                     <span class="label {{labelStatus}}">{{mturkStatus}}</span>
                     {{else}}
                     <span class="label label-default">Unknown</span>
-                    <button class="btn btn-xs btn-info -ts-refresh-assignment">
+                    <button class="btn btn-xs btn-info ts-admin-refresh-assignment">
                         <span class="glyphicon glyphicon-refresh"></span>
                     </button>
                     {{/if}}
@@ -560,9 +560,15 @@
                               title="{{bonusPaid}}&#xA;{{bonusMessage}}">Paid</span>
                     {{else}}
                     <span class="label label-danger">Unpaid</span>
+                    <button class="btn btn-xs btn-warning ts-admin-unset-bonus">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
                     {{/if}}
                     {{else}}
                     <i>not set</i>
+                    <button class="btn btn-xs btn-info ts-admin-pay-bonus">
+                        <span class="glyphicon glyphicon-usd"></span>
+                    </button>
                     {{/if}}
                 </dd>
             </dl>
