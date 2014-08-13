@@ -188,11 +188,6 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
 
     # create and setup instances
     for config in @groupConfig
-      # TODO hack if the buffer instance already exists, don't create it
-      if _.isEqual(config.treatments, @groupTreatments) and _.any(existing, (exp) => _.isEqual(exp.treatments, @groupTreatments))
-        console.log "Skipping creating buffer as it already exists"
-        continue
-
       instance = @batch.createInstance(config.treatments)
       instance.setup()
 
