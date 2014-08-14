@@ -281,7 +281,14 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
       return
 
     currentAssignments = @lobby.getAssignments()
-    @autoAssign = true # Randomly assign future users after this
+
+    # Auto assign future users that join after this point
+    # We can't put this before getting current assignments,
+    # or some people might get double assigned, with
+    # "already in a group" errors.
+    # TODO this should be theoretically right after grabbing LobbyStatus but
+    # before populating assignments.
+    @autoAssign = true
 
     assts = _.filter currentAssignments, (asst) ->
       asst.getInstances().length is 1
