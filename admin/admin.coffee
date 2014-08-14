@@ -418,6 +418,9 @@ Meteor.methods
     check(amount, Number)
     check(reason, String)
 
+    # Protect against nasty typos.
+    throw new Meteor.Error(403, "You probably didn't mean to pay #{amount}") if amount > 10.00
+
     asst = TurkServer.Assignment.getAssignment(asstId)
     try
       asst.setPayment(amount)

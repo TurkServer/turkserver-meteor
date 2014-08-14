@@ -5,6 +5,7 @@ Logs._ensureIndex
 # Save group and timestamp for each log request
 Logs.before.insert (userId, doc) ->
   # Never log admin actions
+  # TODO this means admin-initiated teardown events aren't recorded
   return false if Meteor.users.findOne(userId)?.admin
   groupId = Partitioner._currentGroup.get()
 
