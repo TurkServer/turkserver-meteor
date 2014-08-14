@@ -228,6 +228,37 @@ Tinytest.add "assigners - tutorialRandomizedGroup - set up instances", withClean
 
   test.length Experiments.find({ batchId: batch.batchId }).fetch(), 4
 
+Tinytest.add "assigners - tutorialRandomizedGroup - set up reusing existing instances", withCleanup (test) ->
+  groupArr = [
+    1, 1, 1, 1, 1, 1, 1, 1,
+    2, 2, 2, 2,
+    4, 4,
+    8, 16, 32
+  ]
+
+  assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(
+    tutorialTreatments, multiGroupTreatments, groupArr)
+
+  # Create one existing treatment of group size 1
+  instance = batch.createInstance( ["group_1"].concat(multiGroupTreatments) )
+  instance.setup()
+
+  batch.setAssigner(assigner)
+
+  assigner.setup()
+
+  # Verify that 18 instances were created with the right treatments
+  created = Experiments.find({ batchId: batch.batchId }).fetch()
+
+  test.length created, 18
+
+  # Test that there are 56 randomization slots now with the right allocation
+  test.isFalse assigner.autoAssign
+  test.isTrue assigner.bufferInstanceId
+
+  test.length assigner.instanceSlots, 80
+  test.equal assigner.instanceSlotIndex, 0
+
 Tinytest.add "assigners - tutorialRandomizedGroup - pick up existing instances", withCleanup (test) ->
   groupArr = [8, 16, 32]
   assigner = new TurkServer.Assigners.TutorialRandomizedGroupAssigner(

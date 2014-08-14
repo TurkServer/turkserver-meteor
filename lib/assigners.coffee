@@ -185,8 +185,26 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
       console.log "Not creating new instances as we already have the expected number"
       return
 
+    # Some existing instances exist. Count how many are available to reuse
+    reusable = {}
+    for exp in existing
+      if exp.treatments[0].indexOf("group_") >= 0
+        key = parseInt(exp.treatments[0].substring(6))
+      else
+        key = "buffer"
+      console.log "Will reuse one existing instance with #{exp.treatments}"
+      reusable[key] ?= 0
+      reusable[key]++
+
     # create and setup instances
     for config in @groupConfig
+      # Skip creating reusable instances
+      key = config.size || "buffer"
+      if reusable[key]? and reusable[key] += 0
+        console.log "Skipping creating one group of #{key}"
+        reusable[key]--
+        continue
+
       instance = @batch.createInstance(config.treatments)
       instance.setup()
 
