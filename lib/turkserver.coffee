@@ -23,6 +23,9 @@ Treatments.allow(adminOnly)
 
 Treatments._ensureIndex {name: 1}, {unique: 1}
 
+# Allow admin to make emergency adjustments to the lobby collection just in case
+LobbyStatus.allow(adminOnly)
+
 # Only server should update these
 Experiments.deny(always)
 Logs.deny(always)

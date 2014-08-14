@@ -1,5 +1,6 @@
 Package.describe({
   summary: "Framework for building online, real-time user experiments in Meteor",
+  version: "0.0.0",
   git: "https://github.com/HarvardEconCS/turkserver-meteor.git"
 });
 
@@ -40,9 +41,11 @@ Package.onUse(function (api) {
   ]);
 
   // Non-core packages
-  api.use("mrt:bootstrap-3");
-  api.use("mizzao:bootboxjs@>=4.2.1-master.1");
-  api.use("cmather:iron-router@>=0.8.2");
+  api.use("mizzao:bootboxjs@>=4.3.0");
+  api.use("iron:router@>=0.9.0");
+
+  // Migration needs to be fixed
+  api.use("mrt:bootstrap-3@>=3.2.0-2");
   api.use("mrt:moment");
   api.use('natestrauser:x-editable-bootstrap');
 
@@ -130,8 +133,8 @@ Package.onTest(function (api) {
 
   api.use('session', 'client');
 
+  api.use('iron:router'); // Needed so we can un-configure the router
   api.use('mizzao:partitioner');
-  api.use('cmather:iron-router'); // Needed so we can un-configure the router
   api.use("mizzao:turkserver");
   api.use('mizzao:timesync');
 

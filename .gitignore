@@ -2,6 +2,7 @@
 .npm
 packages/*
 smart.lock
+versions.json
 
 lib-cov
 *.seed

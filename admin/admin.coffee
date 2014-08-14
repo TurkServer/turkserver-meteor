@@ -322,6 +322,8 @@ Meteor.methods
     check(emailId, String)
 
     email = WorkerEmails.findOne(emailId)
+    throw new Error(403, "Message already sent") if email.sentTime?
+
     recipients = email.recipients
 
     check(email.subject, String)

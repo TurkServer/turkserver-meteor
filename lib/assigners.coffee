@@ -107,7 +107,6 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
   userJoined: (asst) ->
     instances = asst.getInstances()
     if instances.length is 0
-      @lobby.pluckUsers( [asst.userId] )
       @assignToNewInstance([asst], @tutorialTreatments)
     else if instances.length is 2
       @lobby.pluckUsers( [asst.userId] )
@@ -263,7 +262,7 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
   userJoined: (asst) ->
     instances = asst.getInstances()
     if instances.length is 0
-      @lobby.pluckUsers( [asst.userId] )
+      # This function automatically removes users from the lobby
       @assignToNewInstance([asst], @tutorialTreatments)
     else if instances.length is 2
       @lobby.pluckUsers( [asst.userId] )
@@ -420,7 +419,6 @@ class TurkServer.Assigners.TutorialMultiGroupAssigner extends TurkServer.Assigne
     # TODO if users join way after we assigned, it is probably time to start a new set. For now we accomplish that by restarting the server or hitting the reset above.
     instances = asst.getInstances()
     if instances.length is 0
-      @lobby.pluckUsers( [asst.userId] )
       @assignToNewInstance([asst], @tutorialTreatments)
     else if instances.length is 2
       @lobby.pluckUsers( [asst.userId] )
