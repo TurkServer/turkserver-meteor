@@ -41,19 +41,19 @@ Package.onUse(function (api) {
   ]);
 
   // Non-core packages
-  api.use("mizzao:bootboxjs@>=4.3.0");
-  api.use("iron:router@>=0.9.0");
+  api.use("mizzao:bootboxjs@4.3.0");
+  api.use("iron:router@0.9.0");
 
   // Migration needs to be fixed
-  api.use("mrt:bootstrap-3@>=3.2.0-2");
+  api.use("mrt:bootstrap-3@3.2.0-1");
   api.use("mrt:moment");
   api.use('natestrauser:x-editable-bootstrap');
 
   // Dev packages
   api.use("matb33:collection-hooks");
-  api.use("mizzao:partitioner@>=0.5.2");
-  api.use('mizzao:timesync@>=0.2.2');
-  api.use("mizzao:user-status@>=0.6.1");
+  api.use("mizzao:partitioner@0.5.2");
+  api.use('mizzao:timesync@0.2.2');
+  api.use("mizzao:user-status@0.6.1");
 
   // mturk fork
   api.add_files([
