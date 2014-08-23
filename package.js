@@ -17,6 +17,8 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
+  api.versionsFrom("METEOR-CORE@0.9.0-rc11");
+
   // Client-only deps
   api.use([
     'session',
@@ -46,11 +48,11 @@ Package.onUse(function (api) {
 
   // Migration needs to be fixed
   api.use("mrt:bootstrap-3@3.2.0-1");
-  api.use("mrt:moment");
+  api.use("mrt:moment@2.6.0");
   api.use('natestrauser:x-editable-bootstrap');
 
   // Dev packages
-  api.use("matb33:collection-hooks");
+  api.use("matb33:collection-hooks@0.7.3");
   api.use("mizzao:partitioner@0.5.2");
   api.use('mizzao:timesync@0.2.2');
   api.use("mizzao:user-status@0.6.1");
