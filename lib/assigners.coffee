@@ -193,6 +193,12 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
       else
         key = "buffer"
       console.log "Will reuse one existing instance with #{exp.treatments}"
+
+      if exp.endTime?
+        Experiments.update exp._id,
+          $unset: endTime: null
+        console.log "Reset an unused terminated instance: #{exp._id}"
+
       reusable[key] ?= 0
       reusable[key]++
 
@@ -250,6 +256,7 @@ class TurkServer.Assigners.TutorialRandomizedGroupAssigner extends TurkServer.As
         return a.treatmentData.groupSize - b.treatmentData.groupSize
 
     availableSlots = []
+
 
     # Compute remaining slots on existing groups
     existing.forEach (exp) =>

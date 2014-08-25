@@ -17,7 +17,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("METEOR-CORE@0.9.0-rc11");
+  api.versionsFrom("METEOR-CORE@0.9.0-atm");
 
   // Client-only deps
   api.use([
