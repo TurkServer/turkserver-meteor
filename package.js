@@ -1,4 +1,5 @@
 Package.describe({
+  name: "mizzao:turkserver",
   summary: "Framework for building online, real-time user experiments in Meteor",
   version: "0.0.0",
   git: "https://github.com/HarvardEconCS/turkserver-meteor.git"
@@ -17,7 +18,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("METEOR-CORE@0.9.0-atm");
+  api.versionsFrom("METEOR@0.9.0");
 
   // Client-only deps
   api.use([
@@ -45,31 +46,31 @@ Package.onUse(function (api) {
   // Non-core packages
   api.use("mizzao:bootboxjs@4.3.0");
   api.use("iron:router@0.9.0");
+  api.use("mrt:moment@2.8.1");
+  api.use("mizzao:bootstrap-3@3.2.0");
 
-  // Migration needs to be fixed
-  api.use("mrt:bootstrap-3@3.2.0-1");
-  api.use("mrt:moment@2.6.0");
-  api.use('natestrauser:x-editable-bootstrap');
+  // Wasn't migrated properly either
+  api.use('natestrauser:x-editable-bootstrap@1.5.1');
 
-  // Dev packages
+  // Dev packages - may be locally installed with submodule
   api.use("matb33:collection-hooks@0.7.3");
-  api.use("mizzao:partitioner@0.5.2");
+  api.use("mizzao:partitioner@0.5.3");
   api.use('mizzao:timesync@0.2.2');
   api.use("mizzao:user-status@0.6.1");
 
   // mturk fork
-  api.add_files([
+  api.addFiles([
     'mturk/index.js'
   ], 'server');
 
   // Shared files
-  api.add_files([
+  api.addFiles([
     'lib/common.coffee',
     'lib/util.coffee'
   ]);
 
   // Server files
-  api.add_files([
+  api.addFiles([
     'lib/config.coffee',
     'lib/turkserver.coffee',
     'lib/mturk.coffee',
@@ -84,7 +85,7 @@ Package.onUse(function (api) {
   ], 'server');
 
   // Client
-  api.add_files([
+  api.addFiles([
     'client/templates.html',
     'client/login.html',
     'client/ts_client.styl',
@@ -99,7 +100,7 @@ Package.onUse(function (api) {
   ], 'client');
 
   // Admin
-  api.add_files([
+  api.addFiles([
     'admin/admin.styl',
     'admin/util.html',
     'admin/util.coffee',
@@ -113,7 +114,7 @@ Package.onUse(function (api) {
     'admin/lobbyAdmin.coffee'
   ], 'client');
 
-  api.add_files('admin/admin.coffee', 'server');
+  api.addFiles('admin/admin.coffee', 'server');
 
   api.export(['TurkServer']);
   api.export(['TestUtils'], { testOnly: true });
@@ -140,22 +141,22 @@ Package.onTest(function (api) {
   api.use("mizzao:turkserver");
   api.use('mizzao:timesync');
 
-  api.add_files("tests/display_fix.css");
+  api.addFiles("tests/display_fix.css");
 
-  api.add_files('tests/utils.coffee'); // Deletes users so do it before insecure login
-  api.add_files("tests/insecure_login.js");
+  api.addFiles('tests/utils.coffee'); // Deletes users so do it before insecure login
+  api.addFiles("tests/insecure_login.js");
 
-  api.add_files('tests/lobby_tests.coffee');
-  api.add_files('tests/admin_tests.coffee', 'server');
-  api.add_files('tests/auth_tests.coffee', 'server');
-  api.add_files('tests/connection_tests.coffee', 'server');
-  api.add_files('tests/experiment_tests.coffee', 'server');
-  api.add_files('tests/experiment_client_tests.coffee');
-  api.add_files('tests/timer_tests.coffee', 'server');
-  api.add_files('tests/logging_tests.coffee');
+  api.addFiles('tests/lobby_tests.coffee');
+  api.addFiles('tests/admin_tests.coffee', 'server');
+  api.addFiles('tests/auth_tests.coffee', 'server');
+  api.addFiles('tests/connection_tests.coffee', 'server');
+  api.addFiles('tests/experiment_tests.coffee', 'server');
+  api.addFiles('tests/experiment_client_tests.coffee');
+  api.addFiles('tests/timer_tests.coffee', 'server');
+  api.addFiles('tests/logging_tests.coffee');
   // This goes after experiment tests, so we can be sure that assigning works
-  api.add_files('tests/assigner_tests.coffee', 'server');
+  api.addFiles('tests/assigner_tests.coffee', 'server');
 
   // This runs after user is logged in, as it requires a userId
-  api.add_files('tests/helper_tests.coffee');
+  api.addFiles('tests/helper_tests.coffee');
 });
