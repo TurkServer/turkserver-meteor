@@ -145,6 +145,8 @@ Tinytest.add "experiment - instance - teardown and log", withCleanup (test) ->
   instanceData = Experiments.findOne(instance.groupId)
   test.instanceOf instanceData.endTime, Date
 
+# TODO add test for TurkServer.treatment on server
+
 Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup() # Inserts two items

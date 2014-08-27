@@ -48,10 +48,11 @@ Meteor.publish "tsGroupUsers", (groupId) ->
 
   exp = Experiments.findOne(groupId)
   return [] unless exp
+  expUsers = exp.users || []
 
   # This won't update if users changes, but it shouldn't after an experiment is completed
   # TODO Just return everything here; we don't know what the app subscription was using
-  return Meteor.users.find({ _id: $in: exp.users}, offlineFindOptions)
+  return Meteor.users.find({ _id: $in: expUsers}, offlineFindOptions)
 
 # Get a date that is `days` away from `date`, locked to day boundaries
 # See https://kadira.io/academy/improve-cpu-and-network-usage/

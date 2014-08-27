@@ -209,7 +209,7 @@ Meteor.startup ->
   console.log "#{prefix} #{hitTypeBatchUpdates} HIT Types updated with batch Ids" if hitTypeBatchUpdates > 0
 
   experimentBatchUpdates = 0
-  Experiments.find({batchId: $exists: false}).forEach (exp, idx) ->
+  Experiments.find({batchId: $exists: false, startTime: $exists: true}).forEach (exp, idx) ->
     experimentBatchUpdates = idx + 1
     someAsst = Assignments.findOne
       "instances.id": exp._id
