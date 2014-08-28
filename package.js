@@ -49,14 +49,13 @@ Package.onUse(function (api) {
   api.use("mrt:moment@2.8.1");
   api.use("mizzao:bootstrap-3@3.2.0");
 
-  // Wasn't migrated properly either
-  api.use('natestrauser:x-editable-bootstrap@1.5.1');
+  api.use('natestrauser:x-editable-bootstrap@1.5.2');
 
   // Dev packages - may be locally installed with submodule
   api.use("matb33:collection-hooks@0.7.3");
   api.use("mizzao:partitioner@0.5.3");
   api.use('mizzao:timesync@0.2.2');
-  api.use("mizzao:user-status@0.6.1");
+  api.use("mizzao:user-status@0.6.2");
 
   // mturk fork
   api.addFiles([

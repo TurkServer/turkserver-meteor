@@ -4,9 +4,8 @@
 # but you can also edit it by hand.
 
 standard-app-packages
-insecure
 showdown
-bootstrap-3
+mizzao:bootstrap-3
 stylus
 coffeescript
 jquery

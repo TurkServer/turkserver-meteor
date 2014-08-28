@@ -11,27 +11,7 @@ TurkServer allows you to develop your application as a standalone Meteor app, i.
 </template>
 
 <template name="Installation">
-
-1. [Install Meteor](http://docs.meteor.com/#quickstart) and create a an app.
-2. Add TurkServer to your app:
-
-    ```
-    git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git packages/turkserver
-    ```
-
-3. Update package dependencies:
-
-    ```
-    mrt update turkserver
-    ```
-
-4. Launch Meteor and go to `/turkserver` in your web browser to manage your experiment.
-5. Deploy your experiment on free Meteor hosting and use real subjects on MTurk:
-
-    ```
-    meteor deploy my-experiment.meteor.com
-    ```
-
+See the [Quick Start](https://github.com/HarvardEconCS/turkserver-meteor). Once the package is installed, you should be able to start your Meteor app and navigate to `/turkserver` to see the admin interface.
 </template>
 
 <template name="Administration Interface">
@@ -39,7 +19,6 @@ TurkServer has a built-in administration interface at `/turkserver`. You can use
 </template>
 
 <template name="Structuring Your App">
-
 The design of TurkServer uses the [partitioner](https://github.com/mizzao/meteor-partitioner) package for Meteor to divide up a single Meteor app into different instances that are segregated from one another. This makes experiments easy to design while taking full advantage of Meteor's powerful publish-subscribe data framework.
 
 The state of each experiment is encapsulated in [Meteor collections](http://docs.meteor.com/#collections). Declare your collections to be partitioned with the following client/server code:

@@ -6,7 +6,8 @@ UI.body.rendered = ->
 
 # Get templates automagically
 # All things that don't start with an underscore
-UI.registerHelper "sections", _.filter(_.keys(Template), (name) -> name[0] isnt "_")
+UI.registerHelper "sections", _.filter _.keys(Template), (name) ->
+  name isnt "prototype" and name[0] isnt "_"
 
 Template._menu.events =
   # Smooth scrolling
@@ -18,4 +19,3 @@ Template._menu.events =
 Template._menu.id = -> @toLowerCase().replace(/\ /g, "")
 
 Template._section.theTemplate = -> Template[@]
-
