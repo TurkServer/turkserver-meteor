@@ -7,7 +7,7 @@ TurkServer.initialize = (handler) ->
   init_queue.push(handler)
 
 TurkServer.treatment = ->
-  TurkServer.Instance.currentInstance().treatment()
+  TurkServer.Instance.currentInstance()?.treatment()
 
 # Represents a group or slice on the server, containing some users
 class TurkServer.Instance
