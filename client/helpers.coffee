@@ -32,5 +32,5 @@ TurkServer.submitExitSurvey = (results, panel) ->
       TurkServer.submitHIT()
       # TODO: log the user out here? Maybe doesn't matter because resume login will be disabled
 
-TurkServer.submitHIT = -> UI.insert UI.render(Template.mturkSubmit), document.body
+TurkServer.submitHIT = -> Blaze.render(Template.mturkSubmit, document.body)
 

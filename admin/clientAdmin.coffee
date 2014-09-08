@@ -166,7 +166,7 @@ pillPopoverEvents =
 
   # Show instance info in modal
   "click .ts-instance-pill-container": (e) ->
-    TurkServer._displayModal UI.renderWithData(Template.tsAdminInstance, UI.getElementData(e.target).id)
+    TurkServer._displayModal Template.tsAdminInstance, UI.getElementData(e.target).id
 
   "mouseenter .ts-user-pill-container": (e) ->
     container = $(e.target)

@@ -401,7 +401,7 @@ Template.tsAdminCompletedAssignmentsTable.events
     Meteor.call("ts-admin-unset-bonus", this._id)
 
   "click .ts-admin-pay-bonus": ->
-    TurkServer._displayModal UI.renderWithData(Template.tsAdminPayBonus, this)
+    TurkServer._displayModal Template.tsAdminPayBonus, this
 
 Template.tsAdminCompletedAssignmentRow.labelStatus = ->
   switch @mturkStatus
