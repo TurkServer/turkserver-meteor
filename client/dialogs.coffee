@@ -25,7 +25,7 @@ Meteor.startup ->
               Please check your Internet connection.</h3>"""
       return
 
-TurkServer._displayModal = (materializedTemplate, options) ->
+TurkServer._displayModal = (template, data, options) ->
   # minimum options to get message to show
   options ?= { message: " " }
   dialog = bootbox.dialog(options)
@@ -33,7 +33,7 @@ TurkServer._displayModal = (materializedTemplate, options) ->
   dialog.find(".bootbox-body").remove()
 
   # Since bootbox/bootstrap uses jQuery, this should clean up itself
-  UI.insert(materializedTemplate, dialog.find(".modal-body")[0])
+  Blaze.renderWithData(template, data, dialog.find(".modal-body")[0])
   return dialog
 
 TurkServer.ensureUsername = ->
@@ -59,7 +59,7 @@ TurkServer.ensureUsername = ->
 
     if !username and usernameDialog is null
       usernameDialog = bootbox.dialog(message: " ").html('')
-      UI.insert UI.render(Template.tsRequestUsername), usernameDialog[0]
+      Blaze.render(Template.tsRequestUsername, usernameDialog[0])
       return
 
 Template.tsRequestUsername.events =

@@ -45,7 +45,7 @@ Template.tsBatchSelector.viewingBatchId = -> Session.get("_tsViewingBatchId")
 Template.tsAdminInstance.rendered = ->
   # Subscribe to instance with whatever we rendered with
   this.autorun ->
-    Meteor.subscribe "tsAdminInstance", Blaze.getCurrentData()
+    Meteor.subscribe "tsAdminInstance", Blaze.getData()
 
 Template.tsAdminInstance.instance = -> Experiments.findOne(@+"")
 

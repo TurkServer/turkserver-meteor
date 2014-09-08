@@ -159,14 +159,14 @@ pillPopoverEvents =
       container: container
       # TODO: Dynamic popover content would be very helpful here.
       # https://github.com/meteor/meteor/issues/2010#issuecomment-40532280
-      content: Blaze.toHTML Blaze.With(UI.getElementData(e.target), -> Template.tsAdminAssignmentInstanceInfo)
+      content: Blaze.toHTMLWithData Template.tsAdminAssignmentInstanceInfo, Blaze.getData(e.target)
     }).popover("show")
 
     container.one("mouseleave", -> container.popover("destroy") )
 
   # Show instance info in modal
   "click .ts-instance-pill-container": (e) ->
-    TurkServer._displayModal UI.renderWithData(Template.tsAdminInstance, UI.getElementData(e.target).id)
+    TurkServer._displayModal Template.tsAdminInstance, Blaze.getData(e.target).id
 
   "mouseenter .ts-user-pill-container": (e) ->
     container = $(e.target)
@@ -177,7 +177,7 @@ pillPopoverEvents =
       trigger: "manual"
       container: container
     # TODO: ditto
-      content: Blaze.toHTML Blaze.With UI.getElementData(e.target), -> Template.tsUserPillPopover
+      content: Blaze.toHTMLWithData Template.tsUserPillPopover, Blaze.getData(e.target)
     }).popover("show")
 
     container.one("mouseleave", -> container.popover("destroy") )

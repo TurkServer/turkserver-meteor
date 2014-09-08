@@ -235,7 +235,7 @@ Template.tsAdminBatchEditTreatments.events =
 
   "click .-ts-add-batch-treatment": (e, tmpl) ->
     e.preventDefault()
-    treatment = UI.getElementData(tmpl.find(":selected"))
+    treatment = Blaze.getData(tmpl.find(":selected"))
     return unless treatment?
     Batches.update @_id,
       $addToSet: { treatments: treatment.name }

@@ -1,13 +1,15 @@
 # Because of
 # Attributes on <body> not supported
-UI.body.rendered = ->
+Template.body.rendered = ->
   $('body').scrollspy(target: "#menu")
   hljs.initHighlightingOnLoad()
 
 # Get templates automagically
 # All things that don't start with an underscore
 UI.registerHelper "sections", _.filter _.keys(Template), (name) ->
-  name isnt "prototype" and name[0] isnt "_"
+  char = name[0]
+  # Doesn't start with underscore, and isn't a lowercase letter
+  return char isnt "_" and char isnt char.toLowerCase()
 
 Template._menu.events =
   # Smooth scrolling

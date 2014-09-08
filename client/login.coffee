@@ -91,12 +91,10 @@ testLogin = ->
     assignmentId: str + "_Asst"
     workerId: str + "_Worker"
 
-  loginDialog = bootbox.dialog({
+  loginDialog = TurkServer._displayModal(Template.tsTestingLogin, data, {
     title: 'Select batch'
     message: " "
   })
-
-  UI.insert UI.renderWithData(Template.tsTestingLogin, data), loginDialog.find(".modal-body").html('')[0]
 
   return
 
