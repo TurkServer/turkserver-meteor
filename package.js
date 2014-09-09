@@ -54,7 +54,7 @@ Package.onUse(function (api) {
   api.use('natestrauser:x-editable-bootstrap@1.5.2');
 
   // Dev packages - may be locally installed with submodule
-  api.use("matb33:collection-hooks@0.7.4");
+  api.use("matb33:collection-hooks@0.7.5");
   api.use("mizzao:partitioner@0.5.3");
   api.use('mizzao:timesync@0.2.2');
   api.use("mizzao:user-status@0.6.2");
