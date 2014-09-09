@@ -24,7 +24,7 @@ The design of TurkServer uses the [partitioner](https://github.com/mizzao/meteor
 The state of each experiment is encapsulated in [Meteor collections](http://docs.meteor.com/#collections). Declare your collections to be partitioned with the following client/server code:
 
 ```js
-Foo = new Meteor.Collection("foo");
+Foo = new Mongo.Collection("foo");
 TurkServer.partitionCollection(Foo, options);
 ```
 

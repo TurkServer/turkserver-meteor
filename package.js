@@ -18,7 +18,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("METEOR@0.9.0");
+  api.versionsFrom("0.9.1");
 
   // Client-only deps
   api.use([
@@ -43,6 +43,8 @@ Package.onUse(function (api) {
     'facts'
   ]);
 
+  api.use(["ddp", "mongo"]); // For pub/sub and collections
+
   // Non-core packages
   api.use("mizzao:bootboxjs@4.3.0");
   api.use("iron:router@0.9.0");
@@ -52,7 +54,7 @@ Package.onUse(function (api) {
   api.use('natestrauser:x-editable-bootstrap@1.5.2');
 
   // Dev packages - may be locally installed with submodule
-  api.use("matb33:collection-hooks@0.7.3");
+  api.use("matb33:collection-hooks@0.7.5");
   api.use("mizzao:partitioner@0.5.3");
   api.use('mizzao:timesync@0.2.2');
   api.use("mizzao:user-status@0.6.2");
@@ -127,6 +129,8 @@ Package.onTest(function (api) {
     'coffeescript',
     'underscore'
   ]);
+
+  api.use('mongo');
 
   api.use([
     'tinytest',

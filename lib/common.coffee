@@ -8,24 +8,24 @@ TestUtils = TestUtils || {}
 TurkServer.group = Partitioner.group
 TurkServer.partitionCollection = Partitioner.partitionCollection
 
-@Batches = new Meteor.Collection("ts.batches")
-@Treatments = new Meteor.Collection("ts.treatments")
+@Batches = new Mongo.Collection("ts.batches")
+@Treatments = new Mongo.Collection("ts.treatments")
 # TODO rename these instances
-@Experiments = new Meteor.Collection("ts.experiments")
+@Experiments = new Mongo.Collection("ts.experiments")
 
-@LobbyStatus = new Meteor.Collection("ts.lobby")
-@Logs = new Meteor.Collection("ts.logs")
+@LobbyStatus = new Mongo.Collection("ts.lobby")
+@Logs = new Mongo.Collection("ts.logs")
 
-@RoundTimers = new Meteor.Collection("ts.rounds")
+@RoundTimers = new Mongo.Collection("ts.rounds")
 TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 
-@Workers = new Meteor.Collection("ts.workers")
-@Assignments = new Meteor.Collection("ts.assignments")
+@Workers = new Mongo.Collection("ts.workers")
+@Assignments = new Mongo.Collection("ts.assignments")
 
-@WorkerEmails = new Meteor.Collection("ts.workeremails")
-@Qualifications = new Meteor.Collection("ts.qualifications")
-@HITTypes = new Meteor.Collection("ts.hittypes")
-@HITs = new Meteor.Collection("ts.hits")
+@WorkerEmails = new Mongo.Collection("ts.workeremails")
+@Qualifications = new Mongo.Collection("ts.qualifications")
+@HITTypes = new Mongo.Collection("ts.hittypes")
+@HITs = new Mongo.Collection("ts.hits")
 
 @ErrMsg =
   # authentication
