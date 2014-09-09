@@ -1,5 +1,5 @@
 # Client-only pseudo collection that receives experiment metadata
-@TSConfig = new Meteor.Collection("ts.config")
+@TSConfig = new Mongo.Collection("ts.config")
 
 # Reactive variables for state
 TurkServer.inQuiz = ->

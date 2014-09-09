@@ -1,4 +1,4 @@
-Doobie = new Meteor.Collection("experiment_test")
+Doobie = new Mongo.Collection("experiment_test")
 
 Partitioner.partitionCollection Doobie
 
