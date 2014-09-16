@@ -50,6 +50,7 @@ Package.onUse(function (api) {
   api.use("iron:router@0.9.0");
   api.use("mrt:moment@2.8.1");
   api.use("mizzao:bootstrap-3@3.2.0");
+  api.use("mizzao:autocomplete@0.4.8");
 
   api.use('natestrauser:x-editable-bootstrap@1.5.2');
 
