@@ -1,4 +1,4 @@
 [submodule "mturk"]
 	path = mturk
 	url = https://github.com/jefftimesten/mturk.git
-	branch = develop
+	branch = master
