@@ -11,15 +11,17 @@ TurkServer.Util._defaultTimeSlots = ->
 # Submit as soon as this template appears on the page.
 Template.mturkSubmit.rendered = -> @find("form").submit()
 
-Template.tsTimePicker.zone = -> moment().format("Z")
+Template.tsTimePicker.helpers
+  zone: -> moment().format("Z")
 
-Template.tsTimeOptions.momentList = TurkServer.Util._defaultTimeSlots
+Template.tsTimeOptions.helpers
+  momentList: TurkServer.Util._defaultTimeSlots
 
-# Store all values in GMT-5
-Template.tsTimeOptions.valueFormatted = -> @zone(300).format('HH ZZ')
-
-# Display values in user's timezone
-Template.tsTimeOptions.displayFormatted = -> @local().format('hA [UTC]Z')
+Template.tsTimeOptions.helpers
+  # Store all values in GMT-5
+  valueFormatted: -> @zone(300).format('HH ZZ')
+  # Display values in user's timezone
+  displayFormatted: -> @local().format('hA [UTC]Z')
 
 ###
   Submits the exit survey data to the server and submits the HIT if successful

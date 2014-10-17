@@ -72,4 +72,5 @@ Template.tsRequestUsername.events =
     Meteor.call "ts-set-username", username, (err, res) ->
       Session.set("_tsUsernameError", err.reason) if err
 
-Template.tsRequestUsername.usernameError = -> Session.get("_tsUsernameError")
+Template.tsRequestUsername.helpers
+  usernameError: -> Session.get("_tsUsernameError")

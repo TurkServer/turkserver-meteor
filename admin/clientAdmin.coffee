@@ -27,20 +27,20 @@ logSubErrors =
   onError: (e) -> console.log(e)
 
 Router.map ->
-  @route "overview",
+  @route "tsOverview",
     path: "/turkserver",
     controller: TSAdminController
     template: "tsAdminOverview"
-  @route "mturk",
+  @route "tsMturk",
     path: "turkserver/mturk",
     controller: TSAdminController
     template: "tsAdminMTurk"
-  @route "hits",
+  @route "tsHits",
     path: "turkserver/hits",
     controller: TSAdminController
     template: "tsAdminHits"
   # No sub needed - done with autocomplete
-  @route "workers",
+  @route "tsWorkers",
     path: "turkserver/workers/:workerId?",
     controller: TSAdminController
     template: "tsAdminWorkers"
@@ -50,13 +50,13 @@ Router.map ->
     data: ->
       workerId: this.params.workerId
 
-  @route "panel",
+  @route "tsPanel",
     path: "turkserver/panel",
     controller: TSAdminController
     template: "tsAdminPanel"
     waitOn: -> Meteor.subscribe("tsAdminWorkers")
 
-  @route "activeAssignments",
+  @route "tsActiveAssignments",
     path: "turkserver/assignments/active",
     controller: TSAdminController
     template: "tsAdminActiveAssignments"
@@ -64,7 +64,7 @@ Router.map ->
       return unless (batchId = Session.get("_tsViewingBatchId"))?
       return Meteor.subscribe("tsAdminActiveAssignments", batchId)
 
-  @route "completedAssignments",
+  @route "tsCompletedAssignments",
     path: "turkserver/assignments/completed/:days?/:limit?",
     controller: TSAdminController
     template: "tsAdminCompletedAssignments"
@@ -77,11 +77,11 @@ Router.map ->
       days: @params.days || TurkServer.adminSettings.defaultDaysThreshold
       limit: @params.limit || TurkServer.adminSettings.defaultLimit
 
-  @route "connections",
+  @route "tsConnections",
     path: "turkserver/connections",
     controller: TSAdminController
     template: "tsAdminConnections"
-  @route "lobby",
+  @route "tsLobby",
     path: "turkserver/lobby",
     controller: TSAdminController
     template: "tsAdminLobby"
@@ -90,7 +90,7 @@ Router.map ->
       # Same sub as normal lobby clients
       return Meteor.subscribe("lobby", batchId)
 
-  @route "experiments",
+  @route "tsExperiments",
     path: "turkserver/experiments/:days?/:limit?",
     controller: TSAdminController
     template: "tsAdminExperiments",
@@ -106,7 +106,7 @@ Router.map ->
       days: @params.days || TurkServer.adminSettings.defaultDaysThreshold
       limit: @params.limit || TurkServer.adminSettings.defaultLimit
 
-  @route "logs",
+  @route "tsLogs",
     path: "turkserver/logs/:groupId/:count",
     controller: TSAdminController
     template: "tsAdminLogs"
@@ -115,7 +115,7 @@ Router.map ->
       instance: @params.groupId
       count: @params.count
 
-  @route "manage",
+  @route "tsManage",
     path: "turkserver/manage",
     controller: TSAdminController
     template: "tsAdminManage"
@@ -190,8 +190,9 @@ Template.turkserverPulldown.events
 # Add the pill events as well
 Template.turkserverPulldown.events(pillPopoverEvents)
 
-Template.turkserverPulldown.admin = TurkServer.isAdmin
-Template.turkserverPulldown.currentExperiment = -> Experiments.findOne()
+Template.turkserverPulldown.helpers
+  admin: TurkServer.isAdmin
+  currentExperiment: -> Experiments.findOne()
 
 Template.tsAdminLogin.events =
   "submit form": (e, tp) ->
@@ -219,19 +220,20 @@ Template.tsAdminOverview.events =
     Meteor.call "ts-admin-account-balance", (err, res) ->
       if err then bootbox.alert(err.reason) else bootbox.alert("<h3>$#{res.toFixed(2)}</h3>")
 
-Template.tsAdminOverview.onlineUserCount = -> onlineUsers().count()
-
-Template.tsAdminOverview.lobbyUserCount = -> LobbyStatus.find().count()
-Template.tsAdminOverview.activeExperiments = -> Experiments.find().count()
+Template.tsAdminOverview.helpers
+  onlineUserCount: -> onlineUsers().count()
+  lobbyUserCount: -> LobbyStatus.find().count()
+  activeExperiments: -> Experiments.find().count()
 
 # All non-admin users who are online, sorted by most recent login
-Template.tsAdminConnections.users = ->
-  Meteor.users.find({
-    admin: {$exists: false}
-    "turkserver.state": {$exists: true}
-  }, {
-    sort: { "status.lastLogin.date" : -1 }
-  })
+Template.tsAdminConnections.helpers
+  users: ->
+    Meteor.users.find({
+      admin: {$exists: false}
+      "turkserver.state": {$exists: true}
+    }, {
+      sort: { "status.lastLogin.date" : -1 }
+    })
 
 Template.tsAdminConnectionMaintenance.events
   "click .-ts-cleanup-user-state": ->

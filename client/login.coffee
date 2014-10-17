@@ -74,7 +74,8 @@ Template.tsTestingLogin.rendered = ->
 Template.tsTestingLogin.destroyed = ->
   @subHandle.stop()
 
-Template.tsTestingLogin.batches = -> Batches.find()
+Template.tsTestingLogin.helpers
+  batches: -> Batches.find()
 
 testLogin = ->
   # FIXME hack: never run this if we are live

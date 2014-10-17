@@ -1,4 +1,5 @@
-Template.tsAdminLobby.lobbyUsers = -> LobbyStatus.find()
+Template.tsAdminLobby.helpers
+  lobbyUsers: -> LobbyStatus.find()
 
 Template.tsAdminLobbyHeader.events =
   "submit form": (e, t) ->
@@ -7,4 +8,5 @@ Template.tsAdminLobbyHeader.events =
     Meteor.call "ts-admin-lobby-event", Session.get("_tsViewingBatchId"), event, (err, res) ->
       bootbox.alert(err) if err
 
-Template.tsAdminLobbyHeader.count = -> LobbyStatus.find().count()
+Template.tsAdminLobbyHeader.helpers
+  count: -> LobbyStatus.find().count()

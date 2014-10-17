@@ -4,7 +4,7 @@ Template.tsAdminExperiments.events
   "submit form.-ts-admin-experiment-filter": (e, t) ->
     e.preventDefault()
 
-    Router.go "experiments",
+    Router.go "tsExperiments",
       days: t.find("input[name=filter_days]").valueAsNumber ||
         TurkServer.adminSettings.defaultDaysThreshold
       limit: t.find("input[name=filter_limit]").valueAsNumber ||
@@ -26,7 +26,8 @@ Template.tsAdminExperiments.events
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
       Meteor.call "ts-admin-stop-experiment", expId if res
 
-Template.tsAdminExperiments.numExperiments = -> Experiments.find().count()
+Template.tsAdminExperiments.helpers
+  numExperiments: -> Experiments.find().count()
 
 numUsers = -> @users?.length
 
@@ -135,28 +136,29 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
     redraw(bars)
 
-Template.tsAdminActiveExperiments.experiments = ->
-  Experiments.find
-    endTime: {$exists: false}
-  ,
-    sort: { startTime: -1 }
+Template.tsAdminActiveExperiments.helpers
+  experiments: ->
+    Experiments.find
+      endTime: {$exists: false}
+    ,
+      sort: { startTime: -1 }
 
-Template.tsAdminActiveExperiments.numUsers = numUsers
+  numUsers: numUsers
 
-Template.tsAdminCompletedExperiments.experiments = ->
-  Experiments.find
-    endTime: {$exists: true}
-  ,
-    sort: { startTime: -1 }
+Template.tsAdminCompletedExperiments.helpers
+  experiments: ->
+    Experiments.find
+      endTime: {$exists: true}
+    ,
+      sort: { startTime: -1 }
+  duration: ->
+    TurkServer.Util.duration(@endTime - @startTime)
+  numUsers: numUsers
 
-Template.tsAdminCompletedExperiments.duration = ->
-  TurkServer.Util.duration(@endTime - @startTime)
-
-Template.tsAdminCompletedExperiments.numUsers = numUsers
-
-Template.tsAdminLogs.experiment = -> Experiments.findOne(@instance)
-Template.tsAdminLogs.logEntries = -> Logs.find({}, {sort: _timestamp: -1})
-Template.tsAdminLogs.entryData = -> _.omit(@, "_id", "_userId", "_groupId", "_timestamp")
+Template.tsAdminLogs.helpers
+  experiment: -> Experiments.findOne(@instance)
+  logEntries: -> Logs.find({}, {sort: _timestamp: -1})
+  entryData: -> _.omit(@, "_id", "_userId", "_groupId", "_timestamp")
 
 Template.tsAdminLogs.events
   "submit form.ts-admin-log-filter": (e, t) ->
@@ -164,12 +166,13 @@ Template.tsAdminLogs.events
     count = t.find("input[name=count]").valueAsNumber
     return unless count
 
-    Router.go "logs",
+    Router.go "tsLogs",
       groupId: @instance,
       count: count
 
-Template.tsAdminTreatments.treatments = treatments
-Template.tsAdminTreatments.zeroTreatments = -> Treatments.find().count() is 0
+Template.tsAdminTreatments.helpers
+  treatments: treatments
+  zeroTreatments: -> Treatments.find().count() is 0
 
 Template.tsAdminTreatments.events =
   "click tbody > tr": (e) ->
@@ -194,8 +197,9 @@ Template.tsAdminNewTreatment.events =
       name: name
     , (e) -> bootbox.alert(e.message) if e
 
-Template.tsAdminTreatmentConfig.selectedTreatment = ->
-  Treatments.findOne Session.get("_tsSelectedTreatmentId")
+Template.tsAdminTreatmentConfig.helpers
+  selectedTreatment: ->
+    Treatments.findOne Session.get("_tsSelectedTreatmentId")
 
 Template.tsAdminConfigureBatch.events =
   "click .-ts-activate-batch": ->
@@ -210,8 +214,8 @@ Template.tsAdminConfigureBatch.events =
     Batches.update @_id, $set:
       allowReturns: e.target.checked
 
-Template.tsAdminConfigureBatch.selectedBatch = ->
-  Batches.findOne(Session.get("_tsSelectedBatchId"))
+Template.tsAdminConfigureBatch.helpers
+  selectedBatch: -> Batches.findOne(Session.get("_tsSelectedBatchId"))
 
 Template.tsAdminBatchEditDesc.rendered = ->
   container = @$('div.editable')
@@ -240,17 +244,18 @@ Template.tsAdminBatchEditTreatments.events =
     Batches.update @_id,
       $addToSet: { treatments: treatment.name }
 
-Template.tsAdminBatchEditTreatments.allTreatments = treatments
+Template.tsAdminBatchEditTreatments.helpers
+  allTreatments: treatments
 
 Template.tsAdminBatchList.events =
   "click tbody > tr": (e) ->
     Session.set("_tsSelectedBatchId", @_id)
 
-Template.tsAdminBatchList.batches = -> Batches.find()
-Template.tsAdminBatchList.zeroBatches = -> Batches.find().count() is 0
-
-Template.tsAdminBatchList.selectedClass = ->
-  if Session.equals("_tsSelectedBatchId", @_id) then "info" else ""
+Template.tsAdminBatchList.helpers
+  batches: -> Batches.find()
+  zeroBatches: -> Batches.find().count() is 0
+  selectedClass: ->
+    if Session.equals("_tsSelectedBatchId", @_id) then "info" else ""
 
 Template.tsAdminAddBatch.events =
   "submit form": (e, tmpl) ->

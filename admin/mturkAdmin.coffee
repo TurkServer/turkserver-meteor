@@ -1,15 +1,17 @@
 quals = -> Qualifications.find()
 hitTypes = -> HITTypes.find()
 
-Template.tsAdminMTurk.selectedHITType = -> HITTypes.findOne Session.get("_tsSelectedHITType")
+Template.tsAdminMTurk.helpers
+  selectedHITType: -> HITTypes.findOne Session.get("_tsSelectedHITType")
 
 Template.tsAdminHitTypes.events =
   "click tr": -> Session.set("_tsSelectedHITType", @_id)
   "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
 
-Template.tsAdminHitTypes.hitTypes = hitTypes
-Template.tsAdminHitTypes.selectedClass = ->
-  if Session.equals("_tsSelectedHITType", @_id) then "info" else ""
+Template.tsAdminHitTypes.helpers
+  hitTypes: hitTypes
+  selectedClass: ->
+    if Session.equals("_tsSelectedHITType", @_id) then "info" else ""
 
 Template.tsAdminViewHitType.events =
   "click .-ts-register-hittype": ->
@@ -18,9 +20,10 @@ Template.tsAdminViewHitType.events =
   "click .-ts-delete-hittype": ->
     HITTypes.remove(@_id)
 
-Template.tsAdminViewHitType.batchName = -> Batches.findOne(@batchId)?.name || "(none)"
-Template.tsAdminViewHitType.renderReward = -> @Reward.toFixed(2)
-Template.tsAdminViewHitType.qualName = -> Qualifications.findOne(""+@)?.name
+Template.tsAdminViewHitType.helpers
+  batchName: -> Batches.findOne(@batchId)?.name || "(none)"
+  renderReward: -> @Reward.toFixed(2)
+  qualName: -> Qualifications.findOne(""+@)?.name
 
 Template.tsAdminNewHitType.events =
   "submit form": (e, tmpl) ->
@@ -38,23 +41,23 @@ Template.tsAdminNewHitType.events =
 
     Session.set("_tsSelectedHITType", id)
 
-Template.tsAdminNewHitType.quals = quals
-
-Template.tsAdminNewHitType.batches = Batches.find()
+Template.tsAdminNewHitType.helpers
+  quals: quals
+  batches: -> Batches.find()
 
 Template.tsAdminQuals.events =
   "click .-ts-delete-qual": ->
     Qualifications.remove(@_id)
 
-Template.tsAdminQuals.quals = quals
-
-Template.tsAdminQuals.value = ->
-  if @IntegerValue
-    return @IntegerValue + " (Integer)"
-  else if @LocaleValue
-    return @LocaleValue + " (Locale)"
-  else
-    return
+Template.tsAdminQuals.helpers
+  quals: quals
+  value: ->
+    if @IntegerValue
+      return @IntegerValue + " (Integer)"
+    else if @LocaleValue
+      return @LocaleValue + " (Locale)"
+    else
+      return
 
 Template.tsAdminNewQual.events =
   "click .-ts-create-qual": (e, tmpl) ->
@@ -116,8 +119,9 @@ Template.tsAdminNewQual.events =
 Template.tsAdminHits.events =
   "click tr": -> Session.set("_tsSelectedHIT", @_id)
 
-Template.tsAdminHits.hits = -> HITs.find()
-Template.tsAdminHits.selectedHIT = -> HITs.findOne Session.get("_tsSelectedHIT")
+Template.tsAdminHits.helpers
+  hits: -> HITs.find()
+  selectedHIT: -> HITs.findOne Session.get("_tsSelectedHIT")
 
 Template.tsAdminViewHit.events =
   "click .-ts-refresh-hit": ->
@@ -158,7 +162,8 @@ Template.tsAdminViewHit.events =
     Meteor.call "ts-admin-extend-hit", params, (err, res) ->
       bootbox.alert(err.reason) if err
 
-Template.tsAdminViewHit.hitTypes = hitTypes
+Template.tsAdminViewHit.helpers
+  hitTypes: hitTypes
 
 Template.tsAdminNewHit.events =
   "submit form": (e, tmpl) ->
@@ -177,45 +182,47 @@ Template.tsAdminNewHit.events =
     Meteor.call "ts-admin-create-hit", hitTypeId, params, (err, res) ->
       bootbox.alert(err.reason) if err
 
-Template.tsAdminNewHit.hitTypes = hitTypes
+Template.tsAdminNewHit.helpers
+  hitTypes: hitTypes
 
-Template.tsAdminWorkers.settings = {
-  position: "bottom",
-  limit: 5,
-  rules: [
-    {
-      collection: Meteor.users,
-      field: "workerId",
-      template: Template.tsAdminWorkerItem
-      # Match on workerId or username
-      selector: (match) ->
-        $or: [
-          { workerId: { $regex: "^" + match.toUpperCase() } },
-          { username: { $regex: match, $options: "i" } }
-        ]
-      callback: (user) ->
-        Router.go("workers", {workerId: user.workerId}) if user.workerId?
-    }
-  ]
-}
+Template.tsAdminWorkers.helpers
+  settings: {
+    position: "bottom",
+    limit: 5,
+    rules: [
+      {
+        collection: Meteor.users,
+        field: "workerId",
+        template: Template.tsAdminWorkerItem
+        # Match on workerId or username
+        selector: (match) ->
+          $or: [
+            { workerId: { $regex: "^" + match.toUpperCase() } },
+            { username: { $regex: match, $options: "i" } }
+          ]
+        callback: (user) ->
+          Router.go("tsWorkers", {workerId: user.workerId}) if user.workerId?
+      }
+    ]
+  }
 
-Template.tsAdminWorkers.workerData = -> Workers.findOne(@workerId)
+  workerData: -> Workers.findOne(@workerId)
 
-Template.tsAdminWorkers.workerActiveAssts = ->
-  Assignments.find({
-    workerId: @workerId,
-    status: { $ne: "completed" }
-  }, {
-    sort: acceptTime: -1
-  })
+  workerActiveAssts: ->
+    Assignments.find({
+      workerId: @workerId,
+      status: { $ne: "completed" }
+    }, {
+      sort: acceptTime: -1
+    })
 
-Template.tsAdminWorkers.workerCompletedAssts = ->
-  Assignments.find({
-    workerId: @workerId,
-    status: "completed"
-  }, {
-    sort: submitTime: -1
-  })
+  workerCompletedAssts: ->
+    Assignments.find({
+      workerId: @workerId,
+      status: "completed"
+    }, {
+      sort: submitTime: -1
+    })
 
 Template.tsAdminPanel.rendered = ->
   svg = d3.select(@find("svg"))
@@ -305,17 +312,20 @@ Template.tsAdminPanel.rendered = ->
 Template.tsAdminPanel.destroyed = ->
   @handle.stop()
 
-Template.tsAdminPanel.workerContact = -> Workers.find(contact: true).count()
-Template.tsAdminPanel.workerTotal = -> Workers.find().count()
+Template.tsAdminPanel.helpers
+  workerContact: -> Workers.find(contact: true).count()
+  workerTotal: -> Workers.find().count()
 
-Template.tsAdminEmail.messages = -> WorkerEmails.find({}, {sort: {sentTime: -1}})
+Template.tsAdminEmail.helpers
+  messages: -> WorkerEmails.find({}, {sort: {sentTime: -1}})
 
 Template.tsAdminEmail.events
   "click tr": -> Session.set("_tsSelectedEmailId", @_id)
 
-Template.tsAdminEmailMessage.selectedMessage = ->
-  emailId = Session.get("_tsSelectedEmailId")
-  return WorkerEmails.findOne(emailId) if emailId?
+Template.tsAdminEmailMessage.helpers
+  selectedMessage: ->
+    emailId = Session.get("_tsSelectedEmailId")
+    return WorkerEmails.findOne(emailId) if emailId?
 
 Template.tsAdminEmailMessage.events
   "click .ts-admin-send-message": ->
@@ -333,11 +343,12 @@ Template.tsAdminEmailMessage.events
     Meteor.call "ts-admin-delete-message", @_id, (err) ->
       bootbox.alert(err) if err?
 
-Template.tsAdminNewEmail.messages = ->
-  WorkerEmails.find({}, {
-    fields: {subject: 1},
-    sort: {sentTime: -1}
-  })
+Template.tsAdminNewEmail.helpers
+  messages: ->
+    WorkerEmails.find({}, {
+      fields: {subject: 1},
+      sort: {sentTime: -1}
+    })
 
 Template.tsAdminNewEmail.events
   "submit form": (e, t) ->
@@ -372,25 +383,25 @@ Template.tsAdminAssignmentMaintenance.events
 
 numAssignments = -> Assignments.find().count()
 
-Template.tsAdminActiveAssignments.numAssignments = numAssignments
-
-Template.tsAdminActiveAssignments.activeAssts = ->
-  Assignments.find {}, { sort: acceptTime: -1 }
+Template.tsAdminActiveAssignments.helpers
+  numAssignments: numAssignments
+  activeAssts: ->
+    Assignments.find {}, { sort: acceptTime: -1 }
 
 Template.tsAdminCompletedAssignments.events
   "submit form.ts-admin-assignment-filter": (e, t) ->
     e.preventDefault()
 
-    Router.go "completedAssignments",
+    Router.go "tsCompletedAssignments",
       days: t.find("input[name=filter_days]").valueAsNumber ||
         TurkServer.adminSettings.defaultDaysThreshold
       limit: t.find("input[name=filter_limit]").valueAsNumber ||
         TurkServer.adminSettings.defaultLimit
 
-Template.tsAdminCompletedAssignments.numAssignments = numAssignments
-
-Template.tsAdminCompletedAssignments.completedAssts = ->
-  Assignments.find {}, { sort: submitTime: -1 }
+Template.tsAdminCompletedAssignments.helpers
+  numAssignments: numAssignments
+  completedAssts: ->
+    Assignments.find {}, { sort: submitTime: -1 }
 
 Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-refresh-assignment": ->
@@ -403,9 +414,10 @@ Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-pay-bonus": ->
     TurkServer._displayModal Template.tsAdminPayBonus, this
 
-Template.tsAdminCompletedAssignmentRow.labelStatus = ->
-  switch @mturkStatus
-    when "Submitted" then "label-warning"
-    when "Approved" then "label-primary"
-    when "Rejected" then "label-danger"
-    else "label-default"
+Template.tsAdminCompletedAssignmentRow.helpers
+  labelStatus: ->
+    switch @mturkStatus
+      when "Submitted" then "label-warning"
+      when "Approved" then "label-primary"
+      when "Rejected" then "label-danger"
+      else "label-default"

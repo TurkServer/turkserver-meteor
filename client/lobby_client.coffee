@@ -31,18 +31,16 @@ Meteor.methods
     LobbyStatus.update userId,
       $set: { status: not existing.status }
 
-Template.tsBasicLobby.count = -> LobbyStatus.find().count()
+Template.tsBasicLobby.helpers
+  count: -> LobbyStatus.find().count()
+  lobbyInfo: -> LobbyStatus.find()
+  identifier: -> Meteor.users.findOne(@_id)?.username || "<i>unnamed user</i>"
 
-Template.tsBasicLobby.lobbyInfo = -> LobbyStatus.find()
-
-Template.tsBasicLobby.identifier = -> Meteor.users.findOne(@_id)?.username || "<i>unnamed user</i>"
-
-Template.tsLobby.lobbyInfo = -> LobbyStatus.find()
-
-Template.tsLobby.identifier = -> Meteor.users.findOne(@_id)?.username || @_id
-
-Template.tsLobby.readyEnabled = ->
-  return LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
+Template.tsLobby.helpers
+  lobbyInfo: -> LobbyStatus.find()
+  identifier: -> Meteor.users.findOne(@_id)?.username || @_id
+  readyEnabled: ->
+    return LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
 
 Template.tsLobby.events =
   "click a.changeStatus": (ev) ->

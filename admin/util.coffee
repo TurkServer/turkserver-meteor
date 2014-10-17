@@ -37,17 +37,19 @@ Template.tsBatchSelector.events =
     unless Session.equals("_tsViewingBatchId", e.target.value)
       Session.set("_tsViewingBatchId", e.target.value)
 
-Template.tsBatchSelector.batches = -> Batches.find()
-Template.tsBatchSelector.noBatchSelection = -> not Session.get("_tsViewingBatchId")
-Template.tsBatchSelector.selected = -> Session.equals("_tsViewingBatchId", @_id)
-Template.tsBatchSelector.viewingBatchId = -> Session.get("_tsViewingBatchId")
+Template.tsBatchSelector.helpers
+  batches: -> Batches.find()
+  noBatchSelection: -> not Session.get("_tsViewingBatchId")
+  selected: -> Session.equals("_tsViewingBatchId", @_id)
+  viewingBatchId: -> Session.get("_tsViewingBatchId")
 
 Template.tsAdminInstance.rendered = ->
   # Subscribe to instance with whatever we rendered with
   this.autorun ->
     Meteor.subscribe "tsAdminInstance", Blaze.getData()
 
-Template.tsAdminInstance.instance = -> Experiments.findOne(@+"")
+Template.tsAdminInstance.helpers
+  instance: -> Experiments.findOne(@+"")
 
 Template.tsAdminPayBonus.events
   "submit form": (e, t) ->
@@ -74,27 +76,28 @@ userIdentifier = ->
   else
     "(" + @_id + ")"
 
-Template.tsAdminWorkerItem.labelClass = userLabelClass
-Template.tsAdminWorkerItem.identifier = userIdentifier
+Template.tsAdminWorkerItem.helpers
+  labelClass: userLabelClass
+  identifier: userIdentifier
 
-Template.tsUserPill.user = ->
-  switch
-    when @userId then Meteor.users.findOne(@userId)
-    when @workerId then Meteor.users.findOne(workerId: @workerId)
-    else @ # Object was already passed in
+Template.tsUserPill.helpers
+  user: ->
+    switch
+      when @userId then Meteor.users.findOne(@userId)
+      when @workerId then Meteor.users.findOne(workerId: @workerId)
+      else @ # Object was already passed in
+  labelClass: userLabelClass
+  identifier: userIdentifier
 
-Template.tsUserPill.labelClass = userLabelClass
-Template.tsUserPill.identifier = userIdentifier
-
-Template.tsDescList.properties = ->
-  result = []
-  for key, value of this
-    result.push key: key, value: value
-  return result
-
-# Special rules for rendering description lists
-Template.tsDescList.value = ->
-  switch
-    when @value is false then "false"
-    when _.isObject(@value) then JSON.stringify(@value)
-    else nl2br(@value)
+Template.tsDescList.helpers
+  properties: ->
+    result = []
+    for key, value of this
+      result.push key: key, value: value
+    return result
+  # Special rules for rendering description lists
+  value: ->
+    switch
+      when @value is false then "false"
+      when _.isObject(@value) then JSON.stringify(@value)
+      else nl2br(@value)
