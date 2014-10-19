@@ -48,6 +48,6 @@ TestUtils.getCleanupWrapper = (settings) ->
           next()
         fn.call this, arguments[0], hookedNext
 
-TestUtils.sleep = Meteor._wrapAsync((time, cb) -> Meteor.setTimeout (-> cb undefined), time)
+TestUtils.sleep = Meteor.wrapAsync((time, cb) -> Meteor.setTimeout (-> cb undefined), time)
 
-TestUtils.blockingCall = Meteor._wrapAsync(Meteor.call)
+TestUtils.blockingCall = Meteor.wrapAsync(Meteor.call)

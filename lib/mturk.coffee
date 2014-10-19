@@ -16,7 +16,7 @@ TurkServer.mturk = (op, params) ->
     console.log "Ignoring operation " + op + " because MTurk is not configured."
     return
   throw new Error("undefined mturk operation") unless mturkAPI[op]
-  syncFunc = Meteor._wrapAsync mturkAPI[op].bind mturkAPI
+  syncFunc = Meteor.wrapAsync mturkAPI[op].bind mturkAPI
   return syncFunc(params)
 
 TurkServer.Util ?= {}
