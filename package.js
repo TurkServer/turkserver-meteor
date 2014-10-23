@@ -50,7 +50,7 @@ Package.onUse(function (api) {
   api.use("iron:router@0.9.4");
   api.use("mrt:moment@2.8.1");
   api.use("mizzao:bootstrap-3@3.2.0_1");
-  api.use("mizzao:autocomplete@0.4.9");
+  api.use("mizzao:autocomplete@0.4.10");
 
   api.use('natestrauser:x-editable-bootstrap@1.5.2_1');
 
@@ -58,7 +58,7 @@ Package.onUse(function (api) {
   api.use("matb33:collection-hooks@0.7.5");
   api.use("mizzao:partitioner@0.5.4");
   api.use('mizzao:timesync@0.2.2');
-  api.use("mizzao:user-status@0.6.2");
+  api.use("mizzao:user-status@0.6.3");
 
   // mturk fork
   api.addFiles([
