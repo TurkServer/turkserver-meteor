@@ -41,8 +41,27 @@ For more information, check out the **[documentation](https://turkserver.meteor.
 
 ## Examples
 
-**NOTE:** TurkServer is currently still in development, but for those who are itching to try it out, feel free to reference any of the examples below (in increasing order of complexity.) See https://github.com/HarvardEconCS/turkserver-meteor/issues/3 for more info.
+**NOTE:** TurkServer is currently still in development, but for those who are itching to try it out, feel free to reference https://github.com/mizzao/CrowdMapper as a full-fledged, working experiment.
 
-- https://github.com/kcarnold/hello-turkserver
-- https://github.com/alicexigao/wisdomOfCrowds
-- https://github.com/mizzao/CrowdMapper
+See https://github.com/HarvardEconCS/turkserver-meteor/issues/3 for more info. More examples and documentation will be coming soon.
+
+## Testing
+
+Clone this entire repository, including the submodules. For example:
+
+```
+git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git turkserver
+```
+
+Then run the tests:
+
+```
+cd turkserver
+meteor test-packages ./
+```
+
+If you checked out the repository into an existing Meteor app, you can run `meteor test-packages turkserver` from your app instead.
+
+Browse to `http://localhost:3000` to run the tests.
+
+You don't have to run the tests yourself; this project is set up for continuous integration on [Travis CI](https://travis-ci.org/HarvardEconCS/turkserver-meteor), which runs these tests on each commit. 
