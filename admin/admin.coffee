@@ -238,8 +238,6 @@ Meteor.methods
       # (see mturk/test/test.js)
       if hitData.HITId
         HITs.update {HITId: HITId}, $set: hitData
-      else
-        HITs.remove {HITId: HITId}
     catch e
       throw new Meteor.Error(500, e.toString())
 
