@@ -45,10 +45,8 @@ class TurkServer.Batch
 
 TurkServer.ensureBatchExists = (props) ->
   throw new Error("Batch must have a name") unless props.name?
-  Batches.upsert {name: props.name},
-    $set: _.omit(props, "name")
+  Batches.upsert {name: props.name}, props
 
 TurkServer.ensureTreatmentExists = (props) ->
   throw new Error("Treatment must have a name") unless props.name?
-  Treatments.upsert {name: props.name},
-    $set: _.omit(props, "name")
+  Treatments.upsert {name: props.name}, props

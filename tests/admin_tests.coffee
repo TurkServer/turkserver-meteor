@@ -2,7 +2,8 @@ batchId = "mturkBatch"
 hitTypeId = "mturkHITType"
 
 # Create dummy batch and HIT Type
-Batches.upsert batchId, $set: {}
+Batches.remove batchId
+Batches.insert _id: batchId
 
 HITTypes.upsert {HITTypeId: hitTypeId},
   $set: { batchId }
