@@ -5,22 +5,40 @@ TurkServer.adminSettings =
 
 # This controller handles the behavior of all admin templates
 class TSAdminController extends RouteController
-  onBeforeAction: (pause) ->
+  onBeforeAction: ->
     # If not logged in, render login
     unless Meteor.user()
-      @setLayout("tsContainer")
+      @layout("tsContainer")
       @render("tsAdminLogin")
-      pause()
       # If not admin, render access denied
     else unless Meteor.user().admin
-      @setLayout("tsContainer")
+      @layout("tsContainer")
       @render("tsAdminDenied")
-      pause()
       # If admin but in a group, leave the group
     else if Partitioner.group()
-      @setLayout("tsContainer")
+      @layout("tsContainer")
       @render("tsAdminWatching")
-      pause()
+    else
+      @next()
+
+  # Using subscriptions here is safe as long as everything else below uses waitOn
+  subscriptions: ->
+    return [] unless TurkServer.isAdmin()
+
+    # Subscribe to admin data if we are an admin user, and in the admin interface
+    # Re-subscribes should be a no-op; no arguments
+    subs = [ Meteor.subscribe("tsAdmin") ]
+
+    # Subscribe to user data and resubscribe when group changes
+    # Only subscribe if in admin interface, or assigned to a group
+    # TODO this should grab the group in watch mode as well - or maybe not, it can be handled by implementer publications
+    group = Partitioner.group()
+
+    # must pass in different args for group to actually effect changes
+    subs.push Meteor.subscribe("tsAdminUsers", group)
+
+    return subs
+
   layoutTemplate: "tsAdminLayout"
 
 logSubErrors =
@@ -119,27 +137,6 @@ Router.map ->
     path: "turkserver/manage",
     controller: TSAdminController
     template: "tsAdminManage"
-
-###
-   Subscribe to admin data if we are an admin user, and in the admin interface
-###
-Deps.autorun ->
-  path = Router.current()?.path
-  return unless path?.indexOf("/turkserver") >= 0 and TurkServer.isAdmin()
-  # Re-subscribes should be a no-op; no arguments
-  Meteor.subscribe("tsAdmin")
-
-###
-  Subscribe to user data and resubscribe when group changes
-  Separated from the above to avoid re-runs for just a group change
-###
-Deps.autorun ->
-  return unless TurkServer.isAdmin()
-  path = Router.current()?.path
-  # Only subscribe if in admin interface, or assigned to a group
-  return unless path?.indexOf("/turkserver") >= 0 or (group = Partitioner.group())?
-  # must pass in different args for group to actually effect changes
-  Meteor.subscribe("tsAdminUsers", group)
 
 # Extra admin user subscription for after experiment ended
 Deps.autorun ->

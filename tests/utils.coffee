@@ -2,7 +2,7 @@ if Meteor.isClient
   # Prevent router from complaining about missing path
   Router.map ->
     @route "/",
-      onBeforeAction: (pause) -> pause()
+      onBeforeAction: -> @render(null)
 
 if Meteor.isServer
   # Cleanup junk that may have been leftover from other tests

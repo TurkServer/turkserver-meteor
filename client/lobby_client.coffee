@@ -4,12 +4,13 @@ Router.map ->
   @route "lobby",
     template: "tsBasicLobby",
     layoutTemplate: "tsContainer"
-    onBeforeAction: (pause) ->
+    onBeforeAction: ->
       # Don't show lobby to unauthenticated users
       unless Meteor.user()
-        @setLayout("tsContainer")
+        @layout("tsContainer")
         @render("tsUserAccessDenied")
-        pause()
+      else
+        @next()
 
 # We need to defer this because of IR crap, as usual
 Meteor.startup ->
