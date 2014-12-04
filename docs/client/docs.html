@@ -15,37 +15,66 @@ See the [Quick Start](https://github.com/HarvardEconCS/turkserver-meteor). Once 
 </template>
 
 <template name="Administration Interface">
-TurkServer has a built-in administration interface at `/turkserver`. You can use this to manage batches, manage treatments, view the progress of experiments, and post HITs to recruit subjects.
+TurkServer has a built-in administration interface at `/turkserver`. You can use this to manage batches, manage treatments, view the progress of experiments, and post HITs to recruit subjects. A brief overview of the different sections:
+
+- **Overview**: provides a summary of traffic and load on the server.
+- **MTurk**: manage HIT types and qualifications for Mechanical Turk.
+- **HITs**: create, expire, and renew HITs, which will send participants to the server.
+- **Workers**: look up information about particular workers who have participated in the past.
+- **Panel**: summary of information about all workers known to the system.
+- **Connections**: shows all currently connected users and their state.
+- **Assignments**: shows currently active and completed assignments, and associated metadata.
+- **Lobby**: shows all participants who are currently waiting for experiment instances (see below).
+- **Experiments**: shows experiment instances, their participants, and timing information.
+- **Manage**: controls batch and treatment data which are used to configure experiments.
 </template>
 
 <template name="Structuring Your App">
-The design of TurkServer uses the [partitioner](https://github.com/mizzao/meteor-partitioner) package for Meteor to divide up a single Meteor app into different instances that are segregated from one another. This makes experiments easy to design while taking full advantage of Meteor's powerful publish-subscribe data framework.
 
-The state of each experiment is encapsulated in [Meteor collections](http://docs.meteor.com/#collections). Declare your collections to be partitioned with the following client/server code:
+TurkServer is designed around the Meteor framework. There are many reasons that Meteor is especially powerful for web development; see [this post](http://www.quora.com/Should-I-use-Meteor-Why) for a summary. But more importantly, there are [tons of learning resources](https://www.meteor.com/learn) for new users to get started. The design philosophy of TurkServer is to stick to standard Meteor as much as possible, while minimizing the need to use custom APIs. This means that most of the outstanding Meteor documentation on the Internet will be useful, and that most of the required knowledge is not specific to TurkServer.
+
+Designing an experiment using TurkServer requires three main parts:
+
+1. **Design the user interface and instructions**, using regular Meteor standards
+2. **Specify the lobby mechanism** by which participants will be grouped and assigned to worlds - see [below](#lobby).
+3. **Hook into the TurkServer API** to activate different worlds for experimental treatments.
+
+Moreover, TurkServer is designed to take advantage of Meteor's fast prototyping abilities, so that you can do the first step in a bare Meteor app and add TurkServer later.
+
+Meteor already makes it pretty easy to design a reactive and responsive user interface, but you may find some of the following packages useful.
+
+- [Bootstrap](http://getbootstrap.com/), a CSS framework for front-end development. I maintain a Meteor package at [`mizzao:bootstrap-3`](https://github.com/mizzao/meteor-bootstrap-3/).
+- [Tutorials](https://github.com/mizzao/meteor-tutorials), a Meteor-specific tutorials package that I wrote for providing interactive and concise instructions for web apps. Very useful for experiment instructions.
+
+</template>
+
+<template name="Lobby and Experiment Instances">
+
+A main innovation of TurkServer is the use of experiment **worlds** or **instances** to divide up the data in the app. Each participant can be assigned to one world at a time, and participate in multiple worlds over the course of a HIT, so that each world can have one or more simultaneous participants. This makes experiments easy to design while taking full advantage of Meteor's powerful, standard publish-subscribe model - in many cases, multi-person interactions are just as simple as single-person interactions.
+
+The **lobby** is a virtual area that holds participants when they are connected but not assigned to any world. Participants that are in the lobby can be shown to each other. An **assignment mechanism** controls the flow of participants that connect through the lobby and one or more worlds, and finally to the exit survey where they can submit the HIT.
+
+The state of each experiment is encapsulated in [Meteor collections](http://docs.meteor.com/#collections). TurkServer uses the [partitioner](https://github.com/mizzao/meteor-partitioner) package for Meteor to divide up a single Meteor app into different instances that are segregated from one another., and controls the partitioning of each collection based on the flow of participants. Declare your collections to be partitioned with the following client/server code:
 
 ```js
 Foo = new Mongo.Collection("foo");
 TurkServer.partitionCollection(Foo, options);
 ```
 
-For now, `options` can include a single field, `index`, which specifies the index to for MongoDB to use within each partition.
+See the [docs for partitioner](https://github.com/mizzao/meteor-partitioner) for an overview of how this works. You can mix partitioned and non-partitioned collections in your Meteor code. Partitioned collections will show different data to participants in each experiment instance, while non-partitioned collections must be separately controlled by your code.
 
 </template>
 
 <template name="Batches and Treatments">
-TurkServer uses the concept of **batches** to logically group instances of experiments together. Each batch controls the assignment of incoming users to **treatments**.
+TurkServer uses the concept of **batches** to logically group instances of experiments together. Each batch limits repeat participation.
 
-Treatments can be initialized using the `TurkServer.initialize` function, which registers a callback handler when an experiment is created. All collection operations inside this handler will be scoped to the experiment.
+Batch controls the assignment of incoming users to **treatments**. Treatments can have structured data which are made available to the front-end app under `TurkServer.treatment()`, making them a useful way to control the display of different parts of the user interface or app behavior. They can be defined for batches, users, or worlds.
 
-Treatments can have structured data which are made available to the app under `TurkServer.treatment()`.
+Batches and treatments can be viewed and edited from the administration interface.
 </template>
 
 <template name="Tutorials">
 TurkServer provides an API for administering tutorials and quizzes for your participants to ensure understanding.
-</template>
-
-<template name="Lobby">
-TurkServer provides a lobby for grouping users into interactive experiments.
 </template>
 
 <template name="Exit Surveys">
