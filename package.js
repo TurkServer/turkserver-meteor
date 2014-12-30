@@ -25,7 +25,6 @@ Package.onUse(function (api) {
     'session',
     'ui',
     'templating',
-    'd3'
   ], 'client');
 
   // Client & Server deps
@@ -50,6 +49,7 @@ Package.onUse(function (api) {
   api.use("iron:router@1.0.1");
   api.use("mrt:moment@2.8.1");
   api.use("twbs:bootstrap@3.3.1");
+  api.use("d3js:d3@3.4.13");
   api.use("mizzao:autocomplete@0.4.10");
 
   api.use('natestrauser:x-editable-bootstrap@1.5.2_1');
