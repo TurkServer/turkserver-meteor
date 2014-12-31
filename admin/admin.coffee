@@ -466,6 +466,9 @@ Meteor.startup ->
 
     Meteor.users.update {username: "admin"},
       $set: {admin: true}
+
   else
     # Make sure password matches that of settings file
-    Accounts.setPassword(adminUser._id, adminPw)
+    # Don't change password unless necessary, which pitches login tokens
+    if Accounts._checkPassword(adminUser, adminPw).error
+      Accounts.setPassword(adminUser._id, adminPw)
