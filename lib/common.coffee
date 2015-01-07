@@ -53,8 +53,11 @@ Meteor.methods
     Treatments.remove(id)
 
 # Helpful functions
-TurkServer.isAdmin = ->
-  userId = Meteor.userId()
+
+# Check if a particular user is an admin.
+# If no user is specified, attempts to check the current user.
+TurkServer.isAdmin = (userId) ->
+  userId ?= Meteor.userId()
   return false unless userId
   return Meteor.users.findOne(
     _id: userId
