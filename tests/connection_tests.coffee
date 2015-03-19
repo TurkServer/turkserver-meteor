@@ -1,7 +1,6 @@
 batchId = "connectionBatch"
 
-Batches.remove batchId
-Batches.insert _id: batchId
+Batches.upsert { _id: batchId }, { _id: batchId }
 
 batch = TurkServer.Batch.getBatch(batchId)
 

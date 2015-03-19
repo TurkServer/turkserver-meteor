@@ -2,8 +2,7 @@ batchId = "mturkBatch"
 hitTypeId = "mturkHITType"
 
 # Create dummy batch and HIT Type
-Batches.remove batchId
-Batches.insert _id: batchId
+Batches.upsert { _id: batchId }, { _id: batchId }
 
 HITTypes.upsert {HITTypeId: hitTypeId},
   $set: { batchId }
@@ -54,10 +53,10 @@ Tinytest.add "admin - extend HIT for active batch", withCleanup (test) ->
   HITs.insert { HITId, HITTypeId: hitTypeId }
   Batches.upsert batchId, $set: { active: true }
 
-  # Need to return something for GetHIT else massive complaining
+  # Need to return something for GetHIT else complaining from Mongo et al
   TestUtils.mturkAPI.handler = (op, params) ->
     switch op
-      when "GetHIT" then {}
+      when "GetHIT" then { HITId }
 
   Meteor.call "ts-admin-extend-hit", { HITId }
 

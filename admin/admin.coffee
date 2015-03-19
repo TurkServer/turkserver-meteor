@@ -234,10 +234,7 @@ Meteor.methods
     throw new Meteor.Error(400, "HIT ID not specified") unless HITId
     try
       hitData = TurkServer.mturk "GetHIT", HITId: HITId
-      # might be better to reuse mturk's validateHIT
-      # (see mturk/test/test.js)
-      if hitData.HITId
-        HITs.update {HITId: HITId}, $set: hitData
+      HITs.update {HITId: HITId}, {$set: hitData}
     catch e
       throw new Meteor.Error(500, e.toString())
 

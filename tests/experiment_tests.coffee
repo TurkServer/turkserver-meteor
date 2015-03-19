@@ -26,8 +26,7 @@ TurkServer.onActive -> activeContext = this
 
 # Ensure batch exists
 batchId = "expBatch"
-Batches.remove batchId
-Batches.insert _id: batchId
+Batches.upsert { _id: batchId }, { _id: batchId }
 
 # Set up a treatment for testing
 TurkServer.ensureTreatmentExists

@@ -1,8 +1,7 @@
 if Meteor.isServer
   # Create a batch to test the lobby on
   batchId = "lobbyBatchTest"
-  Batches.remove batchId
-  Batches.insert _id: batchId
+  Batches.upsert { _id: batchId }, { _id: batchId }
 
   lobby = TurkServer.Batch.getBatch(batchId).lobby
 
