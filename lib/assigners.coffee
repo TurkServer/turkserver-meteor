@@ -32,8 +32,8 @@ class TurkServer.Assigners.TestAssigner extends TurkServer.Assigner
   initialize: ->
     super
     # Take any experiment from this batch, creating it if it doesn't exist
-    if (instanceId = Experiments.findOne(batchId: @batch.batchId))?
-      @instance = TurkServer.Instance.getInstance(instanceId)
+    if (exp = Experiments.findOne(batchId: @batch.batchId))?
+      @instance = TurkServer.Instance.getInstance(exp._id)
     else
       @instance = @batch.createInstance(@batch.getTreatments())
       @instance.setup()
