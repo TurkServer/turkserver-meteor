@@ -61,7 +61,7 @@ class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
       asst.showExitSurvey()
     else
       # Assign user to instance
-      treatment = _.sample @batch.getTreatments()
+      treatment = _.sample @batch.getTreatments() || []
       @assignToNewInstance( [asst], [treatment] )
 
 ###
