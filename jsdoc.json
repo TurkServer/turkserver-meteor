@@ -1,0 +1,12 @@
+{
+  // node.js install path, default to: "/usr/bin/node"
+  "nodePath": "/usr/local/bin/node",
+  // Project docs path
+  "docsPath": "docs",
+  // Project docs Meteor server port, default to: 3333
+  "meteorPort": 3333,
+  // Copy the Meteor docs server before building the docs (required for the first build)
+  // Setting this to false after the first build allows you to customize the Meteor docs server
+  // without seeing your changes overridden the next time you build the docs.
+  "initMeteor": false
+}

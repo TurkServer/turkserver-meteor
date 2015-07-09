@@ -18,7 +18,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("1.0.4.1");
+  api.versionsFrom("1.1.0.2");
 
   // Client-only deps
   api.use([
@@ -26,6 +26,9 @@ Package.onUse(function (api) {
     'ui',
     'templating',
   ], 'client');
+
+  // Temporary until Meteor 1.2: ES6 transpilation
+  api.use('grigio:babel@0.1.4');
 
   // Client & Server deps
   api.use([
@@ -57,8 +60,8 @@ Package.onUse(function (api) {
   // Dev packages - may be locally installed with submodule
   api.use("matb33:collection-hooks@0.7.11");
   api.use("mizzao:partitioner@0.5.4");
-  api.use('mizzao:timesync@0.3.1');
-  api.use("mizzao:user-status@0.6.4");
+  api.use('mizzao:timesync@0.3.2');
+  api.use("mizzao:user-status@0.6.5");
 
   // mturk fork
   api.addFiles([
@@ -67,6 +70,7 @@ Package.onUse(function (api) {
 
   // Shared files
   api.addFiles([
+    'lib/common.jsx',
     'lib/common.coffee',
     'lib/util.coffee'
   ]);
@@ -83,6 +87,7 @@ Package.onUse(function (api) {
     'lib/assigners.coffee',
     'lib/connections.coffee',
     'lib/timers.coffee',
+    'lib/timers_server.jsx',
     'lib/accounts_mturk.coffee'
   ], 'server');
 

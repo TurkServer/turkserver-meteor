@@ -4,6 +4,8 @@ packages/*
 smart.lock
 versions.json
 
+docs/client/data
+
 lib-cov
 *.seed
 *.log

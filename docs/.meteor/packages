@@ -4,9 +4,8 @@
 # but you can also edit it by hand.
 
 standard-app-packages
-showdown
-mizzao:bootstrap-3
-stylus
-coffeescript
 jquery
 underscore
+less
+markdown
+simple:highlight.js
