@@ -1,6 +1,6 @@
 /**
- * @namespace TurkServer
  * @summary The global object containing all TurkServer functions.
+ * @namespace
  */
 TurkServer = TurkServer || {};
 

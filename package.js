@@ -82,7 +82,7 @@ Package.onUse(function (api) {
     'lib/mturk.coffee',
     'lib/lobby_server.coffee',
     'lib/batches.coffee',
-    'lib/experiments.coffee',
+    'lib/instance.jsx',
     'lib/logging.coffee',
     'lib/assigners.coffee',
     'lib/connections.coffee',

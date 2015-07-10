@@ -146,6 +146,10 @@ Template.autoApiBox.helpers({
 
 Template.api_box_args.helpers({
   typeNames: function () {
+    if (this.type == null ) {
+      console.log("Types not specified for: ", this);
+      return
+    }
     return typeNames(this.type.names);
   }
 });
