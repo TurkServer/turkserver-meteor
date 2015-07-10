@@ -34,6 +34,10 @@ if Meteor.isServer
       workerId = Meteor.users.findOne(userId).workerId
       return Assignments.findOne({workerId, status: "assigned"})
 
+    setAssignmentPayment: (amount) ->
+      TurkServer.Assignment.currentAssignment().setPayment(amount);
+      return
+
     setAssignmentInstanceData: (arr) ->
       selector =
         workerId: Meteor.user().workerId
@@ -41,6 +45,10 @@ if Meteor.isServer
 
       unless Assignments.update(selector, $set: {instances: arr}) > 0
         throw new Meteor.Error(400, "Could not find assignment to update")
+      return
+
+    endAssignmentInstance: (returnToLobby) ->
+      TurkServer.Instance.currentInstance().teardown(returnToLobby)
       return
 
 if Meteor.isClient
@@ -94,6 +102,13 @@ if Meteor.isClient
       treatment = TurkServer.treatment()
       return true if treatment.treatments.length
     ), verify, fail, 2000
+
+  Tinytest.addAsync "experiment - client - current payment variable", (test, next) ->
+    amount = 0.42
+
+    Meteor.call "setAssignmentPayment", amount, (err, res) ->
+      test.equal TurkServer.currentPayment(), amount
+      next()
 
   Tinytest.addAsync "experiment - client - assignment metadata and local time vars", (test, next) ->
     asstData = null
@@ -179,6 +194,21 @@ if Meteor.isClient
       test.equal UI._globalHelpers.tsDisconnectedTime(), "0:00:02"
 
       next()
+
+  Tinytest.addAsync "experiment - client - instance ended state", (test, next) ->
+    # In experiment. not ended
+    test.isTrue TurkServer.inExperiment()
+    test.isFalse TurkServer.instanceEnded()
+
+    Meteor.call "endAssignmentInstance", false, (err, res) ->
+      test.isTrue TurkServer.inExperiment()
+      test.isTrue TurkServer.instanceEnded()
+
+      next()
+
+  ###
+    Next test edits instance fields, so client APIs may break state
+  ###
 
   Tinytest.addAsync "experiment - client - selects correct instance of multiple", (test, next) ->
     fields = [
