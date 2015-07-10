@@ -18,10 +18,8 @@ The Meteor version of TurkServer was based on the [original Java-based TurkServe
 
 The following are instructions for Meteor 0.9 or later:
 
-1. [Install Meteor](http://docs.meteor.com/#quickstart): `curl https://install.meteor.com | /bin/sh`
-2. Create a Meteor app: `meteor create my_experiment`
-3. Go to this directory: `cd my_experiment`
-4. Install TurkServer locally (once we publish TurkServer to the Meteor packaging server, you will be able to omit this step):
+1. [Install Meteor](http://docs.meteor.com/#quickstart) and create a Meteor app.
+2. In the app directory, install TurkServer locally (once we publish TurkServer to the Meteor packaging server, you will be able to omit this step):
 
     ```
     git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git packages/mizzao:turkserver
@@ -30,14 +28,12 @@ The following are instructions for Meteor 0.9 or later:
 5. `meteor add mizzao:turkserver` to install the package and its dependencies.
 6. Start your app with the `meteor` command.
 7. Navigate to `/turkserver` to log into the administration interface, and develop your experiment!
-8. ???
+8. Check out the **[documentation](https://turkserver.meteor.com)** to get an idea of what you can use in your app. TurkServer extensively uses Meteor goodies such as real-time data and reactive variables, making apps easy to build.
 9. Deploy your experiment on free Meteor hosting and use real subjects on MTurk:
 
     ```
     meteor deploy my_experiment.meteor.com
     ```
-
-For more information, check out the **[documentation](https://turkserver.meteor.com)**.
 
 ## Examples
 

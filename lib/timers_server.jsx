@@ -1,6 +1,6 @@
 /**
  * @summary Utilities for controlling round timers within instances.
- * @namespace TurkServer.Timers
+ * @namespace
  */
 class Timers {
 
