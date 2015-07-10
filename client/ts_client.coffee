@@ -10,19 +10,6 @@ TurkServer.batch = ->
 # Merge all treatments into one document
 TurkServer.treatment = -> TurkServer._mergeTreatments Treatments.find({})
 
-# Find current round, whether running or in break
-# TODO this polls every second, which can be quite inefficient. Update this if
-# we are going to stick with the current round system.
-TurkServer.currentRound = ->
-  if (activeRound = RoundTimers.findOne(active: true))?
-    # Is the active round started?
-    if activeRound.startTime <= TimeSync.serverTime()
-      return activeRound
-    else
-      # Return the round before this one, if any
-      return RoundTimers.findOne(index: activeRound.index - 1)
-  return
-
 # Called to start the monitor with given settings when in experiment
 # Similar to usage in user-status demo
 safeStartMonitor = (threshold, idleOnBlur) ->

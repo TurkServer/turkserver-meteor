@@ -48,3 +48,27 @@ TurkServer.currentPayment = function() {
   const asst = Assignments.findOne();
   return asst && asst.bonusPayment;
 };
+
+/**
+ * @summary The current round within the scoped instance. Within the break
+ * between rounds, this is defined as the last active round.
+ * @locus Client
+ * @returns {Object} object containing the fields <code>index</code>,
+ * <code>startTime</code>, and <code>endTime</code>.
+ */
+TurkServer.currentRound = function() {
+  let activeRound = RoundTimers.findOne({ended: false});
+
+  // TODO this polls every second, which can be quite inefficient. Could be improved.
+  if( activeRound && activeRound.startTime <= TimeSync.serverTime() ) {
+    return activeRound;
+  }
+
+  // Return the round before this one, if any
+  if( activeRound != null ) {
+    return RoundTimers.findOne({index: activeRound.index - 1});
+  }
+
+  // If no active round and no round scheduled, return the highest one
+  return RoundTimers.findOne({}, { sort: {index: -1} } );
+};
