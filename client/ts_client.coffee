@@ -1,19 +1,6 @@
 # Client-only pseudo collection that receives experiment metadata
 @TSConfig = new Mongo.Collection("ts.config")
 
-# Reactive variables for state
-TurkServer.inQuiz = ->
-  Session.equals("turkserver.state", "quiz")
-
-TurkServer.inLobby = ->
-  Session.equals("turkserver.state", "lobby")
-
-TurkServer.inExperiment = ->
-  Session.equals("turkserver.state", "experiment")
-
-TurkServer.inExitSurvey = ->
-  Session.equals("turkserver.state", "exitsurvey")
-
 TurkServer.batch = ->
   if (batchId = Session.get('_loginParams')?.batchId)?
     return Batches.findOne(batchId)

@@ -95,6 +95,7 @@ Package.onUse(function (api) {
   api.addFiles([
     'client/templates.html',
     'client/login.html',
+    'client/client_api.jsx',
     'client/ts_client.styl',
     'client/ts_client.coffee',
     'client/login.coffee',

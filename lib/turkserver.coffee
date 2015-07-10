@@ -117,7 +117,8 @@ Meteor.publish "tsCurrentExperiment", (group) ->
       "instances.id": group
     }, {
       fields: {
-        instances: 1
+        instances: 1,
+        bonusPayment: 1
       }
     })
 
