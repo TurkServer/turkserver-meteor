@@ -1,27 +1,31 @@
+###
+  Set up route and auto-redirection for default lobby, unless disabled
 
-# Paths for lobby
-Router.map ->
-  @route "lobby",
-    template: "tsBasicLobby",
-    layoutTemplate: "tsContainer"
-    onBeforeAction: ->
-      # Don't show lobby to unauthenticated users
-      unless Meteor.user()
-        @layout("tsContainer")
-        @render("tsUserAccessDenied")
-      else
-        @next()
+  As defined below, autoLobby is default true unless explicitly set to false
+  TODO document this setting
+###
+unless Meteor.settings?.public?.turkserver?.autoLobby is false
+  Router.map ->
+    @route "lobby",
+      template: "tsBasicLobby",
+      layoutTemplate: "tsContainer"
+      onBeforeAction: ->
+        # Don't show lobby template to unauthenticated users
+        unless Meteor.user()
+          @layout("tsContainer")
+          @render("tsUserAccessDenied")
+        else
+          @next()
 
-# We need to defer this because of IR crap, as usual
-Meteor.startup ->
-  Meteor.defer ->
-    # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
-    Deps.autorun ->
-      return if Package?.tinytest # Don't change routes when being tested
-      if TurkServer.inLobby()
-        # TODO this needs to subscribe by batch
-        Meteor.subscribe("lobby", TurkServer.batch()?._id)
-        Router.go("/lobby")
+  # We need to defer this because of IR crap, as usual
+  Meteor.startup ->
+    Meteor.defer ->
+      # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
+      Deps.autorun ->
+        return if Package?.tinytest # Don't change routes when being tested
+        if TurkServer.inLobby()
+          Meteor.subscribe("lobby", TurkServer.batch()?._id)
+          Router.go("/lobby")
 
 Meteor.methods
   "toggleStatus" : ->
