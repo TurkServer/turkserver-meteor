@@ -79,5 +79,5 @@ TurkServer.currentRound = function() {
  */
 // Run a function some time after Meteor.startup
 TurkServer._delayedStartup = function(func, delay) {
-  Meteor.startup(Meteor.setTimeout(func, delay));
+  Meteor.startup(function() { Meteor.setTimeout(func, delay) });
 };
