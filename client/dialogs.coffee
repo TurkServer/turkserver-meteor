@@ -2,10 +2,15 @@
   Dialogs to possibly show after page loaded
 ###
 
-Meteor.startup ->
-  ###
-    Disconnect warning
-  ###
+###
+  Disconnect warning
+
+  Don't display this warning until some time after app has started; otherwise
+  it's confusing to users
+###
+disconnectWarningDelay = 5000
+
+TurkServer._delayedStartup ->
   disconnectDialog = null
 
   # Warn when disconnected instead of just sitting there.
@@ -24,6 +29,7 @@ Meteor.startup ->
           """<h3>You have been disconnected from the server.
               Please check your Internet connection.</h3>"""
       return
+, disconnectWarningDelay
 
 TurkServer._displayModal = (template, data, options) ->
   # minimum options to get message to show

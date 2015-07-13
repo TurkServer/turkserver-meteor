@@ -121,7 +121,7 @@ if loginParams
   mturkLogin(loginParams)
 else
   # Give enough time to log in some other way before showing login dialog
-  Meteor.setTimeout testLogin, 1000
+  TurkServer._delayedStartup testLogin, 1000
 
 # TODO Testing disconnect and reconnect, remove later
 TurkServer.testingLogin = ->

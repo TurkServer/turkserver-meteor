@@ -72,3 +72,12 @@ TurkServer.currentRound = function() {
   // If no active round and no round scheduled, return the highest one
   return RoundTimers.findOne({}, { sort: {index: -1} } );
 };
+
+
+/*
+ * Currently internal functions
+ */
+// Run a function some time after Meteor.startup
+TurkServer._delayedStartup = function(func, delay) {
+  Meteor.startup(Meteor.setTimeout(func, delay));
+};
