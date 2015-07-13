@@ -118,7 +118,8 @@ Meteor.publish "tsCurrentExperiment", (group) ->
     }, {
       fields: {
         instances: 1,
-        bonusPayment: 1
+        bonusPayment: 1,
+        assignmentId: 1
       }
     })
 
