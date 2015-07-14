@@ -46,12 +46,12 @@
 </template>
 
 <template name="tsTimePicker">
-    <label>Your timezone seems to be <b>UTC {{zone}}</b>. Please pick three different times (on a typical weekday) when you can be present for an hour:</label>
+    <label>Your timezone seems to be <b>UTC {{zone}}</b>. Please pick up to three different times (on a typical weekday) when you can be present for an hour:</label>
 
     <div class="clearfix">
-    <select class="form-control inline width-medium" name="pickTime1" required>{{> tsTimeOptions}}</select>
-    <select class="form-control inline width-medium" name="pickTime2" required>{{> tsTimeOptions}}</select>
-    <select class="form-control inline width-medium" name="pickTime3" required>{{> tsTimeOptions}}</select>
+    <select class="form-control inline width-medium" name="pickTime1">{{> tsTimeOptions}}</select>
+    <select class="form-control inline width-medium" name="pickTime2">{{> tsTimeOptions}}</select>
+    <select class="form-control inline width-medium" name="pickTime3">{{> tsTimeOptions}}</select>
     </div>
 
     <span class="help-block">We will use this information to select a time where the most workers are available.</span>
