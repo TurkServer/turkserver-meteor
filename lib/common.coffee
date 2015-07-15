@@ -17,7 +17,7 @@ TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
 @HITTypes = new Mongo.Collection("ts.hittypes")
 @HITs = new Mongo.Collection("ts.hits")
 
-@ErrMsg =
+ErrMsg =
   # authentication
   unexpectedBatch: "This HIT is not recognized."
   batchInactive: "This task is currently not accepting new assignments."

@@ -124,7 +124,7 @@ Package.onUse(function (api) {
   api.addFiles('admin/admin.coffee', 'server');
 
   api.export(['TurkServer']);
-  api.export(['TestUtils'], { testOnly: true });
+  api.export(['ErrMsg', 'TestUtils'], { testOnly: true });
 });
 
 Package.onTest(function (api) {
