@@ -16,7 +16,6 @@ class TurkServer.Lobby
       $set:
         batchId: @batchId
         asstId: asst.asstId
-        # status: false
 
     Meteor.users.update asst.userId,
       $set:
@@ -30,13 +29,14 @@ class TurkServer.Lobby
     TurkServer.Assignment.getAssignment(record.asstId) for record in LobbyStatus.find(selector).fetch()
 
   # TODO move status updates into specific assigners
-  toggleStatus: (asst) ->
-    existing = LobbyStatus.findOne(asst.userId)
+  toggleStatus: (userId) ->
+    existing = LobbyStatus.findOne(userId)
     throw new Meteor.Error(403, ErrMsg.userNotInLobbyErr) unless existing
     newStatus = not existing.status
-    LobbyStatus.update asst.userId,
+    LobbyStatus.update userId,
       $set: { status: newStatus }
 
+    asst = TurkServer.Assignment.currentAssignment()
     Meteor.defer => @events.emit "user-status", asst, newStatus
 
   # Takes a group of users from the lobby without triggering the user-leave event.
@@ -58,6 +58,8 @@ Meteor.publish "lobby", (batchId) ->
     added: (id, fields) ->
       sub.added("ts.lobby", id, fields)
       sub.added("users", id, Meteor.users.findOne(id, fields: username: 1))
+    changed: (id, fields) ->
+      sub.changed("ts.lobby", id, fields)
     removed: (id) ->
       sub.removed("ts.lobby", id)
       sub.removed("users", id)
@@ -93,10 +95,9 @@ Meteor.methods
     userId = Meteor.userId()
     throw new Meteor.error(403, ErrMsg.userIdErr) unless userId
 
-    TurkServer.Lobby.toggleStatus(userId)
+    TurkServer.Batch.currentBatch().lobby.toggleStatus(userId)
     @unblock()
 
-    TurkServer.Lobby.checkState()
 
 # Clear lobby status on startup
 # Just clear lobby users for assignment, but not lobby state

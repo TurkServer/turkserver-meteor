@@ -32,7 +32,7 @@ Meteor.methods
     userId = Meteor.userId()
     existing = LobbyStatus.findOne(userId) if userId
     return unless userId and existing
-
+    
     LobbyStatus.update userId,
       $set: { status: not existing.status }
 
