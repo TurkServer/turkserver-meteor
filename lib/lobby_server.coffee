@@ -36,7 +36,7 @@ class TurkServer.Lobby
     LobbyStatus.update userId,
       $set: { status: newStatus }
 
-    asst = TurkServer.Assignment.currentAssignment()
+    asst = TurkServer.Assignment.getCurrentUserAssignment(userId)
     Meteor.defer => @events.emit "user-status", asst, newStatus
 
   # Takes a group of users from the lobby without triggering the user-leave event.

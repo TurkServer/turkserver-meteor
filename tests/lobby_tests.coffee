@@ -59,13 +59,15 @@ if Meteor.isServer
   # TODO update this test for generalized lobby user state
   Tinytest.addAsync "lobby - change state", withCleanup (test, next) ->
     lobby.addAssignment(asst)
-    lobby.toggleStatus(asst)
+    lobby.toggleStatus(asst.userId)
 
     lobbyUsers = lobby.getAssignments()
     test.length lobbyUsers, 1
     test.equal lobbyUsers[0], asst
     test.equal lobbyUsers[0].userId, userId
-    # test.equal lobbyUsers[0].status, true
+
+    # TODO: use better API for accessing user status
+    test.equal LobbyStatus.findOne(asst.userId)?.status, true
 
     Meteor.defer ->
       test.equal changedUserId, userId
