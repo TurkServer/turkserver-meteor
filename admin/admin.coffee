@@ -221,7 +221,7 @@ Meteor.methods
     try
       hit = TurkServer.mturk "CreateHIT", params
     catch e
-      throw new Meteor.error(500, e.toString())
+      throw new Meteor.Error(500, e.toString())
 
     HITs.insert
       HITId: hit
