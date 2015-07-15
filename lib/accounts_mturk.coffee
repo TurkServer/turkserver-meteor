@@ -99,14 +99,14 @@ authenticateWorker = (loginRequest) ->
     acceptTime: new Date()
     status: "assigned"
 
-Accounts.registerLoginHandler (loginRequest) ->
+Accounts.registerLoginHandler "mturk", (loginRequest) ->
   # Don't handle unless we have an mturk login
   return unless loginRequest.hitId and loginRequest.assignmentId and loginRequest.workerId
 
-  # XXX It seems this isn't processed as part of a method call (no
-  # DDP._CurrentInvocation), but if it is, then this user find probably would
-  # fail and errors ensue.
-  user = Meteor.users.findOne
+  # At some point this became processed as part of a method call
+  # (DDP._CurrentInvocation.get() is defined), so we need the direct or this
+  # would fail with a partitioner error.
+  user = Meteor.users.direct.findOne
     workerId: loginRequest.workerId
 
   unless user

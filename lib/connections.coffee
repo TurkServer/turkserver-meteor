@@ -45,8 +45,7 @@ class TurkServer.Assignment
     # Grab the userId - when the assignment is constructed as part of a method
     # call, we need to reach around it to avoid adding a group key, which will
     # cause the find to fail.
-    @userId = Partitioner.directOperation =>
-      Meteor.users.findOne(workerId: @workerId)._id
+    @userId = Meteor.users.direct.findOne({workerId: @workerId})._id
 
   getBatch: -> TurkServer.Batch.getBatch(@batchId)
 

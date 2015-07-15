@@ -32,9 +32,13 @@ loginCallback = (err) ->
     # submit the HIT
     TurkServer.submitHIT()
   else
-    bootbox.dialog
-      closeButton: false
-      message: "<p>Unable to login:</p>" + err.message
+    # Make sure to display this after client fully loads; otherwise error may
+    # not appear. (However, log out immediately as below.)
+    Meteor.startup ->
+      bootbox.dialog({
+        closeButton: false
+        message: "<p>Unable to login:</p>" + err.message
+      })
 
     # TODO: make this a bit more robust
     # Log us out even if the resume token logged us in; copied from
