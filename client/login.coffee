@@ -88,7 +88,7 @@ testLogin = ->
   # Don't try logging in if we are logged in or already have parameters
   return if Meteor.userId() or Session.get("_loginParams")
   # Don't show this if we are trying to get at the admin interface
-  return if Router.current()?.path?.indexOf("/turkserver") is 0
+  return if Router.current()?.url?.indexOf("/turkserver") is 0
 
   str = Random.id()
   data =
