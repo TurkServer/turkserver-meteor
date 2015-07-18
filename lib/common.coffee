@@ -7,7 +7,21 @@
 @Logs = new Mongo.Collection("ts.logs")
 
 @RoundTimers = new Mongo.Collection("ts.rounds")
-TurkServer.partitionCollection RoundTimers, {index: {index: 1}}
+
+# Clean up old index
+if Meteor.isServer
+  try
+    RoundTimers._dropIndex("_groupId_1_index_1")
+    Meteor._debug("Dropped old non-unique index on RoundTimers")
+
+TurkServer.partitionCollection RoundTimers, {
+  index: {index: 1},
+  indexOptions: {
+    unique: 1,
+    dropDups: true,
+    name: "_groupId_1_index_1_unique"
+  }
+}
 
 @Workers = new Mongo.Collection("ts.workers")
 @Assignments = new Mongo.Collection("ts.assignments")

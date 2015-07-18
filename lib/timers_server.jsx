@@ -1,6 +1,25 @@
 const _round_handlers = [];
 
 /**
+ * @summary Indicates that a round ended due to the timer running out.
+ * @constant {string} TurkServer.Timers.ROUND_END_TIMEOUT
+ */
+const ROUND_END_TIMEOUT = "timeout";
+
+/**
+ * @summary Indicates that a round ended from manually calling.
+ * `endCurrentRound`.
+ * @constant {string} TurkServer.Timers.ROUND_END_MANUAL
+ */
+const ROUND_END_MANUAL = "currentend";
+
+/**
+ * @summary Indicates that a round ended from directly starting a new round.
+ * @constant {string} TurkServer.Timers.ROUND_END_NEWROUND
+ */
+const ROUND_END_NEWROUND = "newstart";
+
+/**
  * @summary Utilities for controlling round timers within instances.
  * @namespace
  */
@@ -15,10 +34,12 @@ class Timers {
    * @param {Date} endTime Time by which the round is ended automatically.
    */
   static startNewRound(startTime, endTime) {
+    check(startTime, Date);
+    check(endTime, Date);
 
     let now = new Date();
 
-    if (endTime - now < 0) {
+    if (endTime < now) {
       throw new Error("endTime is in the past");
     }
 
@@ -32,23 +53,29 @@ class Timers {
     if( (currentRound = RoundTimers.findOne({ended: false})) != null ) {
       index = currentRound.index + 1;
 
-      RoundTimers.update(currentRound._id, {
-         $set: {
-           ended: true,
-           endTime: now
-         }
-      });
+      // If we didn't end this round, we shouldn't try to start a new one
+      if( !tryEndingRound(currentRound._id, ROUND_END_NEWROUND, now) ) {
+        throw new Error(
+          "Possible multiple concurrent calls to startNewRound detected.")
+      }
     }
 
     // Schedule next round
-    RoundTimers.insert({
-      index,
-      startTime,
-      endTime,
-      ended: false
-    });
+    // This may fail if this method was called too quickly
+    try {
+      const newRoundId = RoundTimers.insert({
+        index,
+        startTime,
+        endTime,
+        ended: false
+      });
 
-    scheduleRoundEnd( Partitioner.group(), index, endTime );
+      scheduleRoundEnd(Partitioner.group(), newRoundId, endTime);
+    }
+    catch (e) {
+      throw new Error(
+        "Possible multiple concurrent calls to startNewRound detected.")
+    }
   }
 
   /**
@@ -64,29 +91,29 @@ class Timers {
       throw new Error("No current round to end");
     }
 
-    // Update endTime to be whatever the new time is
-    RoundTimers.update( current._id, {
-      $set: {
-        ended: true,
-        endTime: now
-      }
-    });
-
-    processRoundEnd();
+    if ( !tryEndingRound(current._id, ROUND_END_MANUAL, now) ) {
+      throw new Error(
+        "Possible multiple concurrent calls to endCurrentRound detected.");
+    }
   }
 
   /**
    * @summary Call a function when a round ends, either due to a timeout or
    * manual trigger.
    * @function TurkServer.Timers.onRoundEnd
-   * @param {Function} func The function to call when a round ends.
+   * @param {Function} func The function to call when a round ends. The
+   * function will be called with a single argument indicating the reason
+   * the round ended, either
+   * TurkServer.Timers.NEW_ROUND_TIMEOUT,
+   * TurkServer.Timers.NEW_ROUND_MANUAL, or
+   * TurkServer.Timers.NEW_ROUND_NEWROUND.
    */
   static onRoundEnd(func) {
     _round_handlers.push(func);
   }
 }
 
-function scheduleRoundEnd(groupId, index, endTime) {
+function scheduleRoundEnd(groupId, roundId, endTime) {
   // Clamp interval to 0 if it is negative (i.e. due to CPU lag)
   const interval = Math.max(endTime - Date.now(), 0);
 
@@ -95,31 +122,31 @@ function scheduleRoundEnd(groupId, index, endTime) {
   // https://github.com/meteor/meteor/blob/devel/packages/meteor/timers.js
   TestUtils.lastScheduledRound = Meteor.setTimeout(function() {
     Partitioner.bindGroup(groupId, function() {
-      // Try to end the round with this index and time. If not already ended,
-      // then process the current round end.
-      const up = RoundTimers.update({
-        index,
-        // probably only one of these is necessary
-        endTime,
-        ended: false
-      }, {
-        $set: {
-          ended: true
-        }
-      });
-
-      // If document was updated, then handle the round end here.
-      if( up > 0 ) processRoundEnd();
-
+      tryEndingRound(roundId, ROUND_END_TIMEOUT);
     });
   }, interval);
 }
 
 // XXX always call this function within a partitioner context.
-function processRoundEnd() {
+function tryEndingRound(roundId, endType, endTime = null) {
+  const update = { ended: true };
+  if (endTime != null) update.endTime = endTime;
+
+  const ups  = RoundTimers.update({
+    _id: roundId,
+    ended: false
+  }, {
+    $set: update
+  });
+
+  // If the round with this id already ended somehow, don't call handlers
+  if (ups === 0) return false;
+
+  // Succeeded - call handlers with the round end type
   for( handler of _round_handlers ) {
-    handler.call();
+    handler.call(null, endType);
   }
+  return true;
 }
 
 // When restarting server, re-schedule all un-ended rounds
@@ -127,7 +154,7 @@ function scheduleOutstandingRounds() {
   let scheduled = 0;
 
   RoundTimers.direct.find({ended: false}).forEach( (round) => {
-    scheduleRoundEnd(round._groupId, round.index, round.endTime);
+    scheduleRoundEnd(round._groupId, round._id, round.endTime);
     scheduled++;
   });
 
@@ -138,8 +165,18 @@ function scheduleOutstandingRounds() {
 
 Meteor.startup(scheduleOutstandingRounds);
 
+/*
+  Exports
+ */
+Timers.ROUND_END_TIMEOUT = ROUND_END_TIMEOUT;
+Timers.ROUND_END_MANUAL = ROUND_END_MANUAL;
+Timers.ROUND_END_NEWROUND = ROUND_END_NEWROUND;
+
 TurkServer.Timers = Timers;
 
+/*
+  Testing functions
+ */
 TestUtils.clearRoundHandlers = function () {
   _round_handlers.length = 0;
 };
