@@ -32,6 +32,23 @@ Tinytest.addAsync "timers - start multiple rounds", withCleanup (test, next) ->
     TurkServer.Timers.startNewRound now, new Date(now.getTime() + 100)
     TurkServer.Timers.startNewRound now, new Date(now.getTime() + 100)
 
+Tinytest.addAsync "timers - end and start new rounds", withCleanup (test, next) ->
+  Partitioner.bindGroup testGroup, ->
+    TurkServer.Timers.onRoundEnd (type) ->
+      test.equal(type, TurkServer.Timers.ROUND_END_MANUAL)
+
+    nRounds = 10
+
+    for i in [1..nRounds]
+      now = new Date
+      TurkServer.Timers.startNewRound now, new Date(now.getTime() + 100)
+      TurkServer.Timers.endCurrentRound()
+
+    # Make sure there are the right number of rounds
+    test.length RoundTimers.find().fetch(), nRounds
+
+    Partitioner._currentGroup.withValue(null, next)
+
 Tinytest.addAsync "timers - early expiration", withCleanup (test, next) ->
   Partitioner.bindGroup testGroup, ->
     now = new Date

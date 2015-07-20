@@ -48,13 +48,15 @@ class Timers {
       startTime = now;
     }
 
-    // Is there a current round in progress? If so, end it
+    // Find the most recent round
     let currentRound = null, index = 1;
-    if( (currentRound = RoundTimers.findOne({ended: false})) != null ) {
+    if( (currentRound = RoundTimers.findOne({}, {sort: {index: -1}})) != null ) {
       index = currentRound.index + 1;
 
-      // If we didn't end this round, we shouldn't try to start a new one
-      if( !tryEndingRound(currentRound._id, ROUND_END_NEWROUND, now) ) {
+      // Try ending the current round if it is in progress
+      // If we aren't ending this round, we shouldn't try to start a new one
+      if( !currentRound.ended &&
+        !tryEndingRound(currentRound._id, ROUND_END_NEWROUND, now) ) {
         throw new Error(
           "Possible multiple concurrent calls to startNewRound detected.")
       }
