@@ -200,8 +200,6 @@ Template.tsAdminWorkers.helpers
             { workerId: { $regex: "^" + match.toUpperCase() } },
             { username: { $regex: match, $options: "i" } }
           ]
-        callback: (user) ->
-          Router.go("tsWorkers", {workerId: user.workerId}) if user.workerId?
       }
     ]
   }
@@ -223,6 +221,10 @@ Template.tsAdminWorkers.helpers
     }, {
       sort: submitTime: -1
     })
+
+Template.tsAdminWorkers.events
+  "autocompleteselect input": (e, t, user) ->
+    Router.go("tsWorkers", {workerId: user.workerId}) if user.workerId?
 
 Template.tsAdminPanel.rendered = ->
   svg = d3.select(@find("svg"))
