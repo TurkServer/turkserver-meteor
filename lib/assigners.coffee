@@ -70,8 +70,7 @@ class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
   An event on the lobby is used to trigger the group.
 ###
 class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
-  constructor: (@tutorialTreatments, @groupTreatments) ->
-    @autoAssign = false
+  constructor: (@tutorialTreatments, @groupTreatments, @autoAssign = false) ->
 
   initialize: ->
     super
@@ -85,15 +84,21 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
       @instance = TurkServer.Instance.getInstance(exp._id)
       @autoAssign = true
 
+    # If already initialized with autoAssign, create instance
+    else if @autoAssign
+      @createInstance()
+
     @lobby.events.on "auto-assign", =>
       @autoAssign = true
       @assignAllUsers()
 
+  createInstance: ->
+    @instance = @batch.createInstance(@groupTreatments)
+    @instance.setup()
+
   # put all users who have done the tutorial in the group
   assignAllUsers: ->
-    unless @instance?
-      @instance = @batch.createInstance(@groupTreatments)
-      @instance.setup()
+    @createInstance() unless @instance?
 
     assts = _.filter @lobby.getAssignments(), (asst) ->
       asst.getInstances().length is 1
