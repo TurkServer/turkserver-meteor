@@ -49,18 +49,18 @@ Package.onUse(function (api) {
 
   // Non-core packages
   api.use("mizzao:bootboxjs@4.3.0");
-  api.use("iron:router@1.0.7");
-  api.use("mrt:moment@2.8.1");
-  api.use("twbs:bootstrap@3.3.4");
+  api.use("iron:router@1.0.9");
+  api.use("momentjs:moment@2.10.3");
+  api.use("twbs:bootstrap@3.3.5");
   api.use("d3js:d3@3.5.5");
-  api.use("mizzao:autocomplete@0.5.1");
 
+  api.use("mizzao:autocomplete@0.5.1");
   api.use('natestrauser:x-editable-bootstrap@1.5.2_1');
 
   // Dev packages - may be locally installed with submodule
-  api.use("matb33:collection-hooks@0.7.11");
+  api.use("matb33:collection-hooks@0.7.13");
   api.use("mizzao:partitioner@0.5.6");
-  api.use('mizzao:timesync@0.3.2');
+  api.use('mizzao:timesync@0.3.3');
   api.use("mizzao:user-status@0.6.5");
 
   // mturk fork

@@ -6,7 +6,7 @@ TurkServer.Util ?= {}
 TurkServer.Util._defaultTimeSlots = ->
   # Default time selections: 9AM EST to 11PM EST
   m = moment.utc(hours: 9 + 5).local()
-  return (m.clone().add('hours', x) for x in [0..14])
+  return (m.clone().add(x, 'hours') for x in [0..14])
 
 # Submit as soon as this template appears on the page.
 Template.mturkSubmit.rendered = -> @find("form").submit()
