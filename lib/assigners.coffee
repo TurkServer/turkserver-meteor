@@ -71,6 +71,9 @@ class TurkServer.Assigners.SimpleAssigner extends TurkServer.Assigner
 ###
 class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
   constructor: (@tutorialTreatments, @groupTreatments, @autoAssign = false) ->
+    if @groupTreatments.length == 0
+      # If empty, picking up an existing treatment won't work
+      throw new Error("Group treatments must contain at least one element")
 
   initialize: ->
     super
@@ -80,8 +83,9 @@ class TurkServer.Assigners.TutorialGroupAssigner extends TurkServer.Assigner
       batchId: @batch.batchId
       treatments: $all: @groupTreatments
       endTime: $exists: false
-    }))?
+    }, { sort: startTime: -1 }))?
       @instance = TurkServer.Instance.getInstance(exp._id)
+      console.log "Auto-assigning to existing instance #{@instance.groupId}"
       @autoAssign = true
 
     # If already initialized with autoAssign, create instance
