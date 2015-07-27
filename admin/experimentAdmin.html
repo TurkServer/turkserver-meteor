@@ -31,7 +31,19 @@
 </template>
 
 <template name="tsAdminExperimentTimeline">
-    <svg width="100%" height="600"></svg>
+    <svg width="100%" height="600">
+        <g class="x axis"></g>
+        <g class="x grid"></g>
+        <g class="chart">
+            {{#each experiments}}
+            {{> tsAdminExperimentTimelineBar}}
+            {{/each}}
+        </g>
+    </svg>
+</template>
+
+<template name="tsAdminExperimentTimelineBar">
+    <rect class="bar"></rect>
 </template>
 
 <template name="tsAdminActiveExperiments">

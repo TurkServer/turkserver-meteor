@@ -144,6 +144,9 @@ Deps.autorun ->
   return unless (group = Partitioner.group())?
   Meteor.subscribe "tsGroupUsers", group
 
+TurkServer.showInstanceModal = (id) ->
+  TurkServer._displayModal Template.tsAdminInstance, id
+
 pillPopoverEvents =
   # Show assignment instance info
   "mouseenter .ts-instance-pill-container": (e) ->
@@ -163,7 +166,7 @@ pillPopoverEvents =
 
   # Show instance info in modal
   "click .ts-instance-pill-container": (e) ->
-    TurkServer._displayModal Template.tsAdminInstance, Blaze.getData(e.target).id
+    TurkServer.showInstanceModal Blaze.getData(e.target).id
 
   "mouseenter .ts-user-pill-container": (e) ->
     container = $(e.target)

@@ -25,6 +25,7 @@ Package.onUse(function (api) {
     'session',
     'ui',
     'templating',
+    'reactive-var'
   ], 'client');
 
   // Temporary until Meteor 1.2: ES6 transpilation
@@ -48,6 +49,8 @@ Package.onUse(function (api) {
   api.use(["ddp", "mongo"]); // For pub/sub and collections
 
   // Non-core packages
+  api.use("aldeed:template-extension@3.4.3");
+
   api.use("mizzao:bootboxjs@4.3.0");
   api.use("iron:router@1.0.9");
   api.use("momentjs:moment@2.10.3");

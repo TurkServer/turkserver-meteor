@@ -39,7 +39,18 @@ Template.tsAdminExperimentMaintenance.events
         bootbox.alert(err) if err?
         bootbox.alert(res + " instances stopped") if res?
 
+Template.tsAdminExperimentTimeline.helpers({
+  experiments: ->
+    Experiments.find({startTime: $exists: true}, {
+      sort: {startTime: 1},
+      fields: {startTime: 1, endTime: 1}
+    })
+
+})
+
 Template.tsAdminExperimentTimeline.rendered = ->
+  @lastUpdate = new ReactiveVar(new Date)
+
   svg = d3.select(this.find("svg"))
   $svg = this.$("svg")
 
@@ -60,16 +71,14 @@ Template.tsAdminExperimentTimeline.rendered = ->
     .ticks(5) # Dates are long
     .tickFormat( (date) -> new Date(date).toLocaleString() )
 
-  svgX = svg.append("g")
-    .attr("class", "x axis")
+  svgX = svg.select("g.x.axis")
     .attr("transform", "translate(0,#{chartHeight})")
 
-  svgXgrid = svg.append("g")
-    .attr("class", "x grid")
+  svgXgrid = svg.select("g.x.grid")
 
-  chart = svg.append("g")
+  chart = svg.select("g.chart")
 
-  redraw = (bars) ->
+  redraw = ->
     # Update x axis
     svgX.call(xAxis)
 
@@ -89,12 +98,12 @@ Template.tsAdminExperimentTimeline.rendered = ->
       y1: 0
       y2: chartHeight
 
-    # Update bar positions
-    bars ?= chart.selectAll(".bar")
-    # Need to guard against missing values upon load
-    bars.attr
+    now = Tracker.nonreactive -> new Date(TimeSync.serverTime())
+
+    # Update bar positions; need to guard against missing values upon load
+    chart.selectAll(".bar").attr
       x: (e) -> x(e.startTime)
-      width: (e) -> ( x(e.endTime || new Date) - x(e.startTime) )
+      width: (e) -> Math.max( x(e.endTime || now) - x(e.startTime), 0 )
       y: (e) -> y(e._id)
       height: y.rangeBand()
 
@@ -104,37 +113,39 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
   svg.call(zoom)
 
-  this.autorun ->
-    # TODO make a reactive array for this; massive performance increase :)
-    exps = Experiments.find({startTime: $exists: true}, {
-      sort: {startTime: 1},
-      fields: {startTime: 1, endTime: 1}
-    }).fetch()
+  this.autorun =>
+    @lastUpdate.get()
+
+    # Grab bound data
+    exps = chart.selectAll(".bar").data()
+
+    # Note that this will redraw until experiments are done.
+    # But, once all experiments are done, timesync won't be used
 
     # compute new domains
-    minStart = d3.min(exps, (e) -> e.startTime) || new Date
+    minStart = d3.min(exps, (e) -> e.startTime) || TimeSync.serverTime(null, 2000)
     # a running experiment hasn't ended yet :)
-    maxEnd = d3.max(exps, (e) -> e.endTime || new Date)
+    maxEnd = d3.max(exps, (e) -> e.endTime || TimeSync.serverTime(null, 2000))
 
     # TODO don't update x domain in response to changing data after first render
     # However, we cannot use Deps.currentComputation.firstRun here as data may not
     # be ready on first run.
     x.domain( [minStart, maxEnd] )
-    y.domain( _.map(exps, (e) -> e._id) )
+    y.domain( exps.map( (e) -> e._id ) )
 
     # Set zoom **after** x axis has been initialized
     zoom.x(x)
 
-    bars = chart.selectAll(".bar")
-      .data(exps, (e) -> e._id )
+    redraw()
 
-    bars.enter()
-      .append("rect")
-      .attr("class", "bar")
+Template.tsAdminExperimentTimeline.events
+  "click .bar": (e, t) ->
+    TurkServer.showInstanceModal this._id
 
-    bars.exit().remove()
-
-    redraw(bars)
+Template.tsAdminExperimentTimelineBar.onRendered ->
+  d3.select(this.firstNode).datum(this.data)
+  # Trigger re-draw on parent, guard against first render
+  this.parent().lastUpdate?.set(new Date)
 
 Template.tsAdminActiveExperiments.helpers
   experiments: ->
