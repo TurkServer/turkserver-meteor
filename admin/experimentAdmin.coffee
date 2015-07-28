@@ -122,12 +122,12 @@ Template.tsAdminExperimentTimeline.rendered = ->
     # Note that this will redraw until experiments are done.
     # But, once all experiments are done, timesync won't be used
 
+    # guards below since some bars may not have data bound
     # compute new domains
-    minStart = d3.min(exps, (e) -> e.startTime) || TimeSync.serverTime(null, 2000)
+    minStart = d3.min(exps, (e) -> e?.startTime) || TimeSync.serverTime(null, 2000)
     # a running experiment hasn't ended yet :)
-    maxEnd = d3.max(exps, (e) -> e.endTime || TimeSync.serverTime(null, 2000))
+    maxEnd = d3.max(exps, (e) -> e?.endTime || TimeSync.serverTime(null, 2000))
 
-    # TODO don't update x domain in response to changing data after first render
     # However, we cannot use Deps.currentComputation.firstRun here as data may not
     # be ready on first run.
     x.domain( [minStart, maxEnd] )
