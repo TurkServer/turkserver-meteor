@@ -102,9 +102,10 @@ Template.tsAdminExperimentTimeline.rendered = ->
 
     # Update bar positions; need to guard against missing values upon load
     chart.selectAll(".bar").attr
-      x: (e) -> x(e.startTime)
-      width: (e) -> Math.max( x(e.endTime || now) - x(e.startTime), 0 )
-      y: (e) -> y(e._id)
+      x: (e) -> e && x(e.startTime) || 0
+      width: (e) ->
+        e && Math.max( x(e.endTime || now) - x(e.startTime), 0 ) || 0
+      y: (e) -> e && y(e._id) || 0
       height: y.rangeBand()
 
   zoom = d3.behavior.zoom()
