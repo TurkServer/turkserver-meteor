@@ -15,8 +15,9 @@ Assignments.find({status: "assigned"}, {fields: {workerId: 1}}).observe({
 
 /**
  * @summary An assignment captures the lifecycle of a user assigned to a HIT.
-  * In the future, it may be generalized to represent the entire connection of
-  * a user from any source.
+ * There is one assignment for each unique (user, HIT) tuple.
+ * In the future, it may be generalized to represent the entire connection of
+ * a user from any source.
  * @class TurkServer.Assignment
  * @instancename assignment
  */
@@ -28,11 +29,16 @@ class Assignment {
   }
 
   /**
-   *
-   * @param asstId
-   * @returns {*}
+   * @function getAssignment
+   * @memberof TurkServer.Assignment
+   * @summary Get a particular assignment object.
+   * @param {String} asstId The unique assignment identifier. Note that this
+   * is not the same as the MTurk AssignmentId.
+   * @returns {TurkServer.Assignment} The assignment object.
    */
   static getAssignment(asstId) {
+    check(asstId, String);
+
     let asst = _assignments[asstId];
     if( asst != null ) return asst;
 
@@ -48,7 +54,17 @@ class Assignment {
     return asst;
   }
 
+  /**
+   * @function getCurrentUserAssignment
+   * @memberof TurkServer.Assignment
+   * @summary Get the active assignment for a particular user. This function
+   * caches the active assignments for users, so it's fine to call repeatedly.
+   * @param {String} userId The user's Meteor userId.
+   * @returns {TurkServer.Assignment} The assignment object.
+   */
   static getCurrentUserAssignment(userId) {
+    check(userId, String);
+
     // Check for cached assignment
     let asst = _userAssignments[userId];
     if (asst != null ) return asst;
@@ -69,6 +85,12 @@ class Assignment {
     // return null
   }
 
+  /**
+   * @function currentAssignment
+   * @memberof TurkServer.Assignment
+   * @summary Get the active assignment for the current context.
+   * @returns {TurkServer.Assignment} The assignment object.
+   */
   static currentAssignment() {
     let userId = Meteor.userId();
     if (userId == null) return;
@@ -112,15 +134,34 @@ class Assignment {
     })._id;
   }
 
+  /**
+   * @function getBatch
+   * @memberof assignment
+   * @summary Get the batch object for this assignment.
+   * @returns {TurkServer.Batch} The assignment's batch.
+   */
   getBatch() {
     return TurkServer.Batch.getBatch(this.batchId);
   }
 
+  /**
+   * @function getInstances
+   * @memberof assignment
+   * @summary Get the instances that this assignment has been part of.
+   * @returns {Array} Array of instance Ids.
+   */
   getInstances() {
     return Assignments.findOne(this.asstId).instances || [];
   }
 
+  /**
+   * @function showExitSurvey
+   * @memberof assignment
+   * @summary Send this user to the exit survey. User must be in the lobby.
+   */
   showExitSurvey() {
+    // TODO check that user is in the lobby.
+
     Meteor.users.update(this.userId, {
       $set: {
         "turkserver.state": "exitsurvey"
@@ -128,6 +169,12 @@ class Assignment {
     });
   }
 
+  /**
+   * @function isCompleted
+   * @memberof assignment
+   * @summary Check whether the assignment is completed.
+   * @returns {boolean} Whether the assignment has been completed.
+   */
   isCompleted() {
     return Assignments.findOne(this.asstId).status === "completed";
   }
@@ -156,9 +203,7 @@ class Assignment {
     });
   }
 
-  /**
-   * @summary Mark this assignment as returned and not completable
-   */
+  // Mark this assignment as returned and not completable
   setReturned() {
     Assignments.update(this.asstId, {
       $set: {
@@ -177,17 +222,21 @@ class Assignment {
   }
 
   /**
+   * @function getPayment
+   * @memberof assignment
    * @summary Gets the variable payment (bonus) amount for this assignment
-   * @returns {*|null|number}
+   * @returns {Number} The current bonus payment.
    */
   getPayment() {
     return Assignments.findOne(this.asstId).bonusPayment;
   }
 
   /**
+   * @function setPayment
+   * @memberof assignment
    * @summary Sets the payment amount for this assignment, replacing any
-   * existing value
-   * @param amount
+   * existing value.
+   * @param {Number} amount The new variable payment amount.
    */
   setPayment(amount) {
     check(amount, Match.OneOf(Number, null));
@@ -220,8 +269,10 @@ class Assignment {
   }
 
   /**
+   * @function addPayment
+   * @memberof assignment
    * @summary Adds (or subtracts) an amount to the payment for this assignment
-   * @param amount
+   * @param {Number} amount The additional amount of payment to add or subtract.
    */
   addPayment(amount) {
     check(amount, Number);
@@ -241,7 +292,10 @@ class Assignment {
   }
 
   /**
-   * @summary Get the current MTurk status for this assignment
+   * @function refreshStatus
+   * @memberof assignment
+   * @summary Query MTurk and update the status for this assignment, e.g.
+   * when using auto-approval.
    */
   refreshStatus() {
     // Since MTurk AssignmentIds may be re-used, it's important we only query
@@ -287,6 +341,12 @@ class Assignment {
     }
   }
 
+  /**
+   * @function approve
+   * @memberof assignment
+   * @summary Approve an assignment and pay the base payment.
+   * @param {String} message The message to send to the worker.
+   */
   approve(message) {
     check(message, String);
     this._checkSubmittedStatus();
@@ -307,6 +367,12 @@ class Assignment {
     });
   }
 
+  /**
+   * @function reject
+   * @memberof assignment
+   * @summary Reject the assignment and do not pay the worker.
+   * @param {String} message The message to send to the worker.
+   */
   reject(message) {
     check(message, String);
     this._checkSubmittedStatus();
@@ -324,8 +390,10 @@ class Assignment {
   }
 
   /**
+   * @function payBonus
+   * @memberof assignment
    * @summary Pays the worker their bonus, if set. (using the MTurk API)
-   * @param message
+   * @param {String} message The message to send to the worker.
    */
   payBonus(message) {
     check(message, String);
@@ -359,9 +427,12 @@ class Assignment {
   }
 
   /**
+   * @function getWorkerData
+   * @memberof assignment
    * @summary Get data from the worker associated with this assignment.
-   * @param field
-   * @returns {*}
+   * @param {String} [field] An optional field to retrieve.
+   * @returns {*} The value of the field, or the entire document if no field
+   * was specified.
    */
   getWorkerData(field) {
     const data = Workers.findOne(this.workerId);
@@ -373,8 +444,10 @@ class Assignment {
   }
 
   /**
+   * @function setWorkerData
+   * @memberof assignment
    * @summary Sets data on the worker associated with this assignment.
-   * @param props
+   * @param {Object} props An object of (key, value) pairs to set on the worker.
    */
   setWorkerData(props) {
     Workers.upsert(this.workerId, {

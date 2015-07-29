@@ -28,7 +28,8 @@ const _instances = new Map();
 class Instance {
 
   /**
-   * @function TurkServer.Instance.getInstance
+   * @function getInstance
+   * @memberof TurkServer.Instance
    * @summary Get the instance by its id.
    * @param {String} groupId
    * @returns {TurkServer.Instance} the instance, if it exists
@@ -52,7 +53,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance.currentInstance
+   * @function currentInstance
+   * @memberof TurkServer.Instance
    * @summary Get the currently scoped instance
    * @returns {TurkServer.Instance} the instance, if it exists
    */
@@ -62,7 +64,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance.initialize
+   * @function initialize
+   * @memberof TurkServer.Instance
    * @summary Schedules a new handler to be called when an instance is initialized.
    * @param {Function} handler
    */
@@ -79,7 +82,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#bindOperation
+   * @function bindOperation
+   * @memberof instance
    * @summary Run a function scoped to this instance with a given context. The
    * value of context.instance will be set to this instance.
    * @param {Function} func The function to execute.
@@ -91,7 +95,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#setup
+   * @function setup
+   * @memberof instance
    * @summary Run the initialization handlers for this instance
    */
   setup() {
@@ -110,7 +115,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#addAssignment
+   * @function addAssignment
+   * @memberof instance
    * @summary Add an assignment (connected user) to this instance.
    * @param {TurkServer.Assignment} asst The user assignment to add.
    */
@@ -151,7 +157,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#users
+   * @function users
+   * @memberof instance
    * @summary Get the users that are part of this instance.
    * @returns {Array} the list of userIds
    */
@@ -160,7 +167,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#batch
+   * @function batch
+   * @memberof instance
    * @summary Get the batch that this instance is part of.
    * @returns {TurkServer.Batch} the batch
    */
@@ -170,7 +178,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#treatment
+   * @function treatment
+   * @memberof instance
    * @summary Get the treatment parameters for this instance.
    * @returns {Object} The treatment parameters.
    */
@@ -185,7 +194,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#getDuration
+   * @function getDuration
+   * @memberof instance
    * @summary How long this experiment has been running, in milliseconds
    * @returns {Number} Milliseconds that the experiment has been running.
    */
@@ -195,7 +205,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#isEnded
+   * @function isEnded
+   * @memberof instance
    * @summary Whether the instance is ended. If an instance is ended, it has a
    * recorded endTime and can't accept new users.
    * @returns {Boolean} Whether the experiment is ended
@@ -206,7 +217,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#teardown
+   * @function teardown
+   * @memberof instance
    * @summary Close this instance, optionally returning people to the lobby
    * @param {Boolean} returnToLobby Whether to return users to lobby after
    * teardown. Defaults to true.
@@ -243,7 +255,8 @@ class Instance {
   }
 
   /**
-   * @function TurkServer.Instance#sendUserToLobby
+   * @function sendUserToLobby
+   * @memberof instance
    * @summary Send a user that is part of this instance back to the lobby.
    * @param {String} userId The user to return to the lobby.
    */
