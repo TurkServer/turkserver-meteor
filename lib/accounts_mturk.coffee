@@ -119,7 +119,7 @@ Accounts.registerLoginHandler "mturk", (loginRequest) ->
   # should we let this worker in or not?
   asst = authenticateWorker(loginRequest)
 
-  # This does the work of triggering what happens next.
+  # This currently does nothing except print out some messages.
   Meteor.defer -> asst._loggedIn()
 
   # Because the login token `when` field is set by initialization date, not

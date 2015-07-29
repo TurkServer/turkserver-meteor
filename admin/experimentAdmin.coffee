@@ -131,7 +131,7 @@ Template.tsAdminExperimentTimeline.rendered = ->
     # However, we cannot use Deps.currentComputation.firstRun here as data may not
     # be ready on first run.
     x.domain( [minStart, maxEnd] )
-    y.domain( exps.map( (e) -> e._id ) )
+    y.domain( exps.map( (e) -> e && e._id ) )
 
     # Set zoom **after** x axis has been initialized
     zoom.x(x)

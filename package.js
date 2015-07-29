@@ -88,6 +88,7 @@ Package.onUse(function (api) {
     'lib/instance.jsx',
     'lib/logging.coffee',
     'lib/assigners.coffee',
+    'lib/assignment.jsx',
     'lib/connections.coffee',
     'lib/timers_server.jsx',
     'lib/accounts_mturk.coffee'

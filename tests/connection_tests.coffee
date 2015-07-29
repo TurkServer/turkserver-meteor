@@ -63,6 +63,31 @@ Tinytest.add "connection - assignment object preserved upon creation", withClean
 
   test.equal asst2, asst
 
+Tinytest.add "connection - get active user assignment", withCleanup (test) ->
+  asst = createAssignment()
+  asst2 = TurkServer.Assignment.getCurrentUserAssignment asst.userId
+
+  test.equal asst2, asst
+
+Tinytest.add "connection - assignment removed from cache after return", withCleanup (test) ->
+  asst = createAssignment()
+  asst.setReturned();
+
+  # Let cache cleanup do its thing
+  TestUtils.sleep(200);
+
+  test.isUndefined TurkServer.Assignment.getCurrentUserAssignment(asst.userId)
+
+Tinytest.add "connection - assignment removed from cache after completion", withCleanup (test) ->
+  asst = createAssignment()
+  asst.showExitSurvey();
+  asst.setCompleted({});
+
+  # Let cache cleanup do its thing
+  TestUtils.sleep(200);
+
+  test.isUndefined TurkServer.Assignment.getCurrentUserAssignment(asst.userId)
+
 Tinytest.add "connection - user added to lobby", withCleanup (test) ->
   asst = createAssignment()
   TestUtils.connCallbacks.sessionReconnect { userId }
