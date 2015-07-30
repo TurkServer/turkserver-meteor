@@ -32,6 +32,9 @@ sessionReconnect = (doc) ->
 
   asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId)
 
+  # TODO possible debug message, but probably caught below.
+  return unless asst?
+
   # Save IP address and UA; multiple connections from different IPs/browsers
   # are recorded for diagnostic purposes.
   asst._update
@@ -42,6 +45,11 @@ sessionReconnect = (doc) ->
 
 userReconnect = (user) ->
   asst = TurkServer.Assignment.getCurrentUserAssignment(user._id)
+
+  unless asst?
+    Meteor._debug("#{user._id} reconnected but has no active assignment")
+    # TODO maybe kick this user out and show an error
+    return
 
   # Ensure user is in a valid state; add to lobby if not
   state = user.turkserver?.state

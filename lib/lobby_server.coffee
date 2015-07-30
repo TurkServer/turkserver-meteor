@@ -52,6 +52,7 @@ class TurkServer.Lobby
 # TODO can we simplify this by publishing users with turkserver.state = "lobby",
 # if we use batch IDs in a smart way?
 Meteor.publish "lobby", (batchId) ->
+  return [] unless batchId?
   sub = this
 
   handle = LobbyStatus.find({batchId}).observeChanges
