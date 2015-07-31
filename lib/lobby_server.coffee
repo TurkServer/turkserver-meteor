@@ -94,7 +94,7 @@ Meteor.publish null, ->
 Meteor.methods
   "toggleStatus" : ->
     userId = Meteor.userId()
-    throw new Meteor.error(403, ErrMsg.userIdErr) unless userId
+    throw new Meteor.Error(403, ErrMsg.userIdErr) unless userId
 
     TurkServer.Batch.currentBatch().lobby.toggleStatus(userId)
     @unblock()
