@@ -55,7 +55,18 @@ Qualifications.allow(adminOnly)
 HITTypes.allow(adminOnly)
 HITs.allow(adminOnly)
 
-HITTypes._ensureIndex {HITTypeId: 1}, {unique: 1}
+# XXX remove this check for release
+try
+  HITTypes._dropIndex("HITTypeId_1")
+  console.log "Dropped old index on HITTypeId"
+
+# Index HITTypes, but only for those that exist
+HITTypes._ensureIndex({HITTypeId: 1}, {
+  name: "HITTypeId_1_sparse"
+  unique: 1,
+  sparse: 1
+})
+
 HITs._ensureIndex {HITId: 1}, {unique: 1}
 
 # TODO more careful indices on these collections
