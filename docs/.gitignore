@@ -1,1 +1,10 @@
 .meteor/.*
+
+# meteor-jsdoc provides most of the app, so ignore most of the files in client
+client
+
+# except our specific ones
+!.gitignore
+!client/index.less
+!client/head.html
+!client/templates/preamble.md

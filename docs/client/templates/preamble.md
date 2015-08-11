@@ -1,16 +1,7 @@
-<head>
-    <meta charset="utf-8">
-    <title>TurkServer Docs</title>
-    <meta name="description" content="Documentation for TurkServer.">
-    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
-    <link rel="shortcut icon" type="image/png" href="/favicon.png?123" sizes="16x16 32x32 64x64">
+{{#template name="preamble"}}
 
-    <link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-precomposed.png">
-</head>
+# Overview
 
-<!-- Order of templates here determines display order -->
-
-<template name="Overview">
 [Meteor](https://www.meteor.com) is a fantastic framework that makes building real-time web apps effortless, and iteration very fast.
 
 **This makes it perfect for building web-based experiments.** But, you have to manage your subjects and the data that you collect.
@@ -18,13 +9,13 @@
 TurkServer is a package that facilitates designing web-based user experiments using the power of Meteor. All you need to do is to learn Meteor. TurkServer gives you useful APIs when you need them, and will stay out of the way otherwise. It does this by sitting on top of the app that you design, intercepting the server-client communication, and then providing a management interface for your experiment.
 
 TurkServer allows you to develop your application as a standalone Meteor app, i.e. for a single instance of your experiment. Then, add TurkServer to your application as a smart package, and you're pretty much ready to run.
-</template>
 
-<template name="Installation">
+# Installation
+
 See the [Quick Start](https://github.com/HarvardEconCS/turkserver-meteor). Once the package is installed, you should be able to start your Meteor app and navigate to `/turkserver` to see the admin interface.
-</template>
 
-<template name="Administration Interface">
+# Administration Interface
+
 TurkServer has a built-in administration interface at `/turkserver`. You can use this to manage batches, manage treatments, view the progress of experiments, and post HITs to recruit subjects. A brief overview of the different sections:
 
 - **Overview**: provides a summary of traffic and load on the server.
@@ -37,9 +28,8 @@ TurkServer has a built-in administration interface at `/turkserver`. You can use
 - **Lobby**: shows all participants who are currently waiting for experiment instances (see below).
 - **Experiments**: shows experiment instances, their participants, and timing information.
 - **Manage**: controls batch and treatment data which are used to configure experiments.
-</template>
 
-<template name="Structuring Your App">
+# Structuring Your App
 
 TurkServer is designed around the Meteor framework. There are many reasons that Meteor is especially powerful for web development; see [this post](http://www.quora.com/Should-I-use-Meteor-Why) for a summary. But more importantly, there are [tons of learning resources](https://www.meteor.com/learn) for new users to get started. The design philosophy of TurkServer is to stick to standard Meteor as much as possible, while minimizing the need to use custom APIs. This means that most of the outstanding Meteor documentation on the Internet will be useful, and that most of the required knowledge is not specific to TurkServer.
 
@@ -56,9 +46,7 @@ Meteor already makes it pretty easy to design a reactive and responsive user int
 - [Bootstrap](http://getbootstrap.com/), a CSS framework for front-end development. I maintain a Meteor package at [`mizzao:bootstrap-3`](https://github.com/mizzao/meteor-bootstrap-3/).
 - [Tutorials](https://github.com/mizzao/meteor-tutorials), a Meteor-specific tutorials package that I wrote for providing interactive and concise instructions for web apps. Very useful for experiment instructions.
 
-</template>
-
-<template name="Lobby and Experiment Instances">
+# Lobby and Experiment Instances
 
 A main innovation of TurkServer is the use of experiment **worlds** or **instances** to divide up the data in the app. Each participant can be assigned to one world at a time, and participate in multiple worlds over the course of a HIT, so that each world can have one or more simultaneous participants. This makes experiments easy to design while taking full advantage of Meteor's powerful, standard publish-subscribe model - in many cases, multi-person interactions are just as simple as single-person interactions.
 
@@ -73,25 +61,23 @@ TurkServer.partitionCollection(Foo, options);
 
 See the [docs for partitioner](https://github.com/mizzao/meteor-partitioner) for an overview of how this works. You can mix partitioned and non-partitioned collections in your Meteor code. Partitioned collections will show different data to participants in each experiment instance, while non-partitioned collections must be separately controlled by your code.
 
-</template>
+# Batches and Treatments
 
-<template name="Batches and Treatments">
 TurkServer uses the concept of **batches** to logically group instances of experiments together. Each batch limits repeat participation.
 
 Batch controls the assignment of incoming users to **treatments**. Treatments can have structured data which are made available to the front-end app under `TurkServer.treatment()`, making them a useful way to control the display of different parts of the user interface or app behavior. They can be defined for batches, users, or worlds.
 
 Batches and treatments can be viewed and edited from the administration interface.
-</template>
 
-<template name="Tutorials">
+# Tutorials
+
 TurkServer provides an API for administering tutorials and quizzes for your participants to ensure understanding.
-</template>
 
-<template name="Exit Surveys">
+# Exit Surveys
+
 Use an exit survey to collect final data and debrief participants.
-</template>
 
-<template name="Settings">
+# Settings
 
 Put a structure like the following in `Meteor.settings` of your app.
 
@@ -121,20 +107,19 @@ Details are explained below.
 - `accessKey`: Your AWS Access Key ID.
 - `secretKey`: Your AWS Secret Access Key.
 
-</template>
-
-<template name="Notes and Troubleshooting">
+# Notes and Troubleshooting
 
 Because TurkServer runs alongside your app on both the server and client, strange behavior can occur when writing code without thoughtfulness. While we've tried our best to prevent easily-avoidable problems, some issues might still arise due to these reasons. These are some things to be aware of:
 
 - **CSS conflicts**. TurkServer uses regular Bootstrap classes with no modification. If you use CSS classes that conflict with Bootstrap in your app, or selectors for unqualified tags, the admin backend will likely be messed up.
 - **Meteor template name conflicts**. TurkServer templates all have the prefix `ts`.
 - **Handlebars helper conflicts**. Internal TurkServer global helpers have the prefix `_ts`.
-</template>
 
-<template name="API Reference">
+# API Reference
+
 JSDoc-style comments in the code are automatically processed and included
 below. This can change quite a bit as we approach a stable release. Some API
 functions aren't yet documented, so [please
 contribute](https://github.com/HarvardEconCS/turkserver-meteor)!
-</template>
+
+{{/template}}

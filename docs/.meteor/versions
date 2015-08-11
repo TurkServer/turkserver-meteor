@@ -38,9 +38,9 @@ retry@1.0.3
 routepolicy@1.0.5
 session@1.1.0
 simple:highlight.js@1.0.9
+simple:markdown-templating@1.2.7
 spacebars@1.0.6
 spacebars-compiler@1.0.6
-standard-app-packages@1.0.5
 templating@1.1.1
 tracker@1.0.7
 ui@1.0.6

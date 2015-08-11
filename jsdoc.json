@@ -1,6 +1,7 @@
 {
+  "preamble": true,
   // node.js install path, default to: "/usr/bin/node"
-  "nodePath": "/usr/local/bin/node",
+  "nodePath": "/usr/bin/node",
   // Project docs path
   "docsPath": "docs",
   // Project docs Meteor server port, default to: 3333
