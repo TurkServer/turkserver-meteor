@@ -63,6 +63,7 @@
 </template>
 
 <template name="tsAdminPayBonus">
+    <div class="modal-body">
     <form class="form-horizontal">
         <div class="form-group">
             <label class="col-sm-3 control-label">WorkerId</label>
@@ -90,10 +91,11 @@
         </div>
         <button class="btn btn-primary" type="submit">Pay Bonus</button>
     </form>
+    </div>
 </template>
 
 <template name="tsAdminEmailWorker">
-    <div class="clear"></div>
+    <div class="modal-body">
     <form class="form-horizontal">
         <div class="form-group">
             <label class="col-sm-3 control-label">WorkerId</label>
@@ -104,17 +106,18 @@
         <div class="form-group">
             <label class="col-sm-3 control-label">Subject</label>
             <div class="col-sm-9">
-	        <textarea class="form-control" name="subject" rows="1" required></textarea>
+	        <input class="form-control" type="text" name="subject" required>
             </div>
         </div>
-	<div class="form-group">
+	    <div class="form-group">
             <label class="col-sm-3 control-label">Message</label>
             <div class="col-sm-9">
-	        <textarea class="form-control" name="message" rows="4" required></textarea>
+	        <textarea class="form-control" name="message" rows="10" required></textarea>
             </div>
         </div>
         <button class="btn btn-primary" type="submit">Send Message</button>
     </form>
+    </div>
 </template>
 
 <!-- Template for displaying a worker in a dropdown list -->
@@ -157,6 +160,11 @@
             {{/if}}</dd>
         <dt>State:</dt>
         <dd>{{turkserver.state}}</dd>
+        <dt>Contact:</dt>
+        <dd><button class="btn btn-xs btn-info ts-admin-email-worker">
+            <span class="glyphicon glyphicon-envelope"></span>
+            </button>
+        </dd>
     </dl>
 
     {{#if status.online}}

@@ -65,12 +65,14 @@ Template.tsAdminPayBonus.events
 Template.tsAdminEmailWorker.events
   "submit form": (e, t) ->
     e.preventDefault()
-    subject = t.find("textarea[name=subject]").value
+    subject = t.find("input[name=subject]").value
     message = t.find("textarea[name=message]").value
     recipients = [@workerId]
 
     emailId = WorkerEmails.insert({ subject, message, recipients })
-    Meteor.call "ts-admin-send-message", emailId
+
+    Meteor.call "ts-admin-send-message", emailId, (err) ->
+      bootbox.alert(err) if err
 
     $(t.firstNode).closest(".bootbox.modal").modal('hide')
 
@@ -100,6 +102,10 @@ Template.tsUserPill.helpers
       else @ # Object was already passed in
   labelClass: userLabelClass
   identifier: userIdentifier
+
+Template.tsUserPill.events
+  "click .ts-admin-email-worker": ->
+    TurkServer._displayModal Template.tsAdminEmailWorker, this
 
 Template.tsDescList.helpers
   properties: ->

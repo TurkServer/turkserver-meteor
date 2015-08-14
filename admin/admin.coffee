@@ -217,15 +217,19 @@ Meteor.methods
         </ExternalQuestion>
       """
 
-    hit = null
+    hitId = null
     try
-      hit = TurkServer.mturk "CreateHIT", params
+      hitId = TurkServer.mturk "CreateHIT", params
     catch e
       throw new Meteor.Error(500, e.toString())
 
     HITs.insert
-      HITId: hit
+      HITId: hitId
       HITTypeId: hitType.HITTypeId
+
+    this.unblock()
+    # Immediately refresh HIT data after creation
+    Meteor.call("ts-admin-refresh-hit", hitId)
 
     return
 

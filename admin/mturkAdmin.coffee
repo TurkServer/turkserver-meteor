@@ -416,9 +416,6 @@ Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-pay-bonus": ->
     TurkServer._displayModal Template.tsAdminPayBonus, this
 
-  "click .ts-admin-email-worker": ->
-    TurkServer._displayModal Template.tsAdminEmailWorker, this
-
 Template.tsAdminCompletedAssignmentRow.helpers
   labelStatus: ->
     switch @mturkStatus
