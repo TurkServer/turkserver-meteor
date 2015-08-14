@@ -38,7 +38,7 @@ Template.tsBatchSelector.events =
       Session.set("_tsViewingBatchId", e.target.value)
 
 Template.tsBatchSelector.helpers
-  batches: -> Batches.find()
+  batches: -> Batches.find({}, {sort: {name: 1}})
   noBatchSelection: -> not Session.get("_tsViewingBatchId")
   selected: -> Session.equals("_tsViewingBatchId", @_id)
   viewingBatchId: -> Session.get("_tsViewingBatchId")
