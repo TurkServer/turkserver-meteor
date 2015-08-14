@@ -120,7 +120,7 @@ Template.tsAdminHits.events =
   "click tr": -> Session.set("_tsSelectedHIT", @_id)
 
 Template.tsAdminHits.helpers
-  hits: -> HITs.find()
+  hits: -> HITs.find({}, {sort: {CreationTime: -1}})
   selectedHIT: -> HITs.findOne Session.get("_tsSelectedHIT")
 
 Template.tsAdminViewHit.events =
