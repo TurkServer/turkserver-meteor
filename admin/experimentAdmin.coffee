@@ -167,6 +167,10 @@ Template.tsAdminCompletedExperiments.helpers
     TurkServer.Util.duration(@endTime - @startTime)
   numUsers: numUsers
 
+Template.tsAdminExpButtons.helpers
+  watchRoute: Meteor.settings?.public?.turkserver?.watchRoute
+  dataRoute: Meteor.settings?.public?.turkserver?.dataRoute
+
 Template.tsAdminLogs.helpers
   experiment: -> Experiments.findOne(@instance)
   logEntries: -> Logs.find({}, {sort: _timestamp: -1})

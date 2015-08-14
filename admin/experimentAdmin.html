@@ -76,13 +76,7 @@
                 {{/each}}
             </td>
             <td>
-                <button class="btn btn-xs btn-primary -ts-watch-experiment">
-                    <span class="glyphicon glyphicon-camera"></span> Watch
-                </button>
-                <a class="btn btn-xs btn-success"
-                   href='{{pathFor "tsLogs" groupId=_id count=100}}'>
-                    <span class="glyphicon glyphicon-list-alt"></span> Logs
-                </a>
+		{{> tsAdminExpButtons}}
                 <button class="btn btn-xs btn-danger -ts-stop-experiment">
                     <span class="glyphicon glyphicon-ban-circle"></span> Stop
                 </button>
@@ -124,19 +118,31 @@
                 {{/each}}
             </td>
             <td>
-                <button class="btn btn-xs btn-primary -ts-watch-experiment">
-                    <span class="glyphicon glyphicon-camera"></span> Watch
-                </button>
-                <a class="btn btn-xs btn-success"
-                   href='{{pathFor "tsLogs" groupId=_id count=100}}'>
-                    <span class="glyphicon glyphicon-list-alt"></span> Logs
-                </a>
+	        {{> tsAdminExpButtons}}
             </td>
         </tr>
         {{/each}}
         </tbody>
     </table>
 
+</template>
+
+<template name="tsAdminExpButtons">
+    {{#if dataRoute}}
+    <a class="btn btn-xs btn-primary"
+       href='{{pathFor dataRoute groupId=_id}}'>
+	<span class="glyphicon glyphicon-list-alt"></span> Data
+    </a>
+    {{/if}}
+    {{#if watchRoute}}
+    <button class="btn btn-xs btn-primary -ts-watch-experiment">
+	<span class="glyphicon glyphicon-camera"></span> Watch
+    </button>
+    {{/if}}
+    <a class="btn btn-xs btn-success"
+       href='{{pathFor "tsLogs" groupId=_id count=100}}'>
+        <span class="glyphicon glyphicon-list-alt"></span> Logs
+    </a>
 </template>
 
 <template name="tsAdminLogs">
