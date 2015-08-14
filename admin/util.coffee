@@ -62,6 +62,18 @@ Template.tsAdminPayBonus.events
     # Close the modal
     $(t.firstNode).closest(".bootbox.modal").modal('hide')
 
+Template.tsAdminEmailWorker.events
+  "submit form": (e, t) ->
+    e.preventDefault()
+    subject = t.find("textarea[name=subject]").value
+    message = t.find("textarea[name=message]").value
+    recipients = [@workerId]
+
+    emailId = WorkerEmails.insert({ subject, message, recipients })
+    Meteor.call "ts-admin-send-message", emailId
+
+    $(t.firstNode).closest(".bootbox.modal").modal('hide')
+
 userLabelClass = ->
   switch
     when @status?.idle then "label-warning"
