@@ -29,7 +29,11 @@ withCleanup = TestUtils.getCleanupWrapper
 Tinytest.add "admin - create HIT for active batch", withCleanup (test) ->
 
   newHitId = Random.id()
-  TestUtils.mturkAPI.handler = (op, params) -> newHitId
+  TestUtils.mturkAPI.handler = (op, params) ->
+    switch op
+      when "CreateHIT" then newHitId
+      when "GetHIT" then { CreationTime: new Date } # Stub out the GetHIT call with some arbitrary data
+
   Batches.upsert batchId, $set: { active: true }
 
   # test
