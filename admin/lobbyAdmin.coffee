@@ -10,3 +10,4 @@ Template.tsAdminLobbyHeader.events =
 
 Template.tsAdminLobbyHeader.helpers
   count: -> LobbyStatus.find().count()
+  readyCount: -> LobbyStatus.find({status: true}).count()
