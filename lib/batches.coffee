@@ -10,6 +10,12 @@ class TurkServer.Batch
       # Return this if another Fiber created it while we yielded
       return _batches[batchId] ?= new Batch(batchId)
 
+  @getBatchByName: (batchName) ->
+    check(batchName, String)
+    batch = Batches.findOne(name: batchName)
+    throw new Error("Batch does not exist") unless batch
+    return @getBatch(batch._id)
+
   @currentBatch: ->
     return unless (userId = Meteor.userId())?
     return TurkServer.Assignment.getCurrentUserAssignment(userId).getBatch()
