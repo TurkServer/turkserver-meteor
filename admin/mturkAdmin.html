@@ -156,6 +156,7 @@
             <th>QualificationType ID</th>
             <th>Comparator</th>
             <th>Value</th>
+            <th>RequiredToPreview</th>
             <th style="width: 50px"></th>
         </tr>
         </thead>
@@ -166,6 +167,7 @@
             <td>{{QualificationTypeId}}</td>
             <td>{{Comparator}}</td>
             <td>{{value}}</td>
+            <td>{{RequiredToPreview}}</td>
             <td>
                 <button class="btn btn-xs btn-danger -ts-delete-qual">
                     <span class="glyphicon glyphicon-trash"></span>
@@ -197,6 +199,7 @@
             </select>
         </td>
         <td><input class="form-control" type="text" name="value"></td>
+        <td><input type="checkbox" name="preview"></td>
         <td>
             <button class="btn btn-xs btn-primary -ts-create-qual">
                 <span class="glyphicon glyphicon-plus"></span>

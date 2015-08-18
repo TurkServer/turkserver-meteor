@@ -65,6 +65,7 @@ Template.tsAdminNewQual.events =
     type = tmpl.find("input[name=type]").value
     comp = tmpl.find("select[name=comp]").value
     value = tmpl.find("input[name=value]").value
+    preview = tmpl.find("input[name=preview]").checked
 
     return if !name or !type or !comp
 
@@ -72,6 +73,7 @@ Template.tsAdminNewQual.events =
       name: name
       QualificationTypeId: type
       Comparator: comp
+      RequiredToPreview: preview
 
     try
       switch comp
