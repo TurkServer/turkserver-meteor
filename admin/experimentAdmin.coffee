@@ -10,17 +10,6 @@ Template.tsAdminExperiments.events
       limit: t.find("input[name=filter_limit]").valueAsNumber ||
         TurkServer.adminSettings.defaultLimit
 
-  "click .-ts-watch-experiment": ->
-    groupId = @_id
-    currentRoute = Router.current()
-    # Go to new route to avoid triggering leaving group
-    Router.go(Meteor.settings?.public?.turkserver?.watchRoute || "/")
-
-    Meteor.call "ts-admin-join-group", groupId, (err, res) ->
-      return unless err
-      Router.go(currentRoute.path)
-      bootbox.alert(err.reason)
-
   "click .-ts-stop-experiment": ->
     expId = @_id
     bootbox.confirm "This will end the experiment immediately. Are you sure?", (res) ->
@@ -168,7 +157,6 @@ Template.tsAdminCompletedExperiments.helpers
   numUsers: numUsers
 
 Template.tsAdminExpButtons.helpers
-  watchRoute: Meteor.settings?.public?.turkserver?.watchRoute
   dataRoute: Meteor.settings?.public?.turkserver?.dataRoute
 
 Template.tsAdminLogs.helpers

@@ -290,16 +290,6 @@ Meteor.methods
 
     return
 
-  "ts-admin-join-group": (groupId) ->
-    TurkServer.checkAdmin()
-    Partitioner.setUserGroup Meteor.userId(), groupId
-    return
-
-  "ts-admin-leave-group": ->
-    TurkServer.checkAdmin()
-    Partitioner.clearUserGroup Meteor.userId()
-    return
-
   "ts-admin-lobby-event": (batchId, event) ->
     TurkServer.checkAdmin()
     check(batchId, String)

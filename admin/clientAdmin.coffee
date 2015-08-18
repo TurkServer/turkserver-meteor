@@ -14,10 +14,6 @@ class TSAdminController extends RouteController
     else unless Meteor.user().admin
       @layout("tsContainer")
       @render("tsAdminDenied")
-      # If admin but in a group, leave the group
-    else if Partitioner.group()
-      @layout("tsContainer")
-      @render("tsAdminWatching")
     else
       @next()
 
@@ -200,13 +196,6 @@ Template.tsAdminLogin.events =
     password = $(tp.find("input")).val()
     Meteor.loginWithPassword "admin", password, (err) ->
       bootbox.alert("Unable to login: " + err.reason) if err?
-
-Template.tsAdminWatching.events =
-  "click .-ts-watch-experiment": ->
-    Router.go(Meteor.settings?.public?.turkserver?.watchRoute || "/")
-  "click .-ts-leave-experiment": ->
-    Meteor.call "ts-admin-leave-group", (err, res) ->
-      bootbox.alert(err.reason) if err
 
 Template.tsAdminLayout.events(pillPopoverEvents)
 

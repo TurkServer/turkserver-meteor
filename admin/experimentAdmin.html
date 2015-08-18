@@ -134,11 +134,6 @@
 	<span class="glyphicon glyphicon-list-alt"></span> Data
     </a>
     {{/if}}
-    {{#if watchRoute}}
-    <button class="btn btn-xs btn-primary -ts-watch-experiment">
-	<span class="glyphicon glyphicon-camera"></span> Watch
-    </button>
-    {{/if}}
     <a class="btn btn-xs btn-success"
        href='{{pathFor "tsLogs" groupId=_id count=100}}'>
         <span class="glyphicon glyphicon-list-alt"></span> Logs

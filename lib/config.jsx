@@ -4,7 +4,7 @@ const merge = Npm.require('deepmerge');
 // Client-side default settings, for reference
 const defaultPublicSettings = {
   autoLobby: true,
-  watchRoute: "/"
+  dataRoute: "/"
 };
 
 // Default server settings if not read in
