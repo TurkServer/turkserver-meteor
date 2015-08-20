@@ -114,7 +114,10 @@ Tinytest.add "admin - email - send and record message", withCleanup (test) ->
     test.equal params.MessageText, message
     apiWorkers = apiWorkers.concat(params.WorkerId)
 
-  count = Meteor.call "ts-admin-send-message", emailId
+  message = Meteor.call "ts-admin-send-message", emailId
+  # First word is the number of messages sent
+  # XXX this test may be a little janky
+  count = parseInt(message.split(" ")[0])
 
   test.equal count, workerIds.length
   test.length apiWorkers, workerIds.length
