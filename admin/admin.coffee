@@ -355,7 +355,7 @@ Meteor.methods
     WorkerEmails.update emailId,
       $set: sentTime: new Date
 
-    return count
+    return "#{count} workers notified."
 
   # TODO implement this
   "ts-admin-resend-message": (emailId) ->
@@ -394,7 +394,24 @@ Meteor.methods
       return if Meteor.users.find({workerId: asst.workerId}).status?.online
       TurkServer.Assignment.getAssignment(asst._id).setReturned()
       count++
-    return count
+
+    return "#{count} assignments canceled."
+
+  # Refresh all assignments in a batch that are either unknown or submitted
+  "ts-admin-refresh-assignments": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    Assignments.find({
+      batchId: batchId
+      status: "completed"
+      mturkStatus: { $in: [null, "Submitted"] }
+    }).forEach (a) ->
+      asst = TurkServer.Assignment.getAssignment(a._id)
+      # Refresh submitted assignments as they may have been auto-approved
+      asst.refreshStatus()
+
+    return
 
   "ts-admin-refresh-assignment": (asstId) ->
     TurkServer.checkAdmin()
@@ -442,7 +459,7 @@ Meteor.methods
       TurkServer.Instance.getInstance(instance._id).teardown()
       count++
 
-    return count
+    return "#{count} instances stopped."
 
 # Create and set up admin user (and password) if not existent
 Meteor.startup ->

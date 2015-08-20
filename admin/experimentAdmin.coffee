@@ -24,9 +24,7 @@ Template.tsAdminExperimentMaintenance.events
   "click .-ts-stop-all-experiments": (e) ->
     bootbox.confirm "This will end all experiments in progress. Are you sure?", (res) ->
       return unless res
-      Meteor.call "ts-admin-stop-all-experiments", Session.get("_tsViewingBatchId"), (err, res) ->
-        bootbox.alert(err) if err?
-        bootbox.alert(res + " instances stopped") if res?
+      TurkServer.callWithModal "ts-admin-stop-all-experiments", Session.get("_tsViewingBatchId")
 
 Template.tsAdminExperimentTimeline.helpers({
   experiments: ->
@@ -34,7 +32,6 @@ Template.tsAdminExperimentTimeline.helpers({
       sort: {startTime: 1},
       fields: {startTime: 1, endTime: 1}
     })
-
 })
 
 Template.tsAdminExperimentTimeline.rendered = ->

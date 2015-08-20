@@ -11,6 +11,20 @@ TurkServer.Util.timeSince = (timestamp) ->
 TurkServer.Util.timeUntil = (timestamp) ->
   TurkServer.Util.duration(timestamp - TimeSync.serverTime())
 
+TurkServer.callWithModal = (args...) ->
+  dialog = bootbox.dialog
+    closeButton: false
+    message: "<h3>Working...</h3>"
+
+  # Copy arguments to array and add callback
+  args = args.slice(0)
+  args.push (err, res) ->
+    dialog.modal("hide")
+    bootbox.alert(err) if err?
+    bootbox.alert(res) if res?
+
+  return Meteor.call.apply(null, args)
+
 UI.registerHelper "_tsViewingBatch", -> Batches.findOne(Session.get("_tsViewingBatchId"))
 
 UI.registerHelper "_tsLookupTreatment", -> Treatments.findOne(name: ""+@)
@@ -57,10 +71,9 @@ Template.tsAdminPayBonus.events
     amount = t.find("input[name=amount]").valueAsNumber
     reason = t.find("textarea[name=reason]").value
 
-    Meteor.call "ts-admin-pay-bonus", @_id, amount, reason, (err) ->
-      bootbox.alert(err) if err
-    # Close the modal
     $(t.firstNode).closest(".bootbox.modal").modal('hide')
+
+    TurkServer.callWithModal("ts-admin-pay-bonus", @_id, amount, reason)
 
 Template.tsAdminEmailWorker.events
   "submit form": (e, t) ->
@@ -71,10 +84,9 @@ Template.tsAdminEmailWorker.events
 
     emailId = WorkerEmails.insert({ subject, message, recipients })
 
-    Meteor.call "ts-admin-send-message", emailId, (err) ->
-      bootbox.alert(err) if err
-
     $(t.firstNode).closest(".bootbox.modal").modal('hide')
+
+    TurkServer.callWithModal("ts-admin-send-message", emailId)
 
 userLabelClass = ->
   switch

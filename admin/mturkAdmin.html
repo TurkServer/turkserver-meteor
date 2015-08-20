@@ -463,10 +463,24 @@
     {{> tsAdminActiveAssignmentsTable cursor=activeAssts }}
 </template>
 
+<template name="tsAdminCompletedMaintenance">
+    <div class="row">
+        <div class="well span12">
+            <h3>Maintenance</h3>
+            <button class="btn btn-primary -ts-refresh-assignments">
+                <span class="glyphicon glyphicon-refresh"></span>
+                Refresh Assignment Submission States
+            </button>
+        </div>
+    </div>
+</template>
+
 <template name="tsAdminCompletedAssignments">
     {{#tsBatchMessage}}
     Viewing completed assignments in batch <b>{{name}}</b>.
     {{/tsBatchMessage}}
+
+    {{> tsAdminCompletedMaintenance}}
 
     <form class="form-inline ts-admin-assignment-filter">
         Showing up to

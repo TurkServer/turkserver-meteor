@@ -226,5 +226,4 @@ Template.tsAdminConnections.helpers
 
 Template.tsAdminConnectionMaintenance.events
   "click .-ts-cleanup-user-state": ->
-    Meteor.call "ts-admin-cleanup-user-state", (err, res) ->
-      bootbox.alert(err.reason) if err?
+    TurkServer.callWithModal("ts-admin-cleanup-user-state")

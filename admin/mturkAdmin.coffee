@@ -333,19 +333,13 @@ Template.tsAdminEmailMessage.helpers
 
 Template.tsAdminEmailMessage.events
   "click .ts-admin-send-message": ->
-    Meteor.call "ts-admin-send-message", @_id, (err, res) ->
-      if err?
-        bootbox.alert(err)
-      else
-        bootbox.alert("#{res} workers notified!")
+    TurkServer.callWithModal "ts-admin-send-message", @_id
 
   "click .ts-admin-resend-message": ->
-    Meteor.call "ts-admin-resend-message", @_id, (err) ->
-      bootbox.alert(err) if err?
+    TurkServer.callWithModal "ts-admin-resend-message", @_id
 
   "click .ts-admin-delete-message": ->
-    Meteor.call "ts-admin-delete-message", @_id, (err) ->
-      bootbox.alert(err) if err?
+    TurkServer.callWithModal "ts-admin-delete-message", @_id
 
 Template.tsAdminNewEmail.helpers
   messages: ->
@@ -381,9 +375,7 @@ Template.tsAdminAssignmentMaintenance.events
     message = "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? "
     bootbox.confirm message, (res) ->
       return unless res
-      Meteor.call "ts-admin-cancel-assignments", Session.get("_tsViewingBatchId"), (err, res) ->
-        bootbox.alert(err) if err?
-        bootbox.alert(res + " assignments canceled") if res?
+      TurkServer.callWithModal "ts-admin-cancel-assignments", Session.get("_tsViewingBatchId")
 
 numAssignments = -> Assignments.find().count()
 
@@ -391,6 +383,11 @@ Template.tsAdminActiveAssignments.helpers
   numAssignments: numAssignments
   activeAssts: ->
     Assignments.find {}, { sort: acceptTime: -1 }
+
+Template.tsAdminCompletedMaintenance.events({
+  "click .-ts-refresh-assignments": ->
+    TurkServer.callWithModal "ts-admin-refresh-assignments", Session.get("_tsViewingBatchId")
+})
 
 Template.tsAdminCompletedAssignments.events
   "submit form.ts-admin-assignment-filter": (e, t) ->
