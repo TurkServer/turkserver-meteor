@@ -368,7 +368,7 @@
                 {{#each messages}}
                 <tr>
                     <td>{{subject}}</td>
-                    <td>{{recipients.length}}</td>
+                    <td>{{recipientsHelper recipients}}</td>
                     <td>{{#with sentTime}}
                         {{_tsRenderTime this}}
                         {{else}}
@@ -395,7 +395,7 @@
             <dt>Message</dt>
             <dd>{{{_tsnl2br message}}}</dd>
             <dt>Recipients</dt>
-            <dd>{{recipients.length}}</dd>
+            <dd>{{recipientsHelper recipients}}</dd>
         </dl>
 
         {{#unless sentTime}}
