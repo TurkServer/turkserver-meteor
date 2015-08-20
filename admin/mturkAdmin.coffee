@@ -224,6 +224,13 @@ Template.tsAdminWorkers.helpers
       sort: submitTime: -1
     })
 
+  numCompletedAssts: ->
+    Assignments.find({
+      workerId: @workerId,
+      status: "completed"
+    }).count()
+
+
 Template.tsAdminWorkers.events
   "autocompleteselect input": (e, t, user) ->
     Router.go("tsWorkers", {workerId: user.workerId}) if user.workerId?
