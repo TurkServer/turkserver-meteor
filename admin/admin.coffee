@@ -393,12 +393,16 @@ Meteor.methods
     Assignments.find({batchId, status: "assigned"}).map (asst) ->
       user = Meteor.users.findOne({workerId: asst.workerId})
       return if user.status?.online
-      TurkServer.Assignment.getAssignment(asst._id).setReturned()
+      tsAsst = TurkServer.Assignment.getAssignment(asst._id)
+      tsAsst.setReturned()
 
-      # in case they disconnected in the middle of an experiment,
+      # if they were disconnected in the middle of an experiment,
       # and the experiment was either never torndown,
       # or torndown with returnToLobby = false
-      Partitioner.clearUserGroup(user._id);
+      userGroup = Partitioner.getUserGroup(user._id)
+      if userGroup
+        tsAsst._leaveInstance(userGroup);
+        Partitioner.clearUserGroup(user._id);
 
       count++
 

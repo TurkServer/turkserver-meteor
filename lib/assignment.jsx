@@ -515,21 +515,26 @@ class Assignment {
   }
 
   _leaveInstance(instanceId) {
-    const now = new Date;
+    var exp = Experiments.findOne({_id: instanceId});
+
+    // if experiment has ended, use the end time as the user's leave time
+    // else, if experiment is ongoing, use current time
+    const leaveTime = exp.endTime ? exp.endTime : new Date;
+
     const updateObj = {
       $set: {
-        "instances.$.leaveTime": now
+        "instances.$.leaveTime": leaveTime
       }
     };
 
     let discTime, idleTime;
     // If in disconnected state, compute total disconnected time
     if ( (discTime = this._getLastDisconnect(instanceId)) != null) {
-      addResetDisconnectedUpdateFields(updateObj, now.getTime() - discTime);
+      addResetDisconnectedUpdateFields(updateObj, leaveTime.getTime() - discTime);
     }
     // If in idle state, compute total idle time
     if ( (idleTime = this._getLastIdle(instanceId)) != null) {
-      addResetIdleUpdateFields(updateObj, now.getTime() - idleTime);
+      addResetIdleUpdateFields(updateObj, leaveTime.getTime() - idleTime);
     }
 
     Assignments.update({
