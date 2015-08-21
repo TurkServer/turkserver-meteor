@@ -327,13 +327,15 @@ Template.tsAdminPanel.helpers
   workerContact: -> Workers.find(contact: true).count()
   workerTotal: -> Workers.find().count()
 
-Template.tsAdminEmail.helpers
-  messages: -> WorkerEmails.find({}, {sort: {sentTime: -1}})
-  recipientsHelper: (recipients) ->
+recipientsHelper = (recipients) ->
     if recipients.length == 1
       return recipients
     else
       return recipients.length
+
+Template.tsAdminEmail.helpers
+  messages: -> WorkerEmails.find({}, {sort: {sentTime: -1}})
+  recipientsHelper: recipientsHelper
 
 Template.tsAdminEmail.events
   "click tr": -> Session.set("_tsSelectedEmailId", @_id)
@@ -342,12 +344,7 @@ Template.tsAdminEmailMessage.helpers
   selectedMessage: ->
     emailId = Session.get("_tsSelectedEmailId")
     return WorkerEmails.findOne(emailId) if emailId?
-  recipientsHelper: (recipients) ->
-    if recipients.length == 1
-      return recipients
-    else
-      return recipients.length
-
+  recipientsHelper: recipientsHelper
 
 Template.tsAdminEmailMessage.events
   "click .ts-admin-send-message": ->
