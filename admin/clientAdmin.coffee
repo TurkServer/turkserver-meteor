@@ -211,8 +211,6 @@ Template.tsAdminOverview.events =
 
 Template.tsAdminOverview.helpers
   onlineUserCount: -> onlineUsers().count()
-  lobbyUserCount: -> LobbyStatus.find().count()
-  activeExperiments: -> Experiments.find().count()
 
 # All non-admin users who are online, sorted by most recent login
 Template.tsAdminConnections.helpers
