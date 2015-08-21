@@ -391,8 +391,15 @@ Meteor.methods
 
     count = 0
     Assignments.find({batchId, status: "assigned"}).map (asst) ->
-      return if Meteor.users.find({workerId: asst.workerId}).status?.online
+      user = Meteor.users.findOne({workerId: asst.workerId})
+      return if user.status?.online
       TurkServer.Assignment.getAssignment(asst._id).setReturned()
+
+      # in case they disconnected in the middle of an experiment,
+      # and the experiment was either never torndown,
+      # or torndown with returnToLobby = false
+      Partitioner.clearUserGroup(user._id);
+
       count++
 
     return "#{count} assignments canceled."
