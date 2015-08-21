@@ -16,6 +16,17 @@
     {{> tsAdminQuals}}
 </template>
 
+<template name="tsAdminMaintenance">
+    <div class="row">
+	<div class="col-md-12">
+	    <div class="well">
+		<h3>Maintenance</h3>
+		{{> Template.dynamic template=template}}
+	    </div>
+	</div>
+    </div>
+</template>
+
 <template name="tsAdminHitTypes">
     <table class="table table-condensed table-striped ts-admin-table">
         <thead>
@@ -443,12 +454,7 @@
 </template>
 
 <template name="tsAdminAssignmentMaintenance">
-    <div class="row">
-        <div class="well span12">
-            <h3>Maintenance</h3>
-            <button class="btn btn-danger -ts-cancel-assignments">Cancel Disconnected Assignments</button>
-        </div>
-    </div>
+    <button class="btn btn-danger -ts-cancel-assignments">Cancel Disconnected Assignments</button>
 </template>
 
 <template name="tsAdminActiveAssignments">
@@ -456,7 +462,7 @@
     Viewing active assignments in batch <b>{{name}}</b>.
     {{/tsBatchMessage}}
 
-    {{> tsAdminAssignmentMaintenance }}
+    {{> tsAdminMaintenance template="tsAdminAssignmentMaintenance"}}
 
     <p><b>{{numAssignments}} active assignments.</b></p>
 
@@ -464,15 +470,10 @@
 </template>
 
 <template name="tsAdminCompletedMaintenance">
-    <div class="row">
-        <div class="well span12">
-            <h3>Maintenance</h3>
-            <button class="btn btn-primary -ts-refresh-assignments">
-                <span class="glyphicon glyphicon-refresh"></span>
-                Refresh Assignment Submission States
-            </button>
-        </div>
-    </div>
+    <button class="btn btn-primary -ts-refresh-assignments">
+	<span class="glyphicon glyphicon-refresh"></span>
+	Refresh Assignment Submission States
+    </button>
 </template>
 
 <template name="tsAdminCompletedAssignments">
@@ -480,7 +481,7 @@
     Viewing completed assignments in batch <b>{{name}}</b>.
     {{/tsBatchMessage}}
 
-    {{> tsAdminCompletedMaintenance}}
+    {{> tsAdminMaintenance template="tsAdminCompletedMaintenance"}}
 
     <form class="form-inline ts-admin-assignment-filter">
         Showing up to

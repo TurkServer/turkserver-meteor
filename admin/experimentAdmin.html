@@ -3,7 +3,7 @@
         Viewing experiment instances in batch <b>{{name}}</b>.
     {{/tsBatchMessage}}
 
-    {{> tsAdminExperimentMaintenance }}
+    {{> tsAdminMaintenance template="tsAdminExperimentMaintenance"}}
 
     <form class="form-inline -ts-admin-experiment-filter">
         Showing active, and up to
@@ -22,12 +22,7 @@
 </template>
 
 <template name="tsAdminExperimentMaintenance">
-    <div class="row">
-        <div class="well span12">
-            <h3>Maintenance</h3>
-            <button class="btn btn-danger -ts-stop-all-experiments">Stop All Experiments</button>
-        </div>
-    </div>
+    <button class="btn btn-danger -ts-stop-all-experiments">Stop All Experiments</button>
 </template>
 
 <template name="tsAdminExperimentTimeline">
