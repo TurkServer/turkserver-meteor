@@ -128,7 +128,7 @@
 <template name="tsUserPill">
     {{#with user}}
     <div class="ts-user-pill-container">
-        <span class="label {{labelClass}}">{{identifier}}</span>
+        <a href="{{pathFor 'tsWorkers' workerId=workerId}}"><span class="label {{labelClass}}">{{identifier}}</span></a>
     </div>
     {{/with}}
 </template>
