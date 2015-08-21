@@ -402,6 +402,36 @@ Template.tsAdminActiveAssignments.helpers
 Template.tsAdminCompletedMaintenance.events({
   "click .-ts-refresh-assignments": ->
     TurkServer.callWithModal "ts-admin-refresh-assignments", Session.get("_tsViewingBatchId")
+
+  "click .-ts-approve-all": ->
+    batchId = Session.get("_tsViewingBatchId")
+    numAssts = Assignments.find({
+      batchId: batchId
+      mturkStatus: "Submitted"
+    }).count()
+
+    bootbox.confirm numAssts + " assignments will be approved. Continue?", (res) ->
+      return unless res
+      TurkServer.callWithModal "ts-admin-approve-all", batchId
+
+  "click .-ts-pay-bonuses": ->
+    batchId = Session.get("_tsViewingBatchId")
+    numPaid = 0
+    amt = 0
+    Assignments.find({
+      batchId: batchId
+      mturkStatus: "Approved"
+      bonusPayment: {$gt: 0}
+      bonusPaid: {$exists: false}
+
+    }).forEach (asst) ->
+      tsAsst = TurkServer.Assignment.getAssignment(asst._id);
+      numPaid += 1
+      amt += tsAsst.bonusPayment
+
+    bootbox.prompt numPaid + " workers will be paid, for a total of " + amt + ". Enter a message to send to each worker.", (res) ->
+      return unless res
+      TurkServer.callWithModal "ts-admin-pay-bonuses", batchId, res
 })
 
 Template.tsAdminCompletedAssignments.events

@@ -431,6 +431,30 @@ Meteor.methods
     TurkServer.Assignment.getAssignment(asstId).refreshStatus()
     return
 
+  # Approve all submitted assignments in a batch
+  "ts-admin-approve-all": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    Assignments.find({
+      batchId: batchId
+      mturkStatus: "Submitted"
+    }).forEach (asst) ->
+      TurkServer.Assignment.getAssignment(asst._id).approve();
+
+  # Pay all unpaid bonuses in a batch
+  "ts-admin-pay-bonuses": (batchId, msg) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    Assignments.find({
+      batchId: batchId
+      mturkStatus: "Approved"
+      bonusPayment: {$gt: 0}
+      bonusPaid: {$exists: false}
+    }).forEach (asst) ->
+      TurkServer.Assignment.getAssignment(asst._id).payBonus(msg)
+
   "ts-admin-unset-bonus": (asstId) ->
     TurkServer.checkAdmin()
     check(asstId, String)

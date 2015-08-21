@@ -470,10 +470,20 @@
 </template>
 
 <template name="tsAdminCompletedMaintenance">
-    <button class="btn btn-primary -ts-refresh-assignments">
-	<span class="glyphicon glyphicon-refresh"></span>
-	Refresh Assignment Submission States
-    </button>
+    <div class="btn-group" role="group">
+	<button class="btn btn-default -ts-refresh-assignments">
+	    <span class="glyphicon glyphicon-refresh"></span>
+	    Refresh Assignment States
+	</button>
+	<button class="btn btn-default -ts-approve-all">
+	    <span class="glyphicon glyphicon-check"></span>
+	    Approve All Assignments
+	</button>
+	<button class="btn btn-default -ts-pay-bonuses">
+	    <span class="glyphicon glyphicon-usd"></span>
+	    Pay All Bonuses
+	</button>
+    </div>
 </template>
 
 <template name="tsAdminCompletedAssignments">
