@@ -431,8 +431,30 @@ Meteor.methods
     TurkServer.Assignment.getAssignment(asstId).refreshStatus()
     return
 
+  "ts-admin-reject-assignment": (asstId, msg) ->
+    TurkServer.checkAdmin()
+    check(asstId, String)
+
+    TurkServer.Assignment.getAssignment(asstId).reject(msg)
+    return
+
+  # Count number of submitted assignments in a batch
+  "ts-admin-count-submitted": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    result = {}
+    # First refresh everything
+    Meteor.call "ts-admin-refresh-assignments", batchId, (err, res) ->
+      count = Assignments.find({
+        batchId: batchId
+        mturkStatus: "Submitted"
+      }).count()
+      result.count = count;
+    return result
+
   # Approve all submitted assignments in a batch
-  "ts-admin-approve-all": (batchId) ->
+  "ts-admin-approve-all": (batchId, msg) ->
     TurkServer.checkAdmin()
     check(batchId, String)
 
@@ -440,7 +462,27 @@ Meteor.methods
       batchId: batchId
       mturkStatus: "Submitted"
     }).forEach (asst) ->
-      TurkServer.Assignment.getAssignment(asst._id).approve();
+      TurkServer.Assignment.getAssignment(asst._id).approve(msg);
+
+  # Count number of unpaid bonuses in a batch
+  "ts-admin-count-unpaid-bonuses": (batchId) ->
+    TurkServer.checkAdmin()
+    check(batchId, String)
+
+    result =
+      numPaid: 0
+      amt: 0
+    # First refresh everything
+    Meteor.call "ts-admin-refresh-assignments", batchId, (err, res) ->
+      Assignments.find({
+        batchId: batchId
+        mturkStatus: "Approved"
+        bonusPayment: {$gt: 0}
+        bonusPaid: {$exists: false}
+      }).forEach (asst) ->
+        result.numPaid += 1
+        result.amt += asst.bonusPayment
+    return result
 
   # Pay all unpaid bonuses in a batch
   "ts-admin-pay-bonuses": (batchId, msg) ->

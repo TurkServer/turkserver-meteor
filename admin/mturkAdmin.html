@@ -572,6 +572,11 @@
                 <dt>Status</dt>
                 <dd>{{#if mturkStatus}}
                     <span class="label {{labelStatus}}">{{mturkStatus}}</span>
+                    {{#if submitted}}
+                    <button class="btn btn-xs btn-danger ts-admin-reject-assignment">
+                        <span class="glyphicon glyphicon-ban-circle"></span>
+                    </button>
+                    {{/if}}
                     {{else}}
                     <span class="label label-default">Unknown</span>
                     <button class="btn btn-xs btn-info ts-admin-refresh-assignment">

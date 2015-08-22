@@ -399,40 +399,23 @@ Template.tsAdminActiveAssignments.helpers
   activeAssts: ->
     Assignments.find {}, { sort: acceptTime: -1 }
 
-Template.tsAdminCompletedMaintenance.events({
+Template.tsAdminCompletedMaintenance.events
   "click .-ts-refresh-assignments": ->
     TurkServer.callWithModal "ts-admin-refresh-assignments", Session.get("_tsViewingBatchId")
 
   "click .-ts-approve-all": ->
     batchId = Session.get("_tsViewingBatchId")
-    numAssts = Assignments.find({
-      batchId: batchId
-      mturkStatus: "Submitted"
-    }).count()
-
-    bootbox.confirm numAssts + " assignments will be approved. Continue?", (res) ->
-      return unless res
-      TurkServer.callWithModal "ts-admin-approve-all", batchId
+    Meteor.call "ts-admin-count-submitted", batchId, (err, data) ->
+      bootbox.prompt data.count + " assignments will be approved. Enter a (possibly blank) message to send to each worker.", (res) ->
+        return if res == null
+        TurkServer.callWithModal "ts-admin-approve-all", batchId, res
 
   "click .-ts-pay-bonuses": ->
     batchId = Session.get("_tsViewingBatchId")
-    numPaid = 0
-    amt = 0
-    Assignments.find({
-      batchId: batchId
-      mturkStatus: "Approved"
-      bonusPayment: {$gt: 0}
-      bonusPaid: {$exists: false}
-
-    }).forEach (asst) ->
-      tsAsst = TurkServer.Assignment.getAssignment(asst._id);
-      numPaid += 1
-      amt += tsAsst.bonusPayment
-
-    bootbox.prompt numPaid + " workers will be paid, for a total of " + amt + ". Enter a message to send to each worker.", (res) ->
-      return unless res
-      TurkServer.callWithModal "ts-admin-pay-bonuses", batchId, res
-})
+    Meteor.call "ts-admin-count-unpaid-bonuses", batchId, (err, data) ->
+      bootbox.prompt data.numPaid + " workers will be paid, for a total of $" + data.amt + ". Enter a message to send to each worker.", (res) ->
+        return unless res
+        TurkServer.callWithModal "ts-admin-pay-bonuses", batchId, res
 
 Template.tsAdminCompletedAssignments.events
   "submit form.ts-admin-assignment-filter": (e, t) ->
@@ -454,6 +437,12 @@ Template.tsAdminCompletedAssignmentsTable.events
     Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
       bootbox.alert(err) if err?
 
+  "click .ts-admin-reject-assignment": ->
+    _asstId = this._id
+    bootbox.prompt "1 worker's assignment will be rejected. Enter a message to send to the worker.", (res) ->
+      return unless res
+      Meteor.call "ts-admin-reject-assignment", _asstId, res
+
   "click .ts-admin-unset-bonus": ->
     Meteor.call("ts-admin-unset-bonus", this._id)
 
@@ -467,3 +456,5 @@ Template.tsAdminCompletedAssignmentRow.helpers
       when "Approved" then "label-primary"
       when "Rejected" then "label-danger"
       else "label-default"
+  submitted: ->
+    return @mturkStatus == "Submitted"
