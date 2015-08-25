@@ -145,15 +145,10 @@
         </tbody>
     </table>
 
-    {{> tsAdminConnectionMaintenance}}
+    {{> tsAdminMaintenance template="tsAdminConnectionMaintenance"}}
 </template>
 
 <template name="tsAdminConnectionMaintenance">
-    <div class="row">
-        <div class="well span12">
-            <h3>Maintenance</h3>
-            <button class="btn btn-danger -ts-cleanup-user-state">Cleanup User State</button>
-        </div>
-    </div>
+    <button class="btn btn-danger -ts-cleanup-user-state">Cleanup User State</button>
 </template>
 
