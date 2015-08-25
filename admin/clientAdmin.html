@@ -103,18 +103,16 @@
     <h3>TurkServer Overview</h3>
     <div class="row">
         <div class="col-md-6">
-            <dl class="well dl-horizontal">
-                <dt>Connected Users:</dt>
-                <dd>{{onlineUserCount}}</dd>
-            </dl>
-            <button class="btn btn-info -ts-account-balance">Get Account Balance</button>
-        </div>
-
-        <div class="col-md-6">
             <div class="well">
-                <h4>Meteor server statistics</h4>
-                {{> serverFacts}}
-            </div>
+		<button class="btn btn-info -ts-account-balance">Get Account Balance</button>
+	    </div>
+	    <div class="well">
+		<h4>Connected Users: {{onlineUserCount}}</h4>
+	    </div>
+	    <div class="well">
+		<h4>Meteor Server Statistics</h4>
+		{{> serverFacts}}
+	    </div>
         </div>
     </div>
 </template>
