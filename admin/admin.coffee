@@ -364,6 +364,16 @@ Meteor.methods
 
     throw new Meteor.Error(500, "Not implemented")
 
+  "ts-admin-copy-message": (emailId) ->
+    TurkServer.checkAdmin()
+    check(emailId, String)
+
+    email = WorkerEmails.findOne(emailId)
+    return WorkerEmails.insert
+      subject: email.subject
+      message: email.message
+      recipients: []
+
   "ts-admin-delete-message": (emailId) ->
     TurkServer.checkAdmin()
     check(emailId, String)

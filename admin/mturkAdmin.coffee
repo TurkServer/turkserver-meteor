@@ -353,6 +353,9 @@ Template.tsAdminEmailMessage.events
   "click .ts-admin-resend-message": ->
     TurkServer.callWithModal "ts-admin-resend-message", @_id
 
+  "click .ts-admin-copy-message": ->
+    Meteor.call "ts-admin-copy-message", @_id
+
   "click .ts-admin-delete-message": ->
     TurkServer.callWithModal "ts-admin-delete-message", @_id
 
