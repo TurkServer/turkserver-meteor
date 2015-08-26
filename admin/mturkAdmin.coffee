@@ -4,9 +4,11 @@ hitTypes = -> HITTypes.find()
 Template.tsAdminMTurk.helpers
   selectedHITType: -> HITTypes.findOne Session.get("_tsSelectedHITType")
 
+Template.tsAdminMTurk.events =
+  "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
+
 Template.tsAdminHitTypes.events =
   "click tr": -> Session.set("_tsSelectedHITType", @_id)
-  "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
 
 Template.tsAdminHitTypes.helpers
   hitTypes: hitTypes
@@ -120,6 +122,7 @@ Template.tsAdminNewQual.events =
 
 Template.tsAdminHits.events =
   "click tr": -> Session.set("_tsSelectedHIT", @_id)
+  "click .-ts-new-hit": -> Session.set("_tsSelectedHIT", undefined)
 
 Template.tsAdminHits.helpers
   hits: -> HITs.find({}, {sort: {CreationTime: -1}})
