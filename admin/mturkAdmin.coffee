@@ -130,12 +130,10 @@ Template.tsAdminHits.helpers
 
 Template.tsAdminViewHit.events =
   "click .-ts-refresh-hit": ->
-    Meteor.call "ts-admin-refresh-hit", @HITId, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-refresh-hit", @HITId
 
   "click .-ts-expire-hit": ->
-    Meteor.call "ts-admin-expire-hit", @HITId, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-expire-hit", @HITId
 
   "submit .-ts-change-hittype": (e, tmpl) ->
     e.preventDefault()
@@ -148,24 +146,21 @@ Template.tsAdminViewHit.events =
     params =
       HITId: @HITId
       HITTypeId: HITTypeId
-    Meteor.call "ts-admin-change-hittype", params, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-change-hittype", params
 
   "submit .-ts-extend-assignments": (e, tmpl) ->
     e.preventDefault()
     params =
       HITId: @HITId
       MaxAssignmentsIncrement: tmpl.find("input[name=assts]").valueAsNumber
-    Meteor.call "ts-admin-extend-hit", params, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-extend-hit", params
 
   "submit .-ts-extend-expiration": (e, tmpl) ->
     e.preventDefault()
     params =
       HITId: @HITId
       ExpirationIncrementInSeconds: tmpl.find("input[name=secs]").valueAsNumber
-    Meteor.call "ts-admin-extend-hit", params, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-extend-hit", params
 
 Template.tsAdminViewHit.helpers
   hitTypes: hitTypes
@@ -184,8 +179,7 @@ Template.tsAdminNewHit.events =
       MaxAssignments: tmpl.find("input[name=maxAssts]").valueAsNumber
       LifetimeInSeconds: tmpl.find("input[name=lifetime]").valueAsNumber
 
-    Meteor.call "ts-admin-create-hit", hitTypeId, params, (err, res) ->
-      bootbox.alert(err.reason) if err
+    TurkServer.callWithModal "ts-admin-create-hit", hitTypeId, params
 
 Template.tsAdminNewHit.helpers
   hitTypes: hitTypes
@@ -357,7 +351,7 @@ Template.tsAdminEmailMessage.events
     TurkServer.callWithModal "ts-admin-resend-message", @_id
 
   "click .ts-admin-copy-message": ->
-    Meteor.call "ts-admin-copy-message", @_id
+    TurkServer.callWithModal "ts-admin-copy-message", @_id
 
   "click .ts-admin-delete-message": ->
     TurkServer.callWithModal "ts-admin-delete-message", @_id
@@ -384,12 +378,9 @@ Template.tsAdminNewEmail.events
         bootbox.alert("Select an e-mail to copy recipients from")
         return
 
-    Meteor.call "ts-admin-create-message", subject, message, copyFromId, (err, res) ->
-      if err?
-        bootbox.alert(err)
-      else
-        # Display the new message
-        Session.set("_tsSelectedEmailId", res)
+    TurkServer.callWithModal "ts-admin-create-message", subject, message, copyFromId, (res) ->
+      # Display the new message
+      Session.set("_tsSelectedEmailId", res)
 
 Template.tsAdminAssignmentMaintenance.events
   "click .-ts-cancel-assignments": ->
@@ -405,21 +396,41 @@ Template.tsAdminActiveAssignments.helpers
   activeAssts: ->
     Assignments.find {}, { sort: acceptTime: -1 }
 
+checkBatch = (batchId) ->
+  unless batchId?
+    bootbox.alert("Select a batch first!")
+    return false
+  return true
+
 Template.tsAdminCompletedMaintenance.events
   "click .-ts-refresh-assignments": ->
-    TurkServer.callWithModal "ts-admin-refresh-assignments", Session.get("_tsViewingBatchId")
+    batchId = Session.get("_tsViewingBatchId")
+    return unless checkBatch(batchId)
+    TurkServer.callWithModal "ts-admin-refresh-assignments", batchId
 
   "click .-ts-approve-all": ->
     batchId = Session.get("_tsViewingBatchId")
-    Meteor.call "ts-admin-count-submitted", batchId, (err, data) ->
-      bootbox.prompt data.count + " assignments will be approved. Enter a (possibly blank) message to send to each worker.", (res) ->
-        return if res == null
+    return unless checkBatch(batchId)
+
+    TurkServer.callWithModal "ts-admin-count-submitted", batchId, (count) ->
+      if count is 0
+        bootbox.alert "No assignments to approve!"
+        return
+
+      bootbox.prompt "#{count} assignments will be approved. Enter a (possibly blank) message to send to each worker.", (res) ->
+        return unless res?
         TurkServer.callWithModal "ts-admin-approve-all", batchId, res
 
   "click .-ts-pay-bonuses": ->
     batchId = Session.get("_tsViewingBatchId")
-    Meteor.call "ts-admin-count-unpaid-bonuses", batchId, (err, data) ->
-      bootbox.prompt data.numPaid + " workers will be paid, for a total of $" + data.amt + ". Enter a message to send to each worker.", (res) ->
+    return unless checkBatch(batchId)
+
+    TurkServer.callWithModal "ts-admin-count-unpaid-bonuses", batchId, (data) ->
+      if data.numPaid is 0
+        bootbox.alert "No bonuses to pay!"
+        return
+
+      bootbox.prompt "#{data.numPaid} workers will be paid, for a total of $#{data.amt}. Enter a message to send to each worker.", (res) ->
         return unless res
         TurkServer.callWithModal "ts-admin-pay-bonuses", batchId, res
 
@@ -440,14 +451,13 @@ Template.tsAdminCompletedAssignments.helpers
 
 Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-refresh-assignment": ->
-    Meteor.call "ts-admin-refresh-assignment", this._id, (err) ->
-      bootbox.alert(err) if err?
+    Meteor.call "ts-admin-refresh-assignment", this._id
 
   "click .ts-admin-reject-assignment": ->
     _asstId = this._id
     bootbox.prompt "1 worker's assignment will be rejected. Enter a message to send to the worker.", (res) ->
       return unless res
-      Meteor.call "ts-admin-reject-assignment", _asstId, res
+      TurkServer.callWithModal "ts-admin-reject-assignment", _asstId, res
 
   "click .ts-admin-unset-bonus": ->
     Meteor.call("ts-admin-unset-bonus", this._id)

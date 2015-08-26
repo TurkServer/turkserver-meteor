@@ -241,9 +241,6 @@ class Instance {
     });
 
     // Sometimes we may want to allow users to continue to access partition data
-    /* TODO if the user returns to lobby after teardown,
-      assignment time computations could be a bit off.
-     */
     if( !returnToLobby ) return;
 
     const users = Experiments.findOne(this.groupId).users;
@@ -267,6 +264,8 @@ class Instance {
 
     // If the user is still assigned, do final accounting and put them in lobby
     asst._leaveInstance(this.groupId);
+
+    // TODO: an offline user should not be returned to the lobby
     this.batch().lobby.addAssignment(asst);
   }
 }

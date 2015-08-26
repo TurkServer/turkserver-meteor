@@ -409,8 +409,7 @@ Meteor.methods
       # if they were disconnected in the middle of an experiment,
       # and the experiment was either never torndown,
       # or torndown with returnToLobby = false
-      userGroup = Partitioner.getUserGroup(user._id)
-      if userGroup
+      if ( userGroup = Partitioner.getUserGroup(user._id) )?
         tsAsst._leaveInstance(userGroup);
         Partitioner.clearUserGroup(user._id);
 
@@ -453,15 +452,13 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(batchId, String)
 
-    result = {}
     # First refresh everything
-    Meteor.call "ts-admin-refresh-assignments", batchId, (err, res) ->
-      count = Assignments.find({
-        batchId: batchId
-        mturkStatus: "Submitted"
-      }).count()
-      result.count = count;
-    return result
+    Meteor.call "ts-admin-refresh-assignments", batchId
+
+    return Assignments.find({
+      batchId: batchId
+      mturkStatus: "Submitted"
+    }).count()
 
   # Approve all submitted assignments in a batch
   "ts-admin-approve-all": (batchId, msg) ->
@@ -479,19 +476,22 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(batchId, String)
 
+    # First refresh everything
+    Meteor.call "ts-admin-refresh-assignments", batchId
+
     result =
       numPaid: 0
       amt: 0
-    # First refresh everything
-    Meteor.call "ts-admin-refresh-assignments", batchId, (err, res) ->
-      Assignments.find({
-        batchId: batchId
-        mturkStatus: "Approved"
-        bonusPayment: {$gt: 0}
-        bonusPaid: {$exists: false}
-      }).forEach (asst) ->
-        result.numPaid += 1
-        result.amt += asst.bonusPayment
+
+    Assignments.find({
+      batchId: batchId
+      mturkStatus: "Approved"
+      bonusPayment: {$gt: 0}
+      bonusPaid: {$exists: false}
+    }).forEach (asst) ->
+      result.numPaid += 1
+      result.amt += asst.bonusPayment
+
     return result
 
   # Pay all unpaid bonuses in a batch
@@ -506,6 +506,8 @@ Meteor.methods
       bonusPaid: {$exists: false}
     }).forEach (asst) ->
       TurkServer.Assignment.getAssignment(asst._id).payBonus(msg)
+
+    return
 
   "ts-admin-unset-bonus": (asstId) ->
     TurkServer.checkAdmin()

@@ -11,17 +11,28 @@ TurkServer.Util.timeSince = (timestamp) ->
 TurkServer.Util.timeUntil = (timestamp) ->
   TurkServer.Util.duration(timestamp - TimeSync.serverTime())
 
-TurkServer.callWithModal = (args...) ->
+TurkServer.callWithModal = (args..., callback) ->
   dialog = bootbox.dialog
     closeButton: false
     message: "<h3>Working...</h3>"
 
-  # Copy arguments to array and add callback
-  args = args.slice(0)
+  # If callback is not specified, assume it is just an argument.
+  unless _.isFunction(callback)
+    args.push(callback)
+    callback = null
+
+  # Add our own callback that alerts for errors
   args.push (err, res) ->
     dialog.modal("hide")
-    bootbox.alert(err) if err?
-    bootbox.alert(res) if res?
+    if err?
+      bootbox.alert(err)
+      return
+
+    # If callback is given, calls it with data, otherwise just alert
+    if res? && callback?
+      callback(res)
+    else if res?
+      bootbox.alert(res)
 
   return Meteor.call.apply(null, args)
 

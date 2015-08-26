@@ -519,7 +519,7 @@ class Assignment {
 
     // if experiment has ended, use the end time as the user's leave time
     // else, if experiment is ongoing, use current time
-    const leaveTime = exp.endTime ? exp.endTime : new Date;
+    const leaveTime = exp.endTime || new Date;
 
     const updateObj = {
       $set: {

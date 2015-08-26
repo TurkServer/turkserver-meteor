@@ -32,9 +32,11 @@ if (Meteor.isClient) {
       test: true
     }],
     userCallback: function (err) {
-      if (err) throw err;
-      console.info("HIT login successful!");
-      InsecureLogin.run();
+      if (err) console.log(err);
+      else {
+        console.info("HIT login successful!");
+        InsecureLogin.run();
+      }
     }
   });
 } else {

@@ -470,6 +470,37 @@ Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) -
   test.isFalse asstData.instances[0].lastIdle
   test.isTrue asstData.instances[0].idleTime
 
+Tinytest.add "experiment - instance - leave instance after teardown", withCleanup (test) ->
+  instance = batch.createInstance([])
+  instance.setup()
+
+  asst = createAssignment()
+
+  instance.addAssignment(asst)
+
+  # Immediately disconnect
+  TestUtils.connCallbacks.sessionDisconnect
+    userId: asst.userId
+
+  instance.teardown(false)
+
+  # Wait a bit to ensure we have the right value; the above should have
+  # completed within this interval
+  TestUtils.sleep(200)
+
+  # Could do either of the below
+  instance.sendUserToLobby(asst.userId)
+
+  asstData = Assignments.findOne(asst.asstId)
+
+  test.isFalse Partitioner.getUserGroup(asst.userId)
+
+  test.isTrue asstData.instances[0].leaveTime
+  test.isFalse asstData.instances[0].lastDisconnect
+  # We don't know the exact length of disconnection, but make sure it's in the right ballpark
+  test.isTrue asstData.instances[0].disconnectedTime > 0
+  test.isTrue asstData.instances[0].disconnectedTime < 200
+
 Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
