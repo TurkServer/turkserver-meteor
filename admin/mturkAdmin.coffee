@@ -451,7 +451,7 @@ Template.tsAdminCompletedAssignments.helpers
 
 Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-refresh-assignment": ->
-    Meteor.call "ts-admin-refresh-assignment", this._id
+    TurkServer.callWithModal "ts-admin-refresh-assignment", this._id
 
   "click .ts-admin-reject-assignment": ->
     _asstId = this._id
