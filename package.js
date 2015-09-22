@@ -18,7 +18,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("1.1.0.2");
+  api.versionsFrom("1.2.0.1");
 
   // Client-only deps
   api.use([
@@ -27,9 +27,6 @@ Package.onUse(function (api) {
     'templating',
     'reactive-var'
   ], 'client');
-
-  // Temporary until Meteor 1.2: ES6 transpilation
-  api.use('grigio:babel@0.1.4');
 
   // Client & Server deps
   api.use([
@@ -41,8 +38,10 @@ Package.onUse(function (api) {
     'ejson',
     'stylus',
     'jquery',
+    'random',
     'underscore',
     'coffeescript',
+    'ecmascript',
     'facts'
   ]);
 
@@ -51,9 +50,9 @@ Package.onUse(function (api) {
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
 
-  api.use("mizzao:bootboxjs@4.3.0");
+  api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.9");
-  api.use("momentjs:moment@2.10.3");
+  api.use("momentjs:moment@2.10.6");
   api.use("twbs:bootstrap@3.3.5");
   api.use("d3js:d3@3.5.5");
 
@@ -61,7 +60,7 @@ Package.onUse(function (api) {
   api.use('natestrauser:x-editable-bootstrap@1.5.2_1');
 
   // Dev packages - may be locally installed with submodule
-  api.use("matb33:collection-hooks@0.7.13");
+  api.use("matb33:collection-hooks@0.7.15");
   api.use("mizzao:partitioner@0.5.6");
   api.use('mizzao:timesync@0.3.3');
   api.use("mizzao:user-status@0.6.5");
@@ -73,24 +72,24 @@ Package.onUse(function (api) {
 
   // Shared files
   api.addFiles([
-    'lib/common.jsx',
+    'lib/common.js',
     'lib/common.coffee',
     'lib/util.coffee'
   ]);
 
   // Server files
   api.addFiles([
-    'lib/config.jsx',
+    'lib/config.js',
     'lib/turkserver.coffee',
     'lib/mturk.coffee',
     'lib/lobby_server.coffee',
     'lib/batches.coffee',
-    'lib/instance.jsx',
+    'lib/instance.js',
     'lib/logging.coffee',
     'lib/assigners.coffee',
-    'lib/assignment.jsx',
+    'lib/assignment.js',
     'lib/connections.coffee',
-    'lib/timers_server.jsx',
+    'lib/timers_server.js',
     'lib/accounts_mturk.coffee'
   ], 'server');
 
@@ -98,7 +97,7 @@ Package.onUse(function (api) {
   api.addFiles([
     'client/templates.html',
     'client/login.html',
-    'client/client_api.jsx',
+    'client/client_api.js',
     'client/ts_client.styl',
     'client/ts_client.coffee',
     'client/login.coffee',
@@ -135,12 +134,14 @@ Package.onTest(function (api) {
   api.use([
     'accounts-base',
     'accounts-password',
+    'check',
     'deps',
     'coffeescript',
+    'mongo',
+    'random',
+    'ui',
     'underscore'
   ]);
-
-  api.use('mongo');
 
   api.use([
     'tinytest',
