@@ -65,10 +65,10 @@ if Meteor.isClient
     Meteor.call "getAssignmentData", (err, res) ->
       returned = true
       test.isFalse err
-      console.log "Got assignment data", res
+      console.log "Got assignment data", JSON.stringify(res)
 
-      test.isTrue res?.ipAddr[0]
-      test.equal res?.userAgent[0], navigator.userAgent unless Package['test-in-console']?
+      test.isTrue res?.ipAddr?[0]
+      test.equal res?.userAgent?[0], navigator.userAgent unless Package['test-in-console']?
 
       next()
 

@@ -51,7 +51,7 @@ Package.onUse(function (api) {
   api.use("aldeed:template-extension@3.4.3");
 
   api.use("mizzao:bootboxjs@4.4.0");
-  api.use("iron:router@1.0.9");
+  api.use("iron:router@1.0.11");
   api.use("momentjs:moment@2.10.6");
   api.use("twbs:bootstrap@3.3.5");
   api.use("d3js:d3@3.5.5");
@@ -61,7 +61,7 @@ Package.onUse(function (api) {
 
   // Dev packages - may be locally installed with submodule
   api.use("matb33:collection-hooks@0.7.15");
-  api.use("mizzao:partitioner@0.5.6");
+  api.use("mizzao:partitioner@0.5.8");
   api.use('mizzao:timesync@0.3.3');
   api.use("mizzao:user-status@0.6.5");
 
