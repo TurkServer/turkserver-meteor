@@ -17,7 +17,8 @@ unless Meteor.settings?.public?.turkserver?.autoLobby is false
         else
           @next()
 
-  # We need to defer this because of IR crap, as usual
+  # We need to defer this because iron router can throw errors if a route is
+  # hit before the page is fully loaded
   Meteor.startup ->
     Meteor.defer ->
       # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)

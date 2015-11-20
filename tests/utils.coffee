@@ -5,7 +5,7 @@ if Meteor.isClient
       onBeforeAction: -> @render(null)
 
 if Meteor.isServer
-  # Cleanup junk that may have been leftover from other tests
+  # Clean up stuff that may have been leftover from other tests
   Meteor.users.remove {}
   Batches.remove {}
   Experiments.remove {}
