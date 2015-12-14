@@ -55,6 +55,23 @@ Note that this paper doesn't refer to the latest version of the system, but it
  is the same core idea. We plan to publish an improved paper detailing the 
  methods behind TurkServer in the near future. 
 
+## Documentation
+
+The [API documentation](https://turkserver.meteor.com) is generated directly from [JSDoc](http://usejsdoc.org/) comments in the code. To build the documentation locally, make sure you have [`meteor-jsdoc`](https://www.npmjs.com/package/meteor-jsdoc) installed:
+
+```
+npm install -g meteor-jsdoc
+```
+
+Then build and view the docs with the following commands:
+
+```
+meteor-jsdoc build
+meteor-jsdoc start
+```
+
+The documentation will be visible as a Meteor app on the specified port (default 3333).
+
 ## Testing
 
 Clone this entire repository, including the submodules. For example:

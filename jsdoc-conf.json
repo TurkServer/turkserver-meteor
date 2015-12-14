@@ -4,11 +4,10 @@
     "parser": "gfm"
   },
   "source": {
-    "includePattern": ".+\\.js(x)?$",
+    "includePattern": ".+\\.js$",
     "exclude": [
       ".meteor",
       "docs",
-      "mturk",
       "packages",
       "tests"
     ]

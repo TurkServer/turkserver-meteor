@@ -58,7 +58,7 @@ Package.onUse(function (api) {
 
   // Dev packages - may be locally installed with submodule
   api.use("matb33:collection-hooks@0.7.15");
-  api.use("mizzao:partitioner@0.5.8");
+  api.use("mizzao:partitioner@0.5.9");
   api.use('mizzao:timesync@0.3.3');
   api.use("mizzao:user-status@0.6.5");
 

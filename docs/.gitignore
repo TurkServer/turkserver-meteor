@@ -6,5 +6,5 @@ client
 # except our specific ones
 !.gitignore
 !client/index.less
-!client/head.html
+!client/forkme.html
 !client/templates/preamble.md
