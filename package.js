@@ -6,14 +6,8 @@ Package.describe({
 });
 
 Npm.depends({
-  // mturk: "./mturk", // https://github.com/meteor/meteor/issues/1810
-  // Currently using a fork in submodule; dependencies below
-  "request": "2.30.0",
-  "libxmljs": "0.8.1",
-  "validator": "2.0.0",
-  "querystring": "0.2.0",
-  "async": "0.2.10",
-  // End mturk dependencies
+  "mturk-api": "1.3.2",
+  jspath: "0.3.2",
   deepmerge: "0.2.7" // For merging config parameters
 });
 
@@ -47,6 +41,9 @@ Package.onUse(function (api) {
 
   api.use(["ddp", "mongo"]); // For pub/sub and collections
 
+  // To use the promises in mturk-api from Fibers code
+  api.use("promise");
+
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
 
@@ -65,11 +62,6 @@ Package.onUse(function (api) {
   api.use('mizzao:timesync@0.3.3');
   api.use("mizzao:user-status@0.6.5");
 
-  // mturk fork
-  api.addFiles([
-    'mturk/index.js'
-  ], 'server');
-
   // Shared files
   api.addFiles([
     'lib/common.js',
@@ -81,7 +73,7 @@ Package.onUse(function (api) {
   api.addFiles([
     'lib/config.js',
     'lib/turkserver.coffee',
-    'lib/mturk.coffee',
+    'lib/mturk.js',
     'lib/lobby_server.coffee',
     'lib/batches.coffee',
     'lib/instance.js',

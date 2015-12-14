@@ -521,7 +521,7 @@ Meteor.methods
     check(amount, Number)
     check(reason, String)
 
-    # Protect against nasty typos.
+    # Protect against possible typos in payment amount.
     throw new Meteor.Error(403, "You probably didn't mean to pay #{amount}") if amount > 10.00
 
     asst = TurkServer.Assignment.getAssignment(asstId)
