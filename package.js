@@ -71,18 +71,19 @@ Package.onUse(function (api) {
 
   // Server files
   api.addFiles([
-    'lib/config.js',
-    'lib/turkserver.coffee',
-    'lib/mturk.js',
-    'lib/lobby_server.coffee',
-    'lib/batches.coffee',
-    'lib/instance.js',
-    'lib/logging.coffee',
-    'lib/assigners.coffee',
-    'lib/assignment.js',
-    'lib/connections.coffee',
-    'lib/timers_server.js',
-    'lib/accounts_mturk.coffee'
+    'server/config.js',
+    'server/turkserver.coffee',
+    'server/mturk.js',
+    'server/lobby_server.coffee',
+    'server/batches.coffee',
+    'server/instance.js',
+    'server/logging.coffee',
+    'server/assigners.js',
+    'server/assigners_extra.js',
+    'server/assignment.js',
+    'server/connections.coffee',
+    'server/timers_server.js',
+    'server/accounts_mturk.coffee'
   ], 'server');
 
   // Client
