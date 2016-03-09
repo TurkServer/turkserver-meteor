@@ -1,4 +1,4 @@
-turkserver-meteor [![Build Status](https://travis-ci.org/HarvardEconCS/turkserver-meteor.svg)](https://travis-ci.org/HarvardEconCS/turkserver-meteor)
+turkserver-meteor [![Build Status](https://travis-ci.org/VirtualLab/turkserver-meteor.svg)](https://travis-ci.org/VirtualLab/turkserver-meteor)
 =================
 
 TurkServer is a package for building interactive web-based user experiments on the [Meteor](http://www.meteor.com/) web app framework. It uses Meteor's powerful publish/subscribe data model and reactivity to make designing experimental 
@@ -19,7 +19,7 @@ The Meteor version of TurkServer was based on the [original Java-based TurkServe
 2. In the app directory, install TurkServer locally (once we publish TurkServer to the Meteor packaging server, you will be able to omit this step):
 
     ```
-    git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git packages/mizzao:turkserver
+    git clone --recursive https://github.com/VirtualLab/turkserver-meteor.git packages/turkserver
     ```
 
 5. `meteor add mizzao:turkserver` to install the package and its dependencies.
@@ -74,10 +74,10 @@ The documentation will be visible as a Meteor app on the specified port (default
 
 ## Testing
 
-Clone this entire repository, including the submodules. For example:
+Clone this entire repository:
 
 ```
-git clone --recursive https://github.com/HarvardEconCS/turkserver-meteor.git turkserver
+git clone https://github.com/VirtualLab/turkserver-meteor.git turkserver
 ```
 
 Then run the tests:
@@ -91,4 +91,4 @@ If you checked out the repository into an existing Meteor app, you can run `mete
 
 Browse to `http://localhost:3000` to run the tests.
 
-You don't have to run the tests yourself; this project is set up for continuous integration on [Travis CI](https://travis-ci.org/HarvardEconCS/turkserver-meteor), which runs these tests on each commit. 
+You don't have to run the tests yourself; this project is set up for continuous integration on [Travis CI](https://travis-ci.org/VirtualLab/turkserver-meteor), which runs these tests on each commit. 
