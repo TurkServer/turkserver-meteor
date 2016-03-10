@@ -2,8 +2,12 @@ if Meteor.isServer
 
   # Set up a treatment for testing
   TurkServer.ensureTreatmentExists
-    name: "expClientTreatment"
+    name: "expWorldTreatment"
     fooProperty: "bar"
+
+  TurkServer.ensureTreatmentExists
+    name: "expUserTreatment"
+    foo2: "baz"
 
   # Some functions to make sure things are set up for the client login
   Accounts.validateLoginAttempt (info) ->
@@ -21,9 +25,12 @@ if Meteor.isServer
 
     # Reset assignment for this worker
     Assignments.upsert asst.asstId,
-      $unset: instances: null
+      $unset: instances: null,
+      $unset: treatments: null
 
-    asst.getBatch().createInstance(["expClientTreatment"]).addAssignment(asst)
+    asst.getBatch().createInstance(["expWorldTreatment"]).addAssignment(asst)
+
+    asst.addTreatment("expUserTreatment")
 
     Meteor._debug "Remote client logged in"
 
@@ -87,17 +94,26 @@ if Meteor.isClient
       test.isTrue Experiments.findOne()
       test.isTrue treatment
 
+      # Test world-level treatment
       # No _id or name sent over the wire
-      test.isFalse treatment._id
-      test.isFalse treatment.name
-      test.equal treatment.fooProperty, "bar"
+      worldTreatment = TurkServer.treatment("expWorldTreatment")
+      test.isFalse worldTreatment._id
+      test.isTrue worldTreatment.name
+      test.equal worldTreatment.fooProperty, "bar"
+
+      # Test user-level treatment
+      userTreatment = TurkServer.treatment("expUserTreatment")
+      test.isFalse userTreatment._id
+      test.isTrue userTreatment.name
+      test.equal userTreatment.foo2, "baz"
+
       next()
 
     fail = ->
       test.fail()
       next()
 
-    # Poll until treatment data arrives
+    # Poll until both treatments arrives
     simplePoll (->
       treatment = TurkServer.treatment()
       return true if treatment.treatments.length

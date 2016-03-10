@@ -102,10 +102,10 @@ try
 Meteor.publish null, ->
   return null unless @userId
 
-  cursors = []
-
-  cursors.push Meteor.users.find @userId,
-    fields: { turkserver: 1 }
+  cursors = [
+    Meteor.users.find(@userId,
+      fields: { turkserver: 1 })
+  ]
 
   # Current user assignment data, including idle and disconnection time
   # This won't be sent for the admin user
@@ -116,27 +116,25 @@ Meteor.publish null, ->
     }, {
       fields: {
         instances: 1,
-        bonusPayment: 1,
+        treatments: 1,
+        bonusPayment: 1
       }
     })
 
   return cursors
 
+Meteor.publish "tsTreatments", (names) ->
+  check(names, [String]);
+  return Treatments.find({name: { $in: names }});
+
 # Publish current experiment for a user, if it exists
 # This includes the data sent to the admin user
 Meteor.publish "tsCurrentExperiment", (group) ->
   return unless @userId
-  cursors = [
+  return [
     Experiments.find(group),
     RoundTimers.find() # Partitioned by group
   ]
-
-  # Current treatment data
-  # XXX Treatments will not be updated reactively if added/removed to the experiment
-  if (treatments = Experiments.findOne(group)?.treatments)?
-    cursors.push Treatments.find(name: $in: treatments)
-
-  return cursors
 
 # For the preview page and test logins, need to publish the list of batches.
 # TODO make this a bit more secure

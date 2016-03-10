@@ -1,4 +1,21 @@
 /**
+ * @summary Access treatment data assigned to the current user or the user's current world. A reactive variable.
+ * @locus Client
+ * @param [String] {name} The name of the specific treatment to query for. If not specified, returns data for all treatments.
+ * @returns {Object} treatment key/value pairs
+ */
+TurkServer.treatment = function(name) {
+  if (name != null) {
+    return Treatments.findOne({name}, {
+      fields: { _id: 0 }
+    });
+  }
+
+  // Merge all treatments into one document
+  return TurkServer._mergeTreatments(Treatments.find({}));
+};
+
+/**
  * @summary Reactive state variable for whether the user is in the lobby.
  * @locus Client
  * @returns {Boolean} true if user is in lobby.

@@ -119,6 +119,13 @@ Package.onUse(function (api) {
   api.addFiles('admin/admin.coffee', 'server');
 
   api.export(['TurkServer']);
+
+  /*
+    Exported collections for legacy purposes
+    TODO Direct access to these should be deprecated in the future
+   */
+  api.export(['Batches', 'Treatments', 'Experiments', 'LobbyStatus', 'Logs', 'RoundTimers']);
+
   api.export(['ErrMsg', 'TestUtils'], { testOnly: true });
 });
 

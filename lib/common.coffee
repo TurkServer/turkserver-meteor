@@ -1,13 +1,3 @@
-@Batches = new Mongo.Collection("ts.batches")
-@Treatments = new Mongo.Collection("ts.treatments")
-# TODO rename these instances
-@Experiments = new Mongo.Collection("ts.experiments")
-
-@LobbyStatus = new Mongo.Collection("ts.lobby")
-@Logs = new Mongo.Collection("ts.logs")
-
-@RoundTimers = new Mongo.Collection("ts.rounds")
-
 # Clean up old index
 if Meteor.isServer
   try

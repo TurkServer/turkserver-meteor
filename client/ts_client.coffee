@@ -7,9 +7,6 @@ TurkServer.batch = ->
   else
     return Batches.findOne()
 
-# Merge all treatments into one document
-TurkServer.treatment = -> TurkServer._mergeTreatments Treatments.find({})
-
 # Called to start the monitor with given settings when in experiment
 # Similar to usage in user-status demo
 safeStartMonitor = (threshold, idleOnBlur) ->
@@ -55,4 +52,14 @@ Deps.autorun ->
 Deps.autorun ->
   Meteor.subscribe("tsCurrentExperiment", Partitioner.group())
 
+# Reactive join on treatments for assignments and experiments
+Deps.autorun ->
+  exp = Experiments.findOne({}, {fields: {treatments: 1}})
+  return unless exp && exp.treatments?
+  Meteor.subscribe("tsTreatments", exp.treatments)
+
+Deps.autorun ->
+  asst = Assignments.findOne({}, {fields: {treatments: 1}})
+  return unless asst && asst.treatments?
+  Meteor.subscribe("tsTreatments", asst.treatments)
 
