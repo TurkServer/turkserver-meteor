@@ -19,7 +19,7 @@ The Meteor version of TurkServer was based on the [original Java-based TurkServe
 2. In the app directory, install TurkServer locally (once we publish TurkServer to the Meteor packaging server, you will be able to omit this step):
 
     ```
-    git clone --recursive https://github.com/VirtualLab/turkserver-meteor.git packages/turkserver
+    git clone https://github.com/VirtualLab/turkserver-meteor.git packages/turkserver
     ```
 
 5. `meteor add mizzao:turkserver` to install the package and its dependencies.
