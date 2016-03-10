@@ -1,7 +1,7 @@
 turkserver-meteor [![Build Status](https://travis-ci.org/VirtualLab/turkserver-meteor.svg)](https://travis-ci.org/VirtualLab/turkserver-meteor)
 =================
 
-TurkServer is a package for building interactive web-based user experiments on the [Meteor](http://www.meteor.com/) web app framework. It uses Meteor's powerful publish/subscribe data model and reactivity to make designing experimental 
+TurkServer is a package for building interactive web-based user experiments on the [Meteor](https://www.meteor.com/) web app framework. It uses Meteor's powerful publish/subscribe data model and reactivity to make designing experimental 
 interfaces easy while providing many automatic facilities for deploying your app and collecting data.
 
 The Meteor version of TurkServer was based on the [original Java-based TurkServer](https://github.com/HarvardEconCS/TurkServer). However, it's much more powerful and easier to use.
@@ -37,9 +37,9 @@ accompanying [example app](https://github.com/VirtualLab/tutorial).
 We've also designed some very interesting studies using Turkserver. 
 Publications are forthcoming: 
 
-- https://github.com/mizzao/CrowdMapper studies collaboration and 
+- https://github.com/VirtualLab/CrowdMapper studies collaboration and 
 coordination in teams of varying size on a realistic task.
-- https://github.com/ldworkin/meteor-prisoners-dilemma is a prisoners' 
+- https://github.com/VirtualLab/long-run-cooperation is a prisoners' 
 dilemma experiment conducted daily over a *month*, with an order of magnitude
  more data than past studies. 
 
