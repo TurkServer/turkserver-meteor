@@ -10,6 +10,10 @@ TurkServer.Assigners = {};
  */
 TurkServer.Assigner = class {
 
+  /**
+   * @summary Initialize this assigner for a particular batch. This should set up the assigner's internal state, including reconstructing state after a server restart.
+   * @param {String} batch The {@link TurkServer.Batch} object to initialize this assigner on.
+   */
   initialize(batch) {
     this.batch = batch;
     this.lobby = batch.lobby;
@@ -20,6 +24,12 @@ TurkServer.Assigner = class {
     this.lobby.events.on("user-leave", this.userLeft.bind(this));
   }
 
+  /**
+   * @summary Take a set of assignments from the lobby and create a new instance with the given treatments.
+   * @param {@link TurkServer.Assignment[]} assts
+   * @param {String[]} treatments
+   * @returns The new {@link TurkServer.Instance} that was created.
+   */
   assignToNewInstance(assts, treatments) {
     this.lobby.pluckUsers(_.pluck(assts, "userId"));
 
@@ -31,14 +41,27 @@ TurkServer.Assigner = class {
     return instance;
   }
 
+  /**
+   * @summary Function that is called when a user enters the lobby, either from the initial entry or after returning from a world.
+   * @param {@link TurkServer.Assignment} asst The user assignment (session) that just entered the lobby.
+   */
   userJoined(asst) {
 
   }
 
+  /**
+   * @summary Function that is called when the status of a user in the lobby changes (such as the user changing from not ready to ready.)
+   * @param {@link TurkServer.Assignment} asst The user assignment that changed status.
+   * @param newStatus
+   */
   userStatusChanged(asst, newStatus) {
 
   }
 
+  /**
+   * @summary Function that is called when a user disconnects from the lobby. This is only triggered by users losing connectivity, not from being assigned to a new instance).
+   * @param {@link TurkServer.Assignment} asst The user assignment that departed.
+   */
   userLeft(asst) {
 
   }

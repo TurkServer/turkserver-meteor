@@ -157,7 +157,7 @@ class Assignment {
   /**
    * @memberof assignment
    * @summary Add one or more treatments to a user's assignment. These treatments will be available on the client side through TurkServer.treatment()
-   * @param {String | Array} String or list of strings corresponding to treatments to associate to the user
+   * @param {String | String[]} String or list of strings corresponding to treatments to associate to the user
    */
   addTreatment(names) {
     check(names, Match.OneOf(String, [String]));
