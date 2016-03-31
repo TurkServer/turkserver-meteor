@@ -124,6 +124,7 @@ Meteor.publish null, ->
   return cursors
 
 Meteor.publish "tsTreatments", (names) ->
+  return [] unless names? and names[0]?
   check(names, [String]);
   return Treatments.find({name: { $in: names }});
 
