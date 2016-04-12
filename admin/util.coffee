@@ -79,7 +79,7 @@ Template.tsAdminInstance.helpers
 Template.tsAdminPayBonus.events
   "submit form": (e, t) ->
     e.preventDefault()
-    amount = t.find("input[name=amount]").valueAsNumber
+    amount = parseFloat(t.find("input[name=amount]").value)
     reason = t.find("textarea[name=reason]").value
 
     $(t.firstNode).closest(".bootbox.modal").modal('hide')

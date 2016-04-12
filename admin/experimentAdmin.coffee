@@ -5,9 +5,9 @@ Template.tsAdminExperiments.events
     e.preventDefault()
 
     Router.go "tsExperiments",
-      days: t.find("input[name=filter_days]").valueAsNumber ||
+      days: parseInt(t.find("input[name=filter_days]").value) ||
         TurkServer.adminSettings.defaultDaysThreshold
-      limit: t.find("input[name=filter_limit]").valueAsNumber ||
+      limit: parseInt(t.find("input[name=filter_limit]").value) ||
         TurkServer.adminSettings.defaultLimit
 
   "click .-ts-stop-experiment": ->
