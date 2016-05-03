@@ -1,14 +1,12 @@
-TurkServer.Assigners = {};
-
 /**
  * @summary Top-level class that determines flow of users in and out of the
  * lobby. Overriding functions on this class controls how users are grouped
  * together.
  *
- * @class TurkServer.Assigner
+ * @class
  * @instancename assigner
  */
-TurkServer.Assigner = class {
+class Assigner {
 
   /**
    * @summary Initialize this assigner for a particular batch. This should set up the assigner's internal state, including reconstructing state after a server restart.
@@ -26,9 +24,9 @@ TurkServer.Assigner = class {
 
   /**
    * @summary Take a set of assignments from the lobby and create a new instance with the given treatments.
-   * @param {@link TurkServer.Assignment[]} assts
+   * @param {Assignment[]} assts
    * @param {String[]} treatments
-   * @returns The new {@link TurkServer.Instance} that was created.
+   * @returns The new {@link Instance} that was created.
    */
   assignToNewInstance(assts, treatments) {
     this.lobby.pluckUsers(_.pluck(assts, "userId"));
@@ -43,7 +41,7 @@ TurkServer.Assigner = class {
 
   /**
    * @summary Function that is called when a user enters the lobby, either from the initial entry or after returning from a world.
-   * @param {@link TurkServer.Assignment} asst The user assignment (session) that just entered the lobby.
+   * @param asst The user assignment {@link TurkServer.Assignment} (session) that just entered the lobby.
    */
   userJoined(asst) {
 
@@ -51,7 +49,8 @@ TurkServer.Assigner = class {
 
   /**
    * @summary Function that is called when the status of a user in the lobby changes (such as the user changing from not ready to ready.)
-   * @param {@link TurkServer.Assignment} asst The user assignment that changed status.
+   * @param asst The user assignment {@link TurkServer.Assignment} that
+   * changed status.
    * @param newStatus
    */
   userStatusChanged(asst, newStatus) {
@@ -60,18 +59,28 @@ TurkServer.Assigner = class {
 
   /**
    * @summary Function that is called when a user disconnects from the lobby. This is only triggered by users losing connectivity, not from being assigned to a new instance).
-   * @param {@link TurkServer.Assignment} asst The user assignment that departed.
+   * @param asst The user assignment {@link TurkServer.Assignment}  that departed.
    */
   userLeft(asst) {
 
   }
-};
+}
+
+TurkServer.Assigner = Assigner;
 
 /**
- * Basic assigner that simulates a standalone app.
+ * @summary Pre-implemented assignment mechanisms.
+ * @name Assigners
+ */
+TurkServer.Assigners = {};
+
+/**
+ * @summary Basic assigner that simulates a standalone app.
  * It puts everyone who joins into a single group.
  * Once the instance ends, puts users in exit survey.
- * @type {{}}
+ * @class
+ * @memberof Assigners
+ * @alias TestAssigner
  */
 TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
 
@@ -103,20 +112,22 @@ TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
 };
 
 /**
- * Assigns everyone who joins in a separate group
+ * @summary Assigns everyone who joins in a separate group
  * Anyone who is done with their instance goes into the exit survey
- * @type {{}}
+ * @class
+ * @memberof Assigners
+ * @alias SimpleAssigner
  */
 TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
 
   userJoined(asst) {
-   if (asst.getInstances().length > 0) {
-     this.lobby.pluckUsers([asst.userId]);
-     asst.showExitSurvey();
-   } else {
-     const treatments = this.batch.getTreatments() || [];
-     this.assignToNewInstance([asst], treatments);
-   }
+    if (asst.getInstances().length > 0) {
+      this.lobby.pluckUsers([asst.userId]);
+      asst.showExitSurvey();
+    } else {
+      const treatments = this.batch.getTreatments() || [];
+      this.assignToNewInstance([asst], treatments);
+    }
   }
 
 };

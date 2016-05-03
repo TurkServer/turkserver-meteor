@@ -8,7 +8,6 @@
 /**
  * Assigns users first to a tutorial treatment, then to a single group.
  * An event on the lobby is used to trigger the group.
- * @type {{}}
  */
 TurkServer.Assigners.TutorialGroupAssigner = class extends TurkServer.Assigner {
 

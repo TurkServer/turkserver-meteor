@@ -18,7 +18,7 @@ Assignments.find({status: "assigned"}, {fields: {workerId: 1}}).observe({
  * There is one assignment for each unique (user, HIT) tuple.
  * In the future, it may be generalized to represent the entire connection of
  * a user from any source.
- * @class TurkServer.Assignment
+ * @class
  * @instancename assignment
  */
 class Assignment {
@@ -29,8 +29,6 @@ class Assignment {
   }
 
   /**
-   * @function getAssignment
-   * @memberof TurkServer.Assignment
    * @summary Get a particular assignment object.
    * @param {String} asstId The unique assignment identifier. Note that this
    * is not the same as the MTurk AssignmentId.
@@ -55,8 +53,6 @@ class Assignment {
   }
 
   /**
-   * @function getCurrentUserAssignment
-   * @memberof TurkServer.Assignment
    * @summary Get the active assignment for a particular user. This function
    * caches the active assignments for users, so it's fine to call repeatedly.
    * @param {String} userId The user's Meteor userId.
@@ -86,8 +82,6 @@ class Assignment {
   }
 
   /**
-   * @function currentAssignment
-   * @memberof TurkServer.Assignment
    * @summary Get the active assignment for the current context.
    * @returns {TurkServer.Assignment} The assignment object.
    */
@@ -135,8 +129,6 @@ class Assignment {
   }
 
   /**
-   * @function getBatch
-   * @memberof assignment
    * @summary Get the batch object for this assignment.
    * @returns {TurkServer.Batch} The assignment's batch.
    */
@@ -145,8 +137,6 @@ class Assignment {
   }
 
   /**
-   * @function getInstances
-   * @memberof assignment
    * @summary Get the instances that this assignment has been part of.
    * @returns {Array} Array of instance Ids.
    */
@@ -155,7 +145,6 @@ class Assignment {
   }
 
   /**
-   * @memberof assignment
    * @summary Add one or more treatments to a user's assignment. These treatments will be available on the client side through TurkServer.treatment()
    * @param {String | String[]} String or list of strings corresponding to treatments to associate to the user
    */
@@ -182,8 +171,6 @@ class Assignment {
   }
 
   /**
-   * @function showExitSurvey
-   * @memberof assignment
    * @summary Send this user to the exit survey. User must be in the lobby.
    */
   showExitSurvey() {
@@ -197,8 +184,6 @@ class Assignment {
   }
 
   /**
-   * @function isCompleted
-   * @memberof assignment
    * @summary Check whether the assignment is completed.
    * @returns {boolean} Whether the assignment has been completed.
    */
@@ -249,8 +234,6 @@ class Assignment {
   }
 
   /**
-   * @function getPayment
-   * @memberof assignment
    * @summary Gets the variable payment (bonus) amount for this assignment
    * @returns {Number} The current bonus payment.
    */
@@ -259,8 +242,6 @@ class Assignment {
   }
 
   /**
-   * @function setPayment
-   * @memberof assignment
    * @summary Sets the payment amount for this assignment, replacing any
    * existing value.
    * @param {Number} amount The new variable payment amount.
@@ -296,8 +277,6 @@ class Assignment {
   }
 
   /**
-   * @function addPayment
-   * @memberof assignment
    * @summary Adds (or subtracts) an amount to the payment for this assignment
    * @param {Number} amount The additional amount of payment to add or subtract.
    */
@@ -319,8 +298,6 @@ class Assignment {
   }
 
   /**
-   * @function refreshStatus
-   * @memberof assignment
    * @summary Query MTurk and update the status for this assignment, e.g.
    * when using auto-approval.
    */
@@ -369,8 +346,6 @@ class Assignment {
   }
 
   /**
-   * @function approve
-   * @memberof assignment
    * @summary Approve an assignment and pay the base payment.
    * @param {String} message The message to send to the worker.
    */
@@ -395,8 +370,6 @@ class Assignment {
   }
 
   /**
-   * @function reject
-   * @memberof assignment
    * @summary Reject the assignment and do not pay the worker.
    * @param {String} message The message to send to the worker.
    */
@@ -417,8 +390,6 @@ class Assignment {
   }
 
   /**
-   * @function payBonus
-   * @memberof assignment
    * @summary Pays the worker their bonus, if set. (using the MTurk API)
    * @param {String} message The message to send to the worker.
    */
@@ -454,8 +425,6 @@ class Assignment {
   }
 
   /**
-   * @function getWorkerData
-   * @memberof assignment
    * @summary Get data from the worker associated with this assignment.
    * @param {String} [field] An optional field to retrieve.
    * @returns {*} The value of the field, or the entire document if no field
@@ -471,8 +440,6 @@ class Assignment {
   }
 
   /**
-   * @function setWorkerData
-   * @memberof assignment
    * @summary Sets data on the worker associated with this assignment.
    * @param {Object} props An object of (key, value) pairs to set on the worker.
    */

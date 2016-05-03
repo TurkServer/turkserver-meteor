@@ -1,4 +1,4 @@
 #!/bin/bash
 meteor-jsdoc build
 cd docs/
-meteor deploy turkserver.meteor.com
+DEPLOY_HOSTNAME=galaxy.meteor.com meteor deploy turkserver.meteorapp.com --settings settings.json
