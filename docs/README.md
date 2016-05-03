@@ -1,7 +1,7 @@
 TurkServer Docs
 ===============
 
-Documentation for TurkServer. [View this online](http://turkserver.meteor.com/).
+Documentation for TurkServer. [View this online](http://turkserver.meteorapp.com/).
  
 This directory contains partial contents of the documentation app. The rest of
 the app is built automatically from the TurkServer source using 

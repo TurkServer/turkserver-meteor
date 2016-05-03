@@ -25,8 +25,7 @@ The Meteor version of TurkServer was based on the [original Java-based TurkServe
 5. `meteor add mizzao:turkserver` to install the package and its dependencies.
 6. Start your app with the `meteor` command.
 7. Navigate to `/turkserver` to log into the administration interface, and develop your experiment!
-8. Check out the **[tutorial](http://virtuallab.github.io/)** and **[API documentation](https://turkserver
-.meteor.com)** to get an idea of what you can use in your app. TurkServer extensively uses Meteor goodies such as real-time data and reactive variables, making apps easy to build.    
+8. Check out the **[tutorial](http://virtuallab.github.io/)** and **[API documentation](http://turkserver.meteorapp.com)** to get an idea of what you can use in your app. TurkServer extensively uses Meteor goodies such as real-time data and reactive variables, making apps easy to build.    
 
 ## Examples
 
@@ -57,7 +56,8 @@ Note that this paper doesn't refer to the latest version of the system, but it
 
 ## Documentation
 
-The [API documentation](https://turkserver.meteor.com) is generated directly from [JSDoc](http://usejsdoc.org/) comments in the code. To build the documentation locally, make sure you have [`meteor-jsdoc`](https://www.npmjs.com/package/meteor-jsdoc) installed:
+The [API documentation](http://turkserver.meteorapp.com) is generated directly 
+from [JSDoc](http://usejsdoc.org/) comments in the code. To build the documentation locally, make sure you have [`meteor-jsdoc`](https://www.npmjs.com/package/meteor-jsdoc) installed:
 
 ```
 npm install -g meteor-jsdoc
