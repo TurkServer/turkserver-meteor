@@ -25,7 +25,7 @@ To add this to a Meteor app, follow these instructions:
 2. In the app directory, install TurkServer locally (once we publish TurkServer to the Meteor packaging server, you will be able to omit this step):
 
     ```
-    git clone https://github.com/VirtualLab/turkserver-meteor.git packages/turkserver
+    git clone https://github.com/TurkServer/turkserver-meteor.git packages/turkserver
     ```
 
 3. `meteor add mizzao:turkserver` to install the package and its dependencies.
@@ -70,7 +70,7 @@ Note that this paper doesn't refer to the latest version of the system, but it
 Clone this entire repository:
 
 ```
-git clone https://github.com/VirtualLab/turkserver-meteor.git turkserver
+git clone https://github.com/TurkServer/turkserver-meteor.git turkserver
 ```
 
 Then run the tests:
