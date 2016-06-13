@@ -1,4 +1,4 @@
-turkserver-meteor [![Build Status](https://travis-ci.org/VirtualLab/turkserver-meteor.svg)](https://travis-ci.org/VirtualLab/turkserver-meteor)
+turkserver-meteor [![Build Status](https://travis-ci.org/TurkServer/turkserver-meteor.svg)](https://travis-ci.org/TurkServer/turkserver-meteor)
 =================
 
 TurkServer is a package for building interactive web-based user experiments on
@@ -16,7 +16,7 @@ deploying your app and collecting data.
 
 ## Getting Started
 
-See the [guide](http://virtuallab.github.io/), which has information about 
+See the [guide](http://turkserver.github.io/), which has information about 
 getting started, system architecture, experiment design, and examples.
  
 To add this to a Meteor app, follow these instructions: 
@@ -84,4 +84,4 @@ If you checked out the repository into an existing Meteor app, you can run `mete
 
 Browse to `http://localhost:3000` to run the tests.
 
-You don't have to run the tests yourself; this project is set up for continuous integration on [Travis CI](https://travis-ci.org/VirtualLab/turkserver-meteor), which runs these tests on each commit. 
+You don't have to run the tests yourself; this project is set up for continuous integration on [Travis CI](https://travis-ci.org/TurkServer/turkserver-meteor), which runs these tests on each commit. 

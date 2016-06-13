@@ -1,8 +1,7 @@
 /*
   This file contains more involved assigners used in actual experiments.
-  You can see the app code at https://github.com/VirtualLab
-  Some of this code may not be the best way to implement the functionality
-   shown.
+  You can see the app code at https://github.com/TurkServer
+  DISCLAIMER: some of this code may not be the best way to implement the functionality shown.
  */
 
 /**

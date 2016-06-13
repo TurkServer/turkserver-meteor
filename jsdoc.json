@@ -16,7 +16,7 @@
   // Add a preamble to your project's docs that will appear at the top of the docs.
   "preamble": true,
   // Link to the project repository (used to construct the file path in the docs). Optional.
-  "projectRepo": "https://github.com/VirtualLab/turkserver-meteor/blob/master",
+  "projectRepo": "https://github.com/TurkServer/turkserver-meteor/blob/master",
   // Values to be used in the `<head>` for the docs.
   "docsConfig": {
     "title": "TurkServer Docs",
