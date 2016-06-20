@@ -220,6 +220,9 @@ class Assignment {
     Assignments.update(this.asstId, {
       $set: {
         status: "returned"
+      },
+      $unset: {
+        submitTime: null
       }
     });
 
@@ -308,6 +311,11 @@ class Assignment {
       throw new Error("Assignment not completed");
     }
 
+    // Just a warning for running in testing mode.
+    if ( this.assignmentId.endsWith("_Asst") ) {
+      throw new Meteor.Error(403, "This is a fake test assignment that does not exist on MTurk.");
+    }
+
     let asstData;
 
     try {
@@ -315,9 +323,16 @@ class Assignment {
         AssignmentId: this.assignmentId
       });
     } catch (e) {
-      throw new Meteor.Error(500, e.toString());
+      // XXX this is a bit hacky and will break if the exact error message changes
+      if ( e.toString().indexOf("does not exist") >= 0 ) {
+        Meteor._debug(`${this.asstId} seems to have been returned on MTurk.`);        
+        this.setReturned();
+        return;
+      }
+      
+      throw new Meteor.Error(500, e.toString()); 
     }
-
+    
     // XXX Just in case, check that it's actually the same worker here,
     // and not a reassignment to someone else.
     if ( this.workerId !== asstData.WorkerId ) {

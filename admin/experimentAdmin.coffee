@@ -164,7 +164,7 @@ Template.tsAdminLogs.helpers
 Template.tsAdminLogs.events
   "submit form.ts-admin-log-filter": (e, t) ->
     e.preventDefault()
-    count = t.find("input[name=count]").valueAsNumber
+    count = parseInt(t.find("input[name=count]").value)
     return unless count
 
     Router.go "tsLogs",

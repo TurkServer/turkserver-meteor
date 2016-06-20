@@ -152,14 +152,14 @@ Template.tsAdminViewHit.events =
     e.preventDefault()
     params =
       HITId: @HITId
-      MaxAssignmentsIncrement: tmpl.find("input[name=assts]").valueAsNumber
+      MaxAssignmentsIncrement: parseInt(tmpl.find("input[name=assts]").value)
     TurkServer.callWithModal "ts-admin-extend-hit", params
 
   "submit .-ts-extend-expiration": (e, tmpl) ->
     e.preventDefault()
     params =
       HITId: @HITId
-      ExpirationIncrementInSeconds: tmpl.find("input[name=secs]").valueAsNumber
+      ExpirationIncrementInSeconds: parseInt(tmpl.find("input[name=secs]").value)
     TurkServer.callWithModal "ts-admin-extend-hit", params
 
 Template.tsAdminViewHit.helpers
@@ -176,8 +176,8 @@ Template.tsAdminNewHit.events =
       return
 
     params =
-      MaxAssignments: tmpl.find("input[name=maxAssts]").valueAsNumber
-      LifetimeInSeconds: tmpl.find("input[name=lifetime]").valueAsNumber
+      MaxAssignments:parseInt(tmpl.find("input[name=maxAssts]").value)
+      LifetimeInSeconds:parseInt(tmpl.find("input[name=lifetime]").value)
 
     TurkServer.callWithModal "ts-admin-create-hit", hitTypeId, params
 
@@ -439,9 +439,9 @@ Template.tsAdminCompletedAssignments.events
     e.preventDefault()
 
     Router.go "tsCompletedAssignments",
-      days: t.find("input[name=filter_days]").valueAsNumber ||
+      days: parseInt(t.find("input[name=filter_days]").value) ||
         TurkServer.adminSettings.defaultDaysThreshold
-      limit: t.find("input[name=filter_limit]").valueAsNumber ||
+      limit: parseInt(t.find("input[name=filter_limit]").value) ||
         TurkServer.adminSettings.defaultLimit
 
 Template.tsAdminCompletedAssignments.helpers
