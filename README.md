@@ -16,7 +16,7 @@ deploying your app and collecting data.
 
 ## Getting Started
 
-See the [guide](http://turkserver.github.io/), which has information about 
+See the [guide](http://turkserver.readthedocs.io/), which has information about 
 getting started, system architecture, experiment design, and examples.
  
 To add this to a Meteor app, follow these instructions: 
