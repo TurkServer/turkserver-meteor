@@ -440,6 +440,13 @@ Meteor.methods
     TurkServer.Assignment.getAssignment(asstId).refreshStatus()
     return
 
+  "ts-admin-approve-assignment": (asstId, msg) ->
+    TurkServer.checkAdmin()
+    check(asstId, String)
+
+    TurkServer.Assignment.getAssignment(asstId).approve(msg)
+    return
+
   "ts-admin-reject-assignment": (asstId, msg) ->
     TurkServer.checkAdmin()
     check(asstId, String)

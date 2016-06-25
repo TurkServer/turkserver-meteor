@@ -453,6 +453,11 @@ Template.tsAdminCompletedAssignmentsTable.events
   "click .ts-admin-refresh-assignment": ->
     TurkServer.callWithModal "ts-admin-refresh-assignment", this._id
 
+  "click .ts-admin-approve-assignment": ->
+    _asstId = this._id
+    bootbox.prompt "Approve assignment: enter an optional message to send to the worker.", (res) ->
+      TurkServer.callWithModal "ts-admin-approve-assignment", _asstId, res
+
   "click .ts-admin-reject-assignment": ->
     _asstId = this._id
     bootbox.prompt "1 worker's assignment will be rejected. Enter a message to send to the worker.", (res) ->
