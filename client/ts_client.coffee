@@ -19,11 +19,14 @@ safeStartMonitor = (threshold, idleOnBlur) ->
 
 idleComp = null
 
-TurkServer.enableIdleMonitor = (threshold, idleOnBlur) ->
+TurkServer.disableIdleMonitor = () ->
   if idleComp?
     # If monitor is already started, stop it before trying new settings
     idleComp.stop()
     UserStatus.stopMonitor() if Deps.nonreactive -> UserStatus.isMonitoring()
+
+TurkServer.enableIdleMonitor = (threshold, idleOnBlur) ->
+  TurkServer.disableIdleMonitor()
 
   idleComp = Deps.autorun ->
     if TurkServer.inExperiment()
