@@ -241,7 +241,7 @@ class Assignment {
    * @returns {Number} The current bonus payment.
    */
   getPayment() {
-    return Assignments.findOne(this.asstId).bonusPayment;
+     return Assignments.findOne(this.asstId).bonusPayment || 0;
   }
 
   /**
