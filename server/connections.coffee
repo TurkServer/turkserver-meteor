@@ -245,8 +245,16 @@ Meteor.methods
     if (token = Accounts._getLoginToken(this.connection.id))
       # This $pulls tokens from services.resume.loginTokens, and should work
       # in the same way that Accounts._expireTokens effects cleanup.
-      Accounts.destroyToken(userId, token)
+      #
+      # We run this in a deferred function so that the login credential update
+      # doesn't hit the write fence on this method call, making it less
+      # likely for the client to get logged out (and see an error) before
+      # the HIT actually submits. This should fix, or at least improve, the
+      # race condition causing
+      # https://github.com/TurkServer/turkserver-meteor/issues/28
+      Meteor.setTimeout ->
+        Accounts.destroyToken(userId, token)
+      , 1000
 
     # return true to auto submit the HIT
     return true
-
