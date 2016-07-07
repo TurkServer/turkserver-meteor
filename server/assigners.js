@@ -30,12 +30,12 @@ class Assigner {
    */
   assignToNewInstance(assts, treatments) {
     this.lobby.pluckUsers(_.pluck(assts, "userId"));
-
+    
     const instance = this.batch.createInstance(treatments);
-    instance.setup();
     for (let asst of assts) {
       instance.addAssignment(asst);
     }
+    instance.setup();
     return instance;
   }
 
