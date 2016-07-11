@@ -169,6 +169,13 @@ class Assignment {
       });
     }
   }
+  /**
+   * @summary Retrieve the set of treatments that were added to this assignment.
+   * @returns {Array} Array of Treatment names.
+   */
+  getTreatments() {
+    return this._data().treatments;
+  }
 
   /**
    * @summary Send this user to the exit survey. User must be in the lobby.
