@@ -7,30 +7,6 @@ TurkServer.batch = ->
   else
     return Batches.findOne()
 
-# Called to start the monitor with given settings when in experiment
-# Similar to usage in user-status demo
-safeStartMonitor = (threshold, idleOnBlur) ->
-  Deps.autorun (c) ->
-    try
-      settings = {threshold, idleOnBlur}
-      UserStatus.startMonitor(settings)
-      c.stop()
-      console.log "Idle monitor started with ", settings
-
-idleComp = null
-
-TurkServer.enableIdleMonitor = (threshold, idleOnBlur) ->
-  if idleComp?
-    # If monitor is already started, stop it before trying new settings
-    idleComp.stop()
-    UserStatus.stopMonitor() if Deps.nonreactive -> UserStatus.isMonitoring()
-
-  idleComp = Deps.autorun ->
-    if TurkServer.inExperiment()
-      safeStartMonitor(threshold, idleOnBlur)
-    else
-      UserStatus.stopMonitor() if Deps.nonreactive -> UserStatus.isMonitoring()
-
 ###
   Reactive computations
 ###
