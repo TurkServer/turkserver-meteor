@@ -422,6 +422,7 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(batchId, String)
 
+    err = undefined
     Assignments.find({
       batchId: batchId
       status: "completed"
@@ -429,9 +430,12 @@ Meteor.methods
     }).forEach (a) ->
       asst = TurkServer.Assignment.getAssignment(a._id)
       # Refresh submitted assignments as they may have been auto-approved
-      asst.refreshStatus()
+      try
+        asst.refreshStatus()
+      catch e
+        err = e
 
-    return
+    return err
 
   "ts-admin-refresh-assignment": (asstId) ->
     TurkServer.checkAdmin()
