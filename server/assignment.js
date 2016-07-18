@@ -174,7 +174,7 @@ class Assignment {
    * @returns {Array} Array of Treatment names.
    */
   getTreatments() {
-    return this._data().treatments;
+    return this._data().treatments || [];
   }
 
   /**
