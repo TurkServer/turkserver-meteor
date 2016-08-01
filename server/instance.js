@@ -162,6 +162,16 @@ class Instance {
   }
 
   /**
+   * @summary Retrieve the names of treatments that were added to this instance.
+   * @returns {String[]} Array of Treatment names.
+   */
+  getTreatments() {
+    const instance = Experiments.findOne(this.groupId);
+
+    return instance && instance.treatments || [];
+  }
+
+  /**
    * @summary Get the treatment parameters for this instance.
    * @returns {Object} The treatment parameters.
    */
