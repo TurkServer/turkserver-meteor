@@ -24,7 +24,7 @@
 <template name="tsAdminGroupInfo">
     <dl class="dl-horizontal ts-compact">
         <dt>Group:</dt>
-        <dd>{{_id}}</dd>
+        <dd>{{_id}} {{> tsAdminExpButtons}}</dd>
         <dt>Treatments:</dt>
         <dd>
             {{#each treatments}}

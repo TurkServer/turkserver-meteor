@@ -30,7 +30,7 @@ authenticateWorker = (loginRequest) ->
   { batchId, hitId, assignmentId, workerId } = loginRequest
 
   # check if batchId is correct except for testing logins
-  unless loginRequest.test
+  unless loginRequest.test or TurkServer.config.hits.acceptUnknownHits
     hit = HITs.findOne
       HITId: hitId
     hitType = HITTypes.findOne

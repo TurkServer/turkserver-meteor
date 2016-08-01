@@ -171,6 +171,14 @@ class Assignment {
   }
 
   /**
+   * @summary Retrieve the names of treatments that were added to this assignment.
+   * @returns {String[]} Array of Treatment names.
+   */
+  getTreatments() {
+    return this._data().treatments || [];
+  }
+
+  /**
    * @summary Send this user to the exit survey. User must be in the lobby.
    */
   showExitSurvey() {
