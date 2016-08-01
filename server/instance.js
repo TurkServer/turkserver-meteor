@@ -165,7 +165,7 @@ class Instance {
    * @summary Retrieve the names of treatments that were added to this instance.
    * @returns {String[]} Array of Treatment names.
    */
-  getTreatments() {
+  getTreatmentNames() {
     const instance = Experiments.findOne(this.groupId);
 
     return instance && instance.treatments || [];

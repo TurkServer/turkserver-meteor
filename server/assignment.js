@@ -174,7 +174,7 @@ class Assignment {
    * @summary Retrieve the names of treatments that were added to this assignment.
    * @returns {String[]} Array of Treatment names.
    */
-  getTreatments() {
+  getTreatmentNames() {
     return this._data().treatments || [];
   }
 
