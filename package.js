@@ -49,6 +49,7 @@ Package.onUse(function (api) {
 
   api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.11");
+  api.use("iron:middleware-stack@1.1.0"); // Fixes route error in Chrome 51+
   api.use("momentjs:moment@2.10.6");
   api.use("twbs:bootstrap@3.3.5");
   api.use("d3js:d3@3.5.5");
