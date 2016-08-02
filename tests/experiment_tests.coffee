@@ -149,6 +149,8 @@ Tinytest.add "experiment - instance - teardown and log", withCleanup (test) ->
 Tinytest.add "experiment - instance - get treatment on server", withCleanup (test) ->
   instance = batch.createInstance(["fooTreatment"])
 
+  # Note this only tests world treatments. Assignment treatments have to be
+  # tested with the janky client setup.
   instance.bindOperation ->
     treatment = TurkServer.treatment()
     test.equal treatment.treatments[0], "fooTreatment"
