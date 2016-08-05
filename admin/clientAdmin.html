@@ -41,10 +41,10 @@
 <template name="tsAdminLayout">
     <div class="container ts-admin-layout ts-inherit-height">
         <div class="row ts-inherit-height">
-            <div class="col-md-2">
+            <div class="col-md-3">
                 {{> tsAdminNav}}
             </div>
-            <div class="col-md-10 ts-inherit-height">
+            <div class="col-md-9 ts-inherit-height">
                 <div class="container ts-admin-body ts-scroll-parent">
                     {{> yield}}
                 </div>
@@ -54,7 +54,7 @@
 </template>
 
 <template name="tsAdminNav">
-    <div class="ts-admin-sidebar affix well">
+    <div class="ts-admin-sidebar well">
         <ul class="nav nav-stacked">
             <li>
                 <a href="{{pathFor 'tsOverview'}}">Overview</a>
