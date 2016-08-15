@@ -64,6 +64,8 @@ Tinytest.add "auth - with first time hit assignment", withCleanup (test) ->
   test.equal(record.workerId, workerId, "workerId not saved")
   test.equal(record.batchId, authBatchId)
 
+# Note: this test will work correctly only if acceptUnknownBatch === false in
+# config, or if the batch exists and is inactive.
 Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
   testFunc = -> TestUtils.authenticateWorker
     batchId: otherBatchId

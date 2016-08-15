@@ -30,7 +30,6 @@ Package.onUse(function (api) {
     'check',
     'deps',
     'ejson',
-    'stylus',
     'jquery',
     'random',
     'underscore',
@@ -38,6 +37,12 @@ Package.onUse(function (api) {
     'ecmascript',
     'facts'
   ]);
+
+  // Meteor 1.4 fixes
+  // Builds were breaking on Meteor 1.4 due to an older version of npm-bcrypt.
+  // This should work again, and not break on older versions.
+  api.use("npm-bcrypt@0.9.0");
+  api.use("stylus@2.513.4");
 
   api.use(["ddp", "mongo"]); // For pub/sub and collections
 
