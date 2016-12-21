@@ -106,9 +106,9 @@ class Timers {
    * @param {Function} func The function to call when a round ends. The
    * function will be called with a single argument indicating the reason
    * the round ended, either
-   * TurkServer.Timers.NEW_ROUND_TIMEOUT,
-   * TurkServer.Timers.NEW_ROUND_MANUAL, or
-   * TurkServer.Timers.NEW_ROUND_NEWROUND.
+   * TurkServer.Timers.ROUND_END_TIMEOUT,
+   * TurkServer.Timers.ROUND_END_MANUAL, or
+   * TurkServer.Timers.ROUND_END_NEWROUND.
    */
   static onRoundEnd(func) {
     _round_handlers.push(func);
