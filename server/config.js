@@ -11,7 +11,7 @@ const defaultPublicSettings = {
 const defaultSettings = {
   adminPassword: undefined,
   hits: {
-    acceptUnknownHits: true
+    acceptUnknownHits: false
   },
   experiment: {
     limit: {
