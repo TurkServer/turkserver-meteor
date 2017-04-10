@@ -332,6 +332,8 @@ class Assignment {
       });
     } catch (e) {
       // XXX this is a bit hacky and will break if the exact error message changes
+      // Moreover, it will remove assignment records if run *LONG AFTER*
+      // MTurk no longer has kept track of an assignment.
       if ( e.toString().indexOf("does not exist") >= 0 ) {
         Meteor._debug(`${this.asstId} seems to have been returned on MTurk.`);        
         this.setReturned();

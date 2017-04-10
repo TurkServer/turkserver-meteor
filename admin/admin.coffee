@@ -422,7 +422,11 @@ Meteor.methods
     TurkServer.checkAdmin()
     check(batchId, String)
 
-    err = undefined
+    # We may encounter more than one error when refreshing a bunch of
+    # assignments. This allows things to continue as much as possible, but
+    # will throw the first error encountered.
+    err = null
+
     Assignments.find({
       batchId: batchId
       status: "completed"
@@ -433,9 +437,10 @@ Meteor.methods
       try
         asst.refreshStatus()
       catch e
-        err = e
+        err ?= e
 
-    return err
+    throw err if err?
+    return
 
   "ts-admin-refresh-assignment": (asstId) ->
     TurkServer.checkAdmin()
