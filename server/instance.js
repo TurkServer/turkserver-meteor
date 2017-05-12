@@ -4,16 +4,6 @@ const init_queue = [];
   XXX Note that the collection called "Experiments" now actually refers to instances
  */
 
-/**
- * @summary Get the treatments of the current instance
- * @locus Anywhere
- * @returns The treatments of the currently scoped instance
- */
-TurkServer.treatment = () => {
-  const inst = TurkServer.Instance.currentInstance();
-  return inst && inst.treatment();
-};
-
 // map of groupId to instance objects
 // XXX Can't use WeakMap here because we have primitive keys
 const _instances = new Map();

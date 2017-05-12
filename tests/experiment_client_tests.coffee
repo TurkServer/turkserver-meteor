@@ -58,9 +58,21 @@ if Meteor.isServer
       TurkServer.Instance.currentInstance().teardown(returnToLobby)
       return
 
+    getServerTreatment: ->
+      return TurkServer.treatment()
+
 if Meteor.isClient
   tol = 20 # range in ms that we can be off in adjacent cols
   big_tol = 500 # max range we tolerate in a round trip to the server (async method)
+
+  expectedTreatment = {
+    fooProperty: "bar"  # world
+    foo2: "baz"         # user
+  }
+
+  checkTreatments = (test, obj) ->
+    for k, v of expectedTreatment
+      test.equal obj[k], v, "for key #{k} actual value #{obj[k]} doesn't match expected value #{v}"
 
   Tinytest.addAsync "experiment - client - login and creation of assignment metadata", (test, next) ->
     InsecureLogin.ready ->
@@ -107,6 +119,8 @@ if Meteor.isClient
       test.isTrue userTreatment.name
       test.equal userTreatment.foo2, "baz"
 
+      checkTreatments(test, TurkServer.treatment())
+
       next()
 
     fail = ->
@@ -119,6 +133,15 @@ if Meteor.isClient
       return true if treatment.treatments.length
     ), verify, fail, 2000
 
+  Tinytest.addAsync "experiment - assignment - test treatments on server", (test, next) ->
+    # Even though this is a "client" test, it is testing a server function
+    # because assignment treatments are different on the client and server
+    Meteor.call "getServerTreatment", (err, res) ->
+      test.fail() if err?
+
+      checkTreatments(test, res)
+      next()
+
   Tinytest.addAsync "experiment - client - current payment variable", (test, next) ->
     amount = 0.42
 
@@ -126,7 +149,7 @@ if Meteor.isClient
       test.equal TurkServer.currentPayment(), amount
       next()
 
-  Tinytest.addAsync "experiment - client - assignment metadata and local time vars", (test, next) ->
+  Tinytest.addAsync "experiment - assignment - assignment metadata and local time vars", (test, next) ->
     asstData = null
 
     verify = ->
@@ -153,7 +176,7 @@ if Meteor.isClient
       return true if asstData?
     ), verify, fail, 2000
 
-  Tinytest.addAsync "experiment - client - no time fields", (test, next) ->
+  Tinytest.addAsync "experiment - assignment - no time fields", (test, next) ->
     fields = [
       {
         id: TurkServer.group()
@@ -181,7 +204,7 @@ if Meteor.isClient
 
       next()
 
-  Tinytest.addAsync "experiment - client - joined time computation", (test, next) ->
+  Tinytest.addAsync "experiment - assignment - joined time computation", (test, next) ->
     fields = [
       {
         id: TurkServer.group()
@@ -211,7 +234,7 @@ if Meteor.isClient
 
       next()
 
-  Tinytest.addAsync "experiment - client - instance ended state", (test, next) ->
+  Tinytest.addAsync "experiment - instance - instance ended state", (test, next) ->
     # In experiment. not ended
     test.isTrue TurkServer.inExperiment()
     test.isFalse TurkServer.instanceEnded()
@@ -226,7 +249,8 @@ if Meteor.isClient
     Next test edits instance fields, so client APIs may break state
   ###
 
-  Tinytest.addAsync "experiment - client - selects correct instance of multiple", (test, next) ->
+  Tinytest.addAsync "experiment - instance - client selects correct instance of
+ multiple", (test, next) ->
     fields = [
       {
         id: Random.id()

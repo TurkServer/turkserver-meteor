@@ -79,6 +79,10 @@ Tinytest.add "experiment - batch - creation and retrieval", withCleanup (test) -
 
   test.equal batch2, batch
 
+Tinytest.add "experiment - assignment - currentAssignment in standalone
+ server code returns null", (test) ->
+  test.equal TurkServer.Assignment.currentAssignment(), null
+
 Tinytest.add "experiment - instance - throws error if doesn't exist", withCleanup (test) ->
   test.throws ->
     TurkServer.Instance.getInstance("yabbadabbadoober")
@@ -151,12 +155,16 @@ Tinytest.add "experiment - instance - get treatment on server", withCleanup (tes
 
   # Note this only tests world treatments. Assignment treatments have to be
   # tested with the janky client setup.
+
+  # However, This also tests accessing server treatments outside of a client context.
   instance.bindOperation ->
     treatment = TurkServer.treatment()
     test.equal treatment.treatments[0], "fooTreatment"
+    test.equal treatment.fooProperty, "bar"
 
   # Undefined outside of an experiment instance
-  test.equal TurkServer.treatment(), undefined
+  treatment = TurkServer.treatment()
+  test.equal treatment.fooProperty, undefined
 
 Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   instance = batch.createInstance([])
@@ -183,7 +191,7 @@ Tinytest.add "experiment - instance - global group", withCleanup (test) ->
   test.equal stuff[2].foo2, "bar"
   test.equal stuff[2]._groupId, instance.groupId
 
-Tinytest.add "experiment - instance - reject adding user to ended instance", withCleanup (test) ->
+Tinytest.add "experiment - assignment - reject adding user to ended instance", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -203,7 +211,7 @@ Tinytest.add "experiment - instance - reject adding user to ended instance", wit
 
   test.isFalse asstData.instances
 
-Tinytest.add "experiment - instance - addAssignment records start time and instance id", withCleanup (test) ->
+Tinytest.add "experiment - assignment - addAssignment records start time and instance id", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -227,7 +235,7 @@ Tinytest.add "experiment - instance - addAssignment records start time and insta
   test.equal asstData.instances[0].id, instance.groupId
   test.isTrue asstData.instances[0].joinTime
 
-Tinytest.add "experiment - instance - second addAssignment does not change date", withCleanup (test) ->
+Tinytest.add "experiment - assignment - second addAssignment does not change date", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -249,7 +257,7 @@ Tinytest.add "experiment - instance - second addAssignment does not change date"
   # Should be the same date as originally
   test.equal instanceData.startTime, startedDate
 
-Tinytest.add "experiment - instance - teardown with returned assignment", withCleanup (test) ->
+Tinytest.add "experiment - assignment - teardown with returned assignment", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -269,7 +277,7 @@ Tinytest.add "experiment - instance - teardown with returned assignment", withCl
   test.isTrue asstData.instances[0]
   test.equal asstData.status, "returned"
 
-Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanup (test) ->
+Tinytest.add "experiment - assignment - user disconnect and reconnect", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -308,7 +316,7 @@ Tinytest.add "experiment - instance - user disconnect and reconnect", withCleanu
   test.isTrue asstData.instances[0].disconnectedTime > 0
   test.isTrue asstData.instances[0].disconnectedTime < Date.now() - discTime
 
-Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (test) ->
+Tinytest.add "experiment - assignment - user idle and re-activate", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -364,7 +372,7 @@ Tinytest.add "experiment - instance - user idle and re-activate", withCleanup (t
   test.isFalse asstData.instances[0].lastIdle
   test.equal asstData.instances[0].idleTime, offset + offset
 
-Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (test) ->
+Tinytest.add "experiment - assignment - user disconnect while idle", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -389,7 +397,7 @@ Tinytest.add "experiment - instance - user disconnect while idle", withCleanup (
   # Check that disconnect fields exist
   test.isTrue asstData.instances[0].lastDisconnect
 
-Tinytest.add "experiment - instance - idleness is cleared on reconnection", withCleanup (test) ->
+Tinytest.add "experiment - assignment - idleness is cleared on reconnection", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -421,7 +429,7 @@ Tinytest.add "experiment - instance - idleness is cleared on reconnection", with
   test.isFalse asstData.instances[0].lastDisconnect
   test.isTrue asstData.instances[0].disconnectedTime
 
-Tinytest.add "experiment - instance - teardown while disconnected", withCleanup (test) ->
+Tinytest.add "experiment - assignment - teardown while disconnected", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -448,7 +456,7 @@ Tinytest.add "experiment - instance - teardown while disconnected", withCleanup 
   test.isTrue asstData.instances[0].disconnectedTime > 0
   test.isTrue asstData.instances[0].disconnectedTime < Date.now() - discTime
 
-Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) ->
+Tinytest.add "experiment - assignment - teardown while idle", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -472,7 +480,7 @@ Tinytest.add "experiment - instance - teardown while idle", withCleanup (test) -
   test.isFalse asstData.instances[0].lastIdle
   test.isTrue asstData.instances[0].idleTime
 
-Tinytest.add "experiment - instance - leave instance after teardown", withCleanup (test) ->
+Tinytest.add "experiment - assignment - leave instance after teardown", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
@@ -503,7 +511,7 @@ Tinytest.add "experiment - instance - leave instance after teardown", withCleanu
   test.isTrue asstData.instances[0].disconnectedTime > 0
   test.isTrue asstData.instances[0].disconnectedTime < 200
 
-Tinytest.add "experiment - instance - teardown and join second instance", withCleanup (test) ->
+Tinytest.add "experiment - assignment - teardown and join second instance", withCleanup (test) ->
   instance = batch.createInstance([])
   instance.setup()
 
