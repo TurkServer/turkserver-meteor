@@ -74,6 +74,7 @@ Package.onUse(function (api) {
   api.addFiles([
     'server/config.js',
     'server/turkserver.coffee',
+    'server/server_api.js',
     'server/mturk.js',
     'server/lobby_server.coffee',
     'server/batches.coffee',

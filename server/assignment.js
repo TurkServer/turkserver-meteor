@@ -86,8 +86,19 @@ class Assignment {
    * @returns {TurkServer.Assignment} The assignment object.
    */
   static currentAssignment() {
-    let userId = Meteor.userId();
-    if (userId == null) return;
+    let userId = null;
+    try {
+      userId = Meteor.userId();
+    }
+    catch (e) {
+      // We aren't in a method, so Meteor throws this error:
+      // "Error: Meteor.userId can only be invoked in method calls. Use this.userId in publish functions."
+      // Note that isn't just publish functions, but any server code not
+      // triggered by a client.
+      return null;
+    }
+    if (userId == null) return null;
+
     return Assignment.getCurrentUserAssignment(userId);
   }
 
