@@ -14,6 +14,15 @@ deploying your app and collecting data.
 - Highly configurable randomization of treatments.
 - Deploying experiments from a live web interface and watch the progress of experiments in real time.
 
+Here's an example of how TurkServer was used to run a [month-long prisoner's dilemma experiment][longrunpd]:
+
+[longrunpd]: https://github.com/TurkServer/long-run-cooperation
+  
+[ ![TurkServer][ts-img] ][ts-link]
+
+[ts-img]: https://j.gifs.com/2R4A4v.gif
+[ts-link]: https://www.youtube.com/watch?v=qgS0T979uMQ
+
 ## Getting Started
 
 See the [guide](http://turkserver.readthedocs.io/), which has information about 
