@@ -6,7 +6,7 @@ Package.describe({
 });
 
 Npm.depends({
-  "mturk-api": "1.3.2",
+  "api-mturk": "1.2.4",
   jspath: "0.3.2",
   deepmerge: "0.2.7" // For merging config parameters
 });

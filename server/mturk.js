@@ -1,4 +1,4 @@
-const mturk = Npm.require('mturk-api');
+const mturk = Npm.require('api-mturk');
 const JSPath = Npm.require('jspath');
 
 let api = undefined;
@@ -13,7 +13,7 @@ if ( !TurkServer.config.mturk.accessKeyId ||
     sandbox: TurkServer.config.mturk.sandbox
   };
 
-  const promise = mturk.connect(config)
+  const promise = mturk.createClient(config)
     .then((api) => api)
     .catch(console.error);
   api = Promise.resolve(promise).await();
