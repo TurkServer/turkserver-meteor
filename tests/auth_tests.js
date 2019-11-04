@@ -1,385 +1,465 @@
-hitType = "authHitType"
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const hitType = "authHitType";
 
-hitId = "authHitId"
-hitId2 = "authHitId2"
+const hitId = "authHitId";
+const hitId2 = "authHitId2";
 
-assignmentId = "authAssignmentId"
-assignmentId2 = "authAssignmentId2"
+const assignmentId = "authAssignmentId";
+const assignmentId2 = "authAssignmentId2";
 
-workerId = "authWorkerId"
-workerId2 = "authWorkerId2"
+const workerId = "authWorkerId";
+const workerId2 = "authWorkerId2";
 
-experimentId = "authExperimentId"
+const experimentId = "authExperimentId";
 
-# Ensure that users with these workerIds exist
-Meteor.users.upsert "authUser1", $set: {workerId}
-Meteor.users.upsert "authUser2", $set: {workerId: workerId2}
+// Ensure that users with these workerIds exist
+Meteor.users.upsert("authUser1", {$set: {workerId}});
+Meteor.users.upsert("authUser2", {$set: {workerId: workerId2}});
 
-authBatchId = "authBatch"
-otherBatchId = "someOtherBatch"
+const authBatchId = "authBatch";
+const otherBatchId = "someOtherBatch";
 
-# Set up a dummy batch
-unless Batches.findOne(authBatchId)?
-  Batches.insert(_id: authBatchId)
+// Set up a dummy batch
+if (Batches.findOne(authBatchId) == null) {
+  Batches.insert({_id: authBatchId});
+}
 
-# Set up a dummy HIT type and HITs
-HITTypes.upsert HITTypeId: hitType,
-  $set:
+// Set up a dummy HIT type and HITs
+HITTypes.upsert({HITTypeId: hitType}, {
+  $set: {
     batchId: authBatchId
-HITs.upsert HITId: hitId,
-  $set: HITTypeId: hitType
-HITs.upsert HITId: hitId2,
-  $set: HITTypeId: hitType
+  }
+}
+);
+HITs.upsert({HITId: hitId},
+  {$set: {HITTypeId: hitType}});
+HITs.upsert({HITId: hitId2},
+  {$set: {HITTypeId: hitType}});
 
-# We can use the after wrapper here because the tests are synchronous
-withCleanup = TestUtils.getCleanupWrapper
-  before: ->
-    Batches.update authBatchId,
-      $set: active: true
-      $unset: allowReturns: null
-  after: ->
-    # Only remove assignments created here to avoid side effects on server-client tests
-    Assignments.remove($or: [ {batchId: authBatchId}, {batchId: otherBatchId} ])
+// We can use the after wrapper here because the tests are synchronous
+const withCleanup = TestUtils.getCleanupWrapper({
+  before() {
+    return Batches.update(authBatchId, {
+      $set: { active: true
+    },
+      $unset: { allowReturns: null
+    }
+    }
+    );
+  },
+  after() {
+    // Only remove assignments created here to avoid side effects on server-client tests
+    return Assignments.remove({$or: [ {batchId: authBatchId}, {batchId: otherBatchId} ]});
+  }
+});
 
-Tinytest.add "auth - with first time hit assignment", withCleanup (test) ->
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - with first time hit assignment", withCleanup(function(test) {
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  # Test in-memory stored values
-  test.equal asst.batchId, authBatchId
-  test.equal asst.hitId, hitId
-  test.equal asst.assignmentId, assignmentId
-  test.equal asst.workerId, workerId
-  test.equal asst.userId, "authUser1"
+  // Test in-memory stored values
+  test.equal(asst.batchId, authBatchId);
+  test.equal(asst.hitId, hitId);
+  test.equal(asst.assignmentId, assignmentId);
+  test.equal(asst.workerId, workerId);
+  test.equal(asst.userId, "authUser1");
 
-  # Test database storage
-  record = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
+  // Test database storage
+  const record = Assignments.findOne({
+    hitId,
+    assignmentId
+  });
 
-  test.isTrue(record)
-  test.equal(record.workerId, workerId, "workerId not saved")
-  test.equal(record.batchId, authBatchId)
+  test.isTrue(record);
+  test.equal(record.workerId, workerId, "workerId not saved");
+  return test.equal(record.batchId, authBatchId);
+})
+);
 
-Tinytest.add "auth - reject incorrect batch", withCleanup (test) ->
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: otherBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - reject incorrect batch", withCleanup(function(test) {
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: otherBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  test.throws testFunc, (e) ->
-    e.error is 403 and e.reason is ErrMsg.unexpectedBatch
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.unexpectedBatch));
+})
+);
 
-Tinytest.add "auth - connection to inactive batch is rejected", withCleanup (test) ->
-  # Active is set to back to true on cleanup
-  Batches.update(authBatchId, $unset: active: false)
+Tinytest.add("auth - connection to inactive batch is rejected", withCleanup(function(test) {
+  // Active is set to back to true on cleanup
+  Batches.update(authBatchId, {$unset: {active: false}});
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  test.throws testFunc, (e) ->
-    e.error is 403 and e.reason is ErrMsg.batchInactive
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.batchInactive));
+})
+);
 
-Tinytest.add "auth - reconnect - with existing hit assignment", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - reconnect - with existing hit assignment", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "assigned"
+  });
 
-  # This needs to return an assignment
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId : assignmentId
-    workerId: workerId
+  // This needs to return an assignment
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  record = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const record = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  test.equal(asst, TurkServer.Assignment.getAssignment(record._id))
-  test.equal asst.batchId, authBatchId
-  test.equal asst.hitId, hitId
-  test.equal asst.assignmentId, assignmentId
-  test.equal asst.workerId, workerId
-  test.equal asst.userId, "authUser1"
+  test.equal(asst, TurkServer.Assignment.getAssignment(record._id));
+  test.equal(asst.batchId, authBatchId);
+  test.equal(asst.hitId, hitId);
+  test.equal(asst.assignmentId, assignmentId);
+  test.equal(asst.workerId, workerId);
+  test.equal(asst.userId, "authUser1");
 
-  test.equal(record.status, "assigned")
+  return test.equal(record.status, "assigned");
+})
+);
 
-Tinytest.add "auth - reconnect - with existing hit after batch is inactive", withCleanup (test) ->
-  # Active is set to back to true on cleanup
-  Batches.update(authBatchId, $unset: active: false)
+Tinytest.add("auth - reconnect - with existing hit after batch is inactive", withCleanup(function(test) {
+  // Active is set to back to true on cleanup
+  Batches.update(authBatchId, {$unset: {active: false}});
 
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "assigned"
+  });
 
-  TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId : assignmentId
-    workerId: workerId
+  TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  record = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const record = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  test.equal(record.status, "assigned")
+  return test.equal(record.status, "assigned");
+})
+);
 
-Tinytest.add "auth - with overlapping hit in experiment", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
-    status: "assigned"
-    experimentId: experimentId
+Tinytest.add("auth - with overlapping hit in experiment", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
+    status: "assigned",
+    experimentId
+  });
 
-  # Authenticate with different worker
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId : assignmentId
+  // Authenticate with different worker
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
     workerId: workerId2
+  });
 
-  prevRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const prevRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  newRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
+  const newRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
     workerId: workerId2
+  });
 
-  test.isTrue(asst)
-  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+  test.isTrue(asst);
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id));
 
-  test.equal(prevRecord.status, "returned")
+  test.equal(prevRecord.status, "returned");
 
-  test.equal(newRecord.status, "assigned")
+  return test.equal(newRecord.status, "assigned");
+})
+);
 
-Tinytest.add "auth - with overlapping hit completed", withCleanup (test) ->
-  # This case should not happen often
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - with overlapping hit completed", withCleanup(function(test) {
+  // This case should not happen often
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "completed"
+  });
 
-  # Authenticate with different worker
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId : assignmentId
+  // Authenticate with different worker
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
     workerId: workerId2
+  });
 
-  prevRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const prevRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  newRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
+  const newRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
     workerId: workerId2
+  });
 
-  test.isTrue(asst)
-  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+  test.isTrue(asst);
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id));
 
-  test.equal(prevRecord.status, "completed")
+  test.equal(prevRecord.status, "completed");
 
-  test.equal(newRecord.status, "assigned")
+  return test.equal(newRecord.status, "assigned");
+})
+);
 
-Tinytest.add "auth - same worker completed hit", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - same worker completed hit", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "completed"
+  });
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId,
-    assignmentId : assignmentId
-    workerId: workerId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  test.throws testFunc, (e) ->
-    e.error is 403 and e.reason is ErrMsg.alreadyCompleted
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.alreadyCompleted));
+})
+);
 
-Tinytest.add "auth - limit - concurrent across hits", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - limit - concurrent across hits", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "assigned"
+  });
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
     hitId: hitId2,
-    assignmentId : assignmentId2
-    workerId: workerId
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  test.throws testFunc, (e) ->
-    e.error is 403 and e.reason is ErrMsg.simultaneousLimit
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.simultaneousLimit));
+})
+);
 
-# Not sure this test needs to exist because only 1 assignment per worker for a HIT
-Tinytest.add "auth - limit - concurrent across assts", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+// Not sure this test needs to exist because only 1 assignment per worker for a HIT
+Tinytest.add("auth - limit - concurrent across assts", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "assigned"
+  });
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId,
-    assignmentId : assignmentId2
-    workerId: workerId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId,
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  test.throws testFunc, (e) ->
-    e.error is 403 and e.reason is ErrMsg.simultaneousLimit
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.simultaneousLimit));
+})
+);
 
-Tinytest.add "auth - limit - too many total", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - limit - too many total", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "completed"
-  # Should not trigger concurrent limit
+  });
+  // Should not trigger concurrent limit
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId2
-    assignmentId : assignmentId2
-    workerId: workerId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId: hitId2,
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.batchLimit));
+})
+);
 
-Tinytest.add "auth - limit - returns not allowed in batch", withCleanup (test) ->
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - limit - returns not allowed in batch", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "returned"
-  # Should not trigger concurrent limit
+  });
+  // Should not trigger concurrent limit
 
-  testFunc = -> TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: hitId2
-    assignmentId : assignmentId2
-    workerId: workerId
+  const testFunc = () => TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId: hitId2,
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  test.throws testFunc, (e) -> e.error is 403 and e.reason is ErrMsg.batchLimit
+  return test.throws(testFunc, e => (e.error === 403) && (e.reason === ErrMsg.batchLimit));
+})
+);
 
-Tinytest.add "auth - limit - returns allowed in batch", withCleanup (test) ->
-  Batches.update(authBatchId, $set: allowReturns: true)
+Tinytest.add("auth - limit - returns allowed in batch", withCleanup(function(test) {
+  Batches.update(authBatchId, {$set: {allowReturns: true}});
 
-  Assignments.insert
-    batchId: authBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  Assignments.insert({
+    batchId: authBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "returned"
+  });
 
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
     hitId: hitId2,
-    assignmentId : assignmentId2
-    workerId: workerId
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  prevRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const prevRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  newRecord = Assignments.findOne
-    hitId: hitId2
-    assignmentId: assignmentId2
-    workerId: workerId
+  const newRecord = Assignments.findOne({
+    hitId: hitId2,
+    assignmentId: assignmentId2,
+    workerId
+  });
 
-  test.isTrue(asst)
-  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+  test.isTrue(asst);
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id));
 
-  test.equal(prevRecord.status, "returned")
-  test.equal(prevRecord.batchId, authBatchId)
+  test.equal(prevRecord.status, "returned");
+  test.equal(prevRecord.batchId, authBatchId);
 
-  test.equal(newRecord.status, "assigned")
-  test.equal(newRecord.batchId, authBatchId)
+  test.equal(newRecord.status, "assigned");
+  return test.equal(newRecord.batchId, authBatchId);
+})
+);
 
-Tinytest.add "auth - limit - allowed after previous batch", withCleanup (test) ->
-  Assignments.insert
-    batchId: otherBatchId
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+Tinytest.add("auth - limit - allowed after previous batch", withCleanup(function(test) {
+  Assignments.insert({
+    batchId: otherBatchId,
+    hitId,
+    assignmentId,
+    workerId,
     status: "completed"
-    # Should not trigger concurrent limit
+  });
+    // Should not trigger concurrent limit
 
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
     hitId: hitId2,
-    assignmentId : assignmentId2
-    workerId: workerId
+    assignmentId : assignmentId2,
+    workerId
+  });
 
-  prevRecord = Assignments.findOne
-    hitId: hitId
-    assignmentId: assignmentId
-    workerId: workerId
+  const prevRecord = Assignments.findOne({
+    hitId,
+    assignmentId,
+    workerId
+  });
 
-  newRecord = Assignments.findOne
-    hitId: hitId2
-    assignmentId: assignmentId2
-    workerId: workerId
+  const newRecord = Assignments.findOne({
+    hitId: hitId2,
+    assignmentId: assignmentId2,
+    workerId
+  });
 
-  test.isTrue(asst)
-  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id))
+  test.isTrue(asst);
+  test.equal(asst, TurkServer.Assignment.getAssignment(newRecord._id));
 
-  test.equal(prevRecord.status, "completed")
-  test.equal(prevRecord.batchId, "someOtherBatch")
+  test.equal(prevRecord.status, "completed");
+  test.equal(prevRecord.batchId, "someOtherBatch");
 
-  test.equal(newRecord.status, "assigned")
-  test.equal(newRecord.batchId, authBatchId)
+  test.equal(newRecord.status, "assigned");
+  return test.equal(newRecord.batchId, authBatchId);
+})
+);
 
-# Worker is used for the test below
-Meteor.users.upsert "testWorker", $set: {workerId: "testingWorker"}
+// Worker is used for the test below
+Meteor.users.upsert("testWorker", {$set: {workerId: "testingWorker"}});
 
-Tinytest.add "auth - testing HIT login doesn't require existing HIT", withCleanup (test) ->
-  asst = TestUtils.authenticateWorker
-    batchId: authBatchId
-    hitId: "testingHIT"
-    assignmentId: "testingAsst"
-    workerId: "testingWorker"
+Tinytest.add("auth - testing HIT login doesn't require existing HIT", withCleanup(function(test) {
+  const asst = TestUtils.authenticateWorker({
+    batchId: authBatchId,
+    hitId: "testingHIT",
+    assignmentId: "testingAsst",
+    workerId: "testingWorker",
     test: true
+  });
 
-  # Test database storage
-  record = Assignments.findOne
-    hitId: "testingHIT"
+  // Test database storage
+  const record = Assignments.findOne({
+    hitId: "testingHIT",
     assignmentId: "testingAsst"
+  });
 
-  test.isTrue(asst)
-  test.equal(asst, TurkServer.Assignment.getAssignment(record._id))
+  test.isTrue(asst);
+  test.equal(asst, TurkServer.Assignment.getAssignment(record._id));
 
-  test.isTrue(record)
-  test.equal(record.workerId, "testingWorker")
-  test.equal(record.batchId, authBatchId)
+  test.isTrue(record);
+  test.equal(record.workerId, "testingWorker");
+  return test.equal(record.batchId, authBatchId);
+})
+);

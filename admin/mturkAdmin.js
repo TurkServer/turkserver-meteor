@@ -1,190 +1,248 @@
-quals = -> Qualifications.find()
-hitTypes = -> HITTypes.find()
+/*
+ * decaffeinate suggestions:
+ * DS101: Remove unnecessary use of Array.from
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS103: Rewrite code to no longer use __guard__
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+const quals = () => Qualifications.find();
+const hitTypes = () => HITTypes.find();
 
-Template.tsAdminMTurk.helpers
-  selectedHITType: -> HITTypes.findOne Session.get("_tsSelectedHITType")
+Template.tsAdminMTurk.helpers({
+  selectedHITType() { return HITTypes.findOne(Session.get("_tsSelectedHITType")); }});
 
 Template.tsAdminMTurk.events =
-  "click .-ts-new-hittype": -> Session.set("_tsSelectedHITType", undefined)
+  {"click .-ts-new-hittype"() { return Session.set("_tsSelectedHITType", undefined); }};
 
 Template.tsAdminHitTypes.events =
-  "click tr": -> Session.set("_tsSelectedHITType", @_id)
+  {"click tr"() { return Session.set("_tsSelectedHITType", this._id); }};
 
-Template.tsAdminHitTypes.helpers
-  hitTypes: hitTypes
-  selectedClass: ->
-    if Session.equals("_tsSelectedHITType", @_id) then "info" else ""
+Template.tsAdminHitTypes.helpers({
+  hitTypes,
+  selectedClass() {
+    if (Session.equals("_tsSelectedHITType", this._id)) { return "info"; } else { return ""; }
+  }
+});
 
-Template.tsAdminViewHitType.events =
-  "click .-ts-register-hittype": ->
-    Meteor.call "ts-admin-register-hittype", @_id, (err, res) ->
-      bootbox.alert(err.reason) if err
-  "click .-ts-delete-hittype": ->
-    HITTypes.remove(@_id)
+Template.tsAdminViewHitType.events = {
+  "click .-ts-register-hittype"() {
+    return Meteor.call("ts-admin-register-hittype", this._id, function(err, res) {
+      if (err) { return bootbox.alert(err.reason); }
+    });
+  },
+  "click .-ts-delete-hittype"() {
+    return HITTypes.remove(this._id);
+  }
+};
 
-Template.tsAdminViewHitType.helpers
-  batchName: -> Batches.findOne(@batchId)?.name || "(none)"
-  renderReward: -> @Reward.toFixed(2)
-  qualName: -> Qualifications.findOne(""+@)?.name
+Template.tsAdminViewHitType.helpers({
+  batchName() { return __guard__(Batches.findOne(this.batchId), x => x.name) || "(none)"; },
+  renderReward() { return this.Reward.toFixed(2); },
+  qualName() { return __guard__(Qualifications.findOne(""+this), x => x.name); }
+});
 
-Template.tsAdminNewHitType.events =
-  "submit form": (e, tmpl) ->
-    e.preventDefault()
+Template.tsAdminNewHitType.events = {
+  "submit form"(e, tmpl) {
+    e.preventDefault();
 
-    id = HITTypes.insert
-      batchId: tmpl.find("select[name=batch]").value
-      Title: tmpl.find("input[name=title]").value
-      Description: tmpl.find("textarea[name=desc]").value
-      Keywords: tmpl.find("input[name=keywords]").value
-      Reward: parseFloat(tmpl.find("input[name=reward]").value)
-      QualificationRequirement: $(tmpl.find("select[name=quals]")).val()
-      AssignmentDurationInSeconds: parseInt(tmpl.find("input[name=duration]").value)
+    const id = HITTypes.insert({
+      batchId: tmpl.find("select[name=batch]").value,
+      Title: tmpl.find("input[name=title]").value,
+      Description: tmpl.find("textarea[name=desc]").value,
+      Keywords: tmpl.find("input[name=keywords]").value,
+      Reward: parseFloat(tmpl.find("input[name=reward]").value),
+      QualificationRequirement: $(tmpl.find("select[name=quals]")).val(),
+      AssignmentDurationInSeconds: parseInt(tmpl.find("input[name=duration]").value),
       AutoApprovalDelayInSeconds: parseInt(tmpl.find("input[name=delay]").value)
+    });
 
-    Session.set("_tsSelectedHITType", id)
+    return Session.set("_tsSelectedHITType", id);
+  }
+};
 
-Template.tsAdminNewHitType.helpers
-  quals: quals
-  batches: -> Batches.find()
+Template.tsAdminNewHitType.helpers({
+  quals,
+  batches() { return Batches.find(); }
+});
 
-Template.tsAdminQuals.events =
-  "click .-ts-delete-qual": ->
-    Qualifications.remove(@_id)
+Template.tsAdminQuals.events = {
+  "click .-ts-delete-qual"() {
+    return Qualifications.remove(this._id);
+  }
+};
 
-Template.tsAdminQuals.helpers
-  quals: quals
-  value: ->
-    if @IntegerValue
-      return @IntegerValue + " (Integer)"
-    else if @LocaleValue
-      return @LocaleValue + " (Locale)"
-    else
-      return
+Template.tsAdminQuals.helpers({
+  quals,
+  value() {
+    if (this.IntegerValue) {
+      return this.IntegerValue + " (Integer)";
+    } else if (this.LocaleValue) {
+      return this.LocaleValue + " (Locale)";
+    } else {
+      return;
+    }
+  }
+});
 
-Template.tsAdminNewQual.events =
-  "click .-ts-create-qual": (e, tmpl) ->
-    name = tmpl.find("input[name=name]").value
-    type = tmpl.find("input[name=type]").value
-    comp = tmpl.find("select[name=comp]").value
-    value = tmpl.find("input[name=value]").value
-    preview = tmpl.find("input[name=preview]").checked
+Template.tsAdminNewQual.events = {
+  "click .-ts-create-qual"(e, tmpl) {
+    const name = tmpl.find("input[name=name]").value;
+    let type = tmpl.find("input[name=type]").value;
+    const comp = tmpl.find("select[name=comp]").value;
+    const {
+      value
+    } = tmpl.find("input[name=value]");
+    const preview = tmpl.find("input[name=preview]").checked;
 
-    return if !name or !type or !comp
+    if (!name || !type || !comp) { return; }
 
-    qual =
-      name: name
-      QualificationTypeId: type
-      Comparator: comp
+    const qual = {
+      name,
+      QualificationTypeId: type,
+      Comparator: comp,
       RequiredToPreview: preview
+    };
 
-    try
-      switch comp
-        when "Exists", "DoesNotExist"
-          throw new Error("No value should be specified for Exists or DoesNotExist") if !!value
+    try {
+      switch (comp) {
+        case "Exists": case "DoesNotExist":
+          if (!!value) { throw new Error("No value should be specified for Exists or DoesNotExist"); }
+          break;
 
-        when "In", "NotIn"
-          # Parse value as a comma-separated array
-          vals = []
-          type = null
+        case "In": case "NotIn":
+          // Parse value as a comma-separated array
+          var vals = [];
+          type = null;
 
-          # Check that they are all the same type
-          # TODO we don't check for the validity of the type here
-          for v in value.split(/[\s,]+/)
-            continue if !v
+          // Check that they are all the same type
+          // TODO we don't check for the validity of the type here
+          for (let v of Array.from(value.split(/[\s,]+/))) {
+            var newType, numV;
+            if (!v) { continue; }
 
-            if numV = parseInt(v)
-              vals.push(numV)
-              newType = "Integer"
-            else
-              vals.push(v)
-              newType = "String"
+            if (numV = parseInt(v)) {
+              vals.push(numV);
+              newType = "Integer";
+            } else {
+              vals.push(v);
+              newType = "String";
+            }
 
-            throw new Error("Must be all Integers or Locales") if type? and newType isnt type
-            type = newType
+            if ((type != null) && (newType !== type)) { throw new Error("Must be all Integers or Locales"); }
+            type = newType;
+          }
 
-          throw new Error("Must specify at least one value for In or NotIn") unless type?
+          if (type == null) { throw new Error("Must specify at least one value for In or NotIn"); }
 
-          if type is "Integer"
-            qual.IntegerValue = vals
-          else
-            qual.LocaleValue = vals
+          if (type === "Integer") {
+            qual.IntegerValue = vals;
+          } else {
+            qual.LocaleValue = vals;
+          }
+          break;
 
-        else # Things with values
-          if !!value
-            if parseInt(value)
-              qual.IntegerValue = value
-            else
-              qual.LocaleValue = value
+        default: // Things with values
+          if (!!value) {
+            if (parseInt(value)) {
+              qual.IntegerValue = value;
+            } else {
+              qual.LocaleValue = value;
+            }
+          }
+      }
 
-      Qualifications.insert(qual)
-    catch e
-      bootbox.alert(e.toString())
+      return Qualifications.insert(qual);
+    } catch (error) {
+      e = error;
+      return bootbox.alert(e.toString());
+    }
+  }
+};
 
-Template.tsAdminHits.events =
-  "click tr": -> Session.set("_tsSelectedHIT", @_id)
-  "click .-ts-new-hit": -> Session.set("_tsSelectedHIT", undefined)
+Template.tsAdminHits.events = {
+  "click tr"() { return Session.set("_tsSelectedHIT", this._id); },
+  "click .-ts-new-hit"() { return Session.set("_tsSelectedHIT", undefined); }
+};
 
-Template.tsAdminHits.helpers
-  hits: -> HITs.find({}, {sort: {CreationTime: -1}})
-  selectedHIT: -> HITs.findOne Session.get("_tsSelectedHIT")
+Template.tsAdminHits.helpers({
+  hits() { return HITs.find({}, {sort: {CreationTime: -1}}); },
+  selectedHIT() { return HITs.findOne(Session.get("_tsSelectedHIT")); }
+});
 
-Template.tsAdminViewHit.events =
-  "click .-ts-refresh-hit": ->
-    TurkServer.callWithModal "ts-admin-refresh-hit", @HITId
+Template.tsAdminViewHit.events = {
+  "click .-ts-refresh-hit"() {
+    return TurkServer.callWithModal("ts-admin-refresh-hit", this.HITId);
+  },
 
-  "click .-ts-expire-hit": ->
-    TurkServer.callWithModal "ts-admin-expire-hit", @HITId
+  "click .-ts-expire-hit"() {
+    return TurkServer.callWithModal("ts-admin-expire-hit", this.HITId);
+  },
 
-  "submit .-ts-change-hittype": (e, tmpl) ->
-    e.preventDefault()
-    htId = tmpl.find("select[name=hittype]").value
-    HITTypeId = HITTypes.findOne(htId).HITTypeId
-    unless HITTypeId
-      bootbox.alert("Register that HIT Type first")
-      return
+  "submit .-ts-change-hittype"(e, tmpl) {
+    e.preventDefault();
+    const htId = tmpl.find("select[name=hittype]").value;
+    const {
+      HITTypeId
+    } = HITTypes.findOne(htId);
+    if (!HITTypeId) {
+      bootbox.alert("Register that HIT Type first");
+      return;
+    }
 
-    params =
-      HITId: @HITId
-      HITTypeId: HITTypeId
-    TurkServer.callWithModal "ts-admin-change-hittype", params
+    const params = {
+      HITId: this.HITId,
+      HITTypeId
+    };
+    return TurkServer.callWithModal("ts-admin-change-hittype", params);
+  },
 
-  "submit .-ts-extend-assignments": (e, tmpl) ->
-    e.preventDefault()
-    params =
-      HITId: @HITId
+  "submit .-ts-extend-assignments"(e, tmpl) {
+    e.preventDefault();
+    const params = {
+      HITId: this.HITId,
       MaxAssignmentsIncrement: parseInt(tmpl.find("input[name=assts]").value)
-    TurkServer.callWithModal "ts-admin-extend-hit", params
+    };
+    return TurkServer.callWithModal("ts-admin-extend-hit", params);
+  },
 
-  "submit .-ts-extend-expiration": (e, tmpl) ->
-    e.preventDefault()
-    params =
-      HITId: @HITId
+  "submit .-ts-extend-expiration"(e, tmpl) {
+    e.preventDefault();
+    const params = {
+      HITId: this.HITId,
       ExpirationIncrementInSeconds: parseInt(tmpl.find("input[name=secs]").value)
-    TurkServer.callWithModal "ts-admin-extend-hit", params
+    };
+    return TurkServer.callWithModal("ts-admin-extend-hit", params);
+  }
+};
 
-Template.tsAdminViewHit.helpers
-  hitTypes: hitTypes
+Template.tsAdminViewHit.helpers({
+  hitTypes});
 
-Template.tsAdminNewHit.events =
-  "submit form": (e, tmpl) ->
-    e.preventDefault()
+Template.tsAdminNewHit.events = {
+  "submit form"(e, tmpl) {
+    e.preventDefault();
 
-    hitTypeId = tmpl.find("select[name=hittype]").value
+    const hitTypeId = tmpl.find("select[name=hittype]").value;
 
-    unless hitTypeId
-      bootbox.alert("HIT Type isn't registered")
-      return
+    if (!hitTypeId) {
+      bootbox.alert("HIT Type isn't registered");
+      return;
+    }
 
-    params =
-      MaxAssignments:parseInt(tmpl.find("input[name=maxAssts]").value)
+    const params = {
+      MaxAssignments:parseInt(tmpl.find("input[name=maxAssts]").value),
       LifetimeInSeconds:parseInt(tmpl.find("input[name=lifetime]").value)
+    };
 
-    TurkServer.callWithModal "ts-admin-create-hit", hitTypeId, params
+    return TurkServer.callWithModal("ts-admin-create-hit", hitTypeId, params);
+  }
+};
 
-Template.tsAdminNewHit.helpers
-  hitTypes: hitTypes
+Template.tsAdminNewHit.helpers({
+  hitTypes});
 
-Template.tsAdminWorkers.helpers
+Template.tsAdminWorkers.helpers({
   settings: {
     position: "bottom",
     limit: 5,
@@ -192,78 +250,90 @@ Template.tsAdminWorkers.helpers
       {
         collection: Meteor.users,
         field: "workerId",
-        template: Template.tsAdminWorkerItem
-        # Match on workerId or username
-        selector: (match) ->
-          $or: [
-            { workerId: { $regex: "^" + match.toUpperCase() } },
-            { username: { $regex: match, $options: "i" } }
-          ]
+        template: Template.tsAdminWorkerItem,
+        // Match on workerId or username
+        selector(match) {
+          return {
+            $or: [
+              { workerId: { $regex: "^" + match.toUpperCase() } },
+              { username: { $regex: match, $options: "i" } }
+            ]
+          };
+        }
       }
     ]
-  }
+  },
 
-  workerData: -> Workers.findOne(@workerId)
+  workerData() { return Workers.findOne(this.workerId); },
 
-  workerActiveAssts: ->
-    Assignments.find({
-      workerId: @workerId,
+  workerActiveAssts() {
+    return Assignments.find({
+      workerId: this.workerId,
       status: { $ne: "completed" }
     }, {
-      sort: acceptTime: -1
-    })
+      sort: { acceptTime: -1
+    }
+    });
+  },
 
-  workerCompletedAssts: ->
-    Assignments.find({
-      workerId: @workerId,
+  workerCompletedAssts() {
+    return Assignments.find({
+      workerId: this.workerId,
       status: "completed"
     }, {
-      sort: submitTime: -1
-    })
+      sort: { submitTime: -1
+    }
+    });
+  },
 
-  numCompletedAssts: ->
-    Assignments.find({
-      workerId: @workerId,
+  numCompletedAssts() {
+    return Assignments.find({
+      workerId: this.workerId,
       status: "completed"
-    }).count()
+    }).count();
+  }
+});
 
 
-Template.tsAdminWorkers.events
-  "autocompleteselect input": (e, t, user) ->
-    Router.go("tsWorkers", {workerId: user.workerId}) if user.workerId?
+Template.tsAdminWorkers.events({
+  "autocompleteselect input"(e, t, user) {
+    if (user.workerId != null) { return Router.go("tsWorkers", {workerId: user.workerId}); }
+  }
+});
 
-Template.tsAdminPanel.rendered = ->
-  svg = d3.select(@find("svg"))
-  $svg = @$("svg")
+Template.tsAdminPanel.rendered = function() {
+  const svg = d3.select(this.find("svg"));
+  const $svg = this.$("svg");
 
-  margin =
-    left: 90
+  const margin = {
+    left: 90,
     bottom: 30
+  };
 
-  x = d3.scale.linear()
-    .range([0, $svg.width() - margin.left])
+  const x = d3.scale.linear()
+    .range([0, $svg.width() - margin.left]);
 
-  y = d3.scale.ordinal()
-    # Data was originally stored in GMT -5 so just display that
-    .domain(m.zone(300).format("HH ZZ") for m in TurkServer.Util._defaultTimeSlots())
-    .rangeBands([0, $svg.height() - margin.bottom], 0.2)
+  const y = d3.scale.ordinal()
+    // Data was originally stored in GMT -5 so just display that
+    .domain(Array.from(TurkServer.Util._defaultTimeSlots()).map((m) => m.zone(300).format("HH ZZ")))
+    .rangeBands([0, $svg.height() - margin.bottom], 0.2);
 
-  xAxis = d3.svg.axis()
+  const xAxis = d3.svg.axis()
     .scale(x)
-    .orient("bottom")
+    .orient("bottom");
 
-  yAxis = d3.svg.axis()
+  const yAxis = d3.svg.axis()
     .scale(y)
-    .orient("left")
+    .orient("left");
 
-  # Draw axes
-  chart = svg.append("g")
-    .attr("transform", "translate(" + margin.left + ",0)")
+  // Draw axes
+  const chart = svg.append("g")
+    .attr("transform", "translate(" + margin.left + ",0)");
 
   chart.append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + ($svg.height() - margin.bottom) + ")")
-    .call(xAxis)
+    .call(xAxis);
 
   chart.append("g")
     .attr("class", "y axis")
@@ -273,209 +343,267 @@ Template.tsAdminPanel.rendered = ->
     .attr("y", -80)
     .attr("dy", ".71em")
     .style("text-anchor", "end")
-    .text("Timezone")
+    .text("Timezone");
 
-  data = {}
+  const data = {};
 
-  newData = false
-  redraw = ->
-    return unless newData
-    newData = false
+  let newData = false;
+  const redraw = function() {
+    if (!newData) { return; }
+    newData = false;
 
-    entries = d3.entries(data)
+    const entries = d3.entries(data);
 
-    # Update domain with max value
-    x.domain([0, d3.max(entries, (d) -> d.value)])
-    chart.select("g.x.axis").call(xAxis)
+    // Update domain with max value
+    x.domain([0, d3.max(entries, d => d.value)]);
+    chart.select("g.x.axis").call(xAxis);
 
-    bars = chart.selectAll(".bar")
-      .data(entries, (d) -> d.key)
+    const bars = chart.selectAll(".bar")
+      .data(entries, d => d.key);
 
-    # Add any new bars in the enter selection
+    // Add any new bars in the enter selection
     bars.enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("y", (d) -> y(d.key) )
+      .attr("y", d => y(d.key))
       .attr("height", y.rangeBand());
 
-    # Update widths in the update selection, including entered nodes
-    bars.attr("data-value", (d) -> d.value )
+    // Update widths in the update selection, including entered nodes
+    return bars.attr("data-value", d => d.value)
       .transition()
-      .attr("width", (d) -> x(d.value) )
+      .attr("width", d => x(d.value));
+  };
 
-  # Aggregate the worker times into the current timezone
-  @handle = Workers.find().observeChanges
-    added: (id, fields) ->
-      # Only use data from workers who agreed to be contacted
-      return unless fields.contact and fields.available?
-      for time in fields.available.times
-        # normalize into buckets
-        continue unless time # Ignore invalid (empty) entries
-        data[time] ?= 0
-        data[time] += 1
+  // Aggregate the worker times into the current timezone
+  return this.handle = Workers.find().observeChanges({
+    added(id, fields) {
+      // Only use data from workers who agreed to be contacted
+      if (!fields.contact || (fields.available == null)) { return; }
+      for (let time of Array.from(fields.available.times)) {
+        // normalize into buckets
+        if (!time) { continue; } // Ignore invalid (empty) entries
+        if (data[time] == null) { data[time] = 0; }
+        data[time] += 1;
+      }
 
-      newData = true
-      Meteor.defer(redraw)
+      newData = true;
+      return Meteor.defer(redraw);
+    }
+  });
+};
 
-Template.tsAdminPanel.destroyed = ->
-  @handle.stop()
+Template.tsAdminPanel.destroyed = function() {
+  return this.handle.stop();
+};
 
-Template.tsAdminPanel.helpers
-  workerContact: -> Workers.find(contact: true).count()
-  workerTotal: -> Workers.find().count()
+Template.tsAdminPanel.helpers({
+  workerContact() { return Workers.find({contact: true}).count(); },
+  workerTotal() { return Workers.find().count(); }
+});
 
-recipientsHelper = (recipients) ->
-    if recipients.length == 1
-      return recipients
-    else
-      return recipients.length
+const recipientsHelper = function(recipients) {
+    if (recipients.length === 1) {
+      return recipients;
+    } else {
+      return recipients.length;
+    }
+  };
 
-Template.tsAdminEmail.helpers
-  messages: -> WorkerEmails.find({}, {sort: {sentTime: -1}})
-  recipientsHelper: recipientsHelper
+Template.tsAdminEmail.helpers({
+  messages() { return WorkerEmails.find({}, {sort: {sentTime: -1}}); },
+  recipientsHelper
+});
 
-Template.tsAdminEmail.events
-  "click tr": -> Session.set("_tsSelectedEmailId", @_id)
+Template.tsAdminEmail.events({
+  "click tr"() { return Session.set("_tsSelectedEmailId", this._id); }});
 
-Template.tsAdminEmailMessage.helpers
-  selectedMessage: ->
-    emailId = Session.get("_tsSelectedEmailId")
-    return WorkerEmails.findOne(emailId) if emailId?
-  recipientsHelper: recipientsHelper
+Template.tsAdminEmailMessage.helpers({
+  selectedMessage() {
+    const emailId = Session.get("_tsSelectedEmailId");
+    if (emailId != null) { return WorkerEmails.findOne(emailId); }
+  },
+  recipientsHelper
+});
 
-Template.tsAdminEmailMessage.events
-  "click .ts-admin-send-message": ->
-    TurkServer.callWithModal "ts-admin-send-message", @_id
+Template.tsAdminEmailMessage.events({
+  "click .ts-admin-send-message"() {
+    return TurkServer.callWithModal("ts-admin-send-message", this._id);
+  },
 
-  "click .ts-admin-resend-message": ->
-    TurkServer.callWithModal "ts-admin-resend-message", @_id
+  "click .ts-admin-resend-message"() {
+    return TurkServer.callWithModal("ts-admin-resend-message", this._id);
+  },
 
-  "click .ts-admin-copy-message": ->
-    TurkServer.callWithModal "ts-admin-copy-message", @_id
+  "click .ts-admin-copy-message"() {
+    return TurkServer.callWithModal("ts-admin-copy-message", this._id);
+  },
 
-  "click .ts-admin-delete-message": ->
-    TurkServer.callWithModal "ts-admin-delete-message", @_id
+  "click .ts-admin-delete-message"() {
+    return TurkServer.callWithModal("ts-admin-delete-message", this._id);
+  }
+});
 
-Template.tsAdminNewEmail.helpers
-  messages: ->
-    WorkerEmails.find({}, {
+Template.tsAdminNewEmail.helpers({
+  messages() {
+    return WorkerEmails.find({}, {
       fields: {subject: 1},
       sort: {sentTime: -1}
-    })
+    });
+  }
+});
 
-Template.tsAdminNewEmail.events
-  "submit form": (e, t) ->
-    e.preventDefault()
-    $sub = t.$("input[name=subject]")
-    $msg = t.$("textarea[name=message]")
+Template.tsAdminNewEmail.events({
+  "submit form"(e, t) {
+    let copyFromId;
+    e.preventDefault();
+    const $sub = t.$("input[name=subject]");
+    const $msg = t.$("textarea[name=message]");
 
-    subject = $sub.val()
-    message = $msg.val()
+    const subject = $sub.val();
+    const message = $msg.val();
 
-    if t.$("input[name=recipients]:checked").val() is "copy"
-      copyFromId = t.$("select[name=copyFrom]").val()
-      unless copyFromId?
-        bootbox.alert("Select an e-mail to copy recipients from")
-        return
+    if (t.$("input[name=recipients]:checked").val() === "copy") {
+      copyFromId = t.$("select[name=copyFrom]").val();
+      if (copyFromId == null) {
+        bootbox.alert("Select an e-mail to copy recipients from");
+        return;
+      }
+    }
 
-    TurkServer.callWithModal "ts-admin-create-message", subject, message, copyFromId, (res) ->
-      # Display the new message
-      Session.set("_tsSelectedEmailId", res)
+    return TurkServer.callWithModal("ts-admin-create-message", subject, message, copyFromId, res => // Display the new message
+    Session.set("_tsSelectedEmailId", res));
+  }
+});
 
-Template.tsAdminAssignmentMaintenance.events
-  "click .-ts-cancel-assignments": ->
-    message = "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? "
-    bootbox.confirm message, (res) ->
-      return unless res
-      TurkServer.callWithModal "ts-admin-cancel-assignments", Session.get("_tsViewingBatchId")
+Template.tsAdminAssignmentMaintenance.events({
+  "click .-ts-cancel-assignments"() {
+    const message = "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? ";
+    return bootbox.confirm(message, function(res) {
+      if (!res) { return; }
+      return TurkServer.callWithModal("ts-admin-cancel-assignments", Session.get("_tsViewingBatchId"));
+    });
+  }
+});
 
-numAssignments = -> Assignments.find().count()
+const numAssignments = () => Assignments.find().count();
 
-Template.tsAdminActiveAssignments.helpers
-  numAssignments: numAssignments
-  activeAssts: ->
-    Assignments.find {}, { sort: acceptTime: -1 }
+Template.tsAdminActiveAssignments.helpers({
+  numAssignments,
+  activeAssts() {
+    return Assignments.find({}, { sort: {acceptTime: -1} });
+  }});
 
-checkBatch = (batchId) ->
-  unless batchId?
-    bootbox.alert("Select a batch first!")
-    return false
-  return true
+const checkBatch = function(batchId) {
+  if (batchId == null) {
+    bootbox.alert("Select a batch first!");
+    return false;
+  }
+  return true;
+};
 
-Template.tsAdminCompletedMaintenance.events
-  "click .-ts-refresh-assignments": ->
-    batchId = Session.get("_tsViewingBatchId")
-    return unless checkBatch(batchId)
-    TurkServer.callWithModal "ts-admin-refresh-assignments", batchId
+Template.tsAdminCompletedMaintenance.events({
+  "click .-ts-refresh-assignments"() {
+    const batchId = Session.get("_tsViewingBatchId");
+    if (!checkBatch(batchId)) { return; }
+    return TurkServer.callWithModal("ts-admin-refresh-assignments", batchId);
+  },
 
-  "click .-ts-approve-all": ->
-    batchId = Session.get("_tsViewingBatchId")
-    return unless checkBatch(batchId)
+  "click .-ts-approve-all"() {
+    const batchId = Session.get("_tsViewingBatchId");
+    if (!checkBatch(batchId)) { return; }
 
-    TurkServer.callWithModal "ts-admin-count-submitted", batchId, (count) ->
-      if count is 0
-        bootbox.alert "No assignments to approve!"
-        return
+    return TurkServer.callWithModal("ts-admin-count-submitted", batchId, function(count) {
+      if (count === 0) {
+        bootbox.alert("No assignments to approve!");
+        return;
+      }
 
-      bootbox.prompt "#{count} assignments will be approved. Enter a (possibly blank) message to send to each worker.", (res) ->
-        return unless res?
-        TurkServer.callWithModal "ts-admin-approve-all", batchId, res
+      return bootbox.prompt(`${count} assignments will be approved. Enter a (possibly blank) message to send to each worker.`, function(res) {
+        if (res == null) { return; }
+        return TurkServer.callWithModal("ts-admin-approve-all", batchId, res);
+      });
+    });
+  },
 
-  "click .-ts-pay-bonuses": ->
-    batchId = Session.get("_tsViewingBatchId")
-    return unless checkBatch(batchId)
+  "click .-ts-pay-bonuses"() {
+    const batchId = Session.get("_tsViewingBatchId");
+    if (!checkBatch(batchId)) { return; }
 
-    TurkServer.callWithModal "ts-admin-count-unpaid-bonuses", batchId, (data) ->
-      if data.numPaid is 0
-        bootbox.alert "No bonuses to pay!"
-        return
+    return TurkServer.callWithModal("ts-admin-count-unpaid-bonuses", batchId, function(data) {
+      if (data.numPaid === 0) {
+        bootbox.alert("No bonuses to pay!");
+        return;
+      }
 
-      bootbox.prompt "#{data.numPaid} workers will be paid, for a total of $#{data.amt}. Enter a message to send to each worker.", (res) ->
-        return unless res
-        TurkServer.callWithModal "ts-admin-pay-bonuses", batchId, res
+      return bootbox.prompt(`${data.numPaid} workers will be paid, for a total of $${data.amt}. Enter a message to send to each worker.`, function(res) {
+        if (!res) { return; }
+        return TurkServer.callWithModal("ts-admin-pay-bonuses", batchId, res);
+      });
+    });
+  }
+});
 
-Template.tsAdminCompletedAssignments.events
-  "submit form.ts-admin-assignment-filter": (e, t) ->
-    e.preventDefault()
+Template.tsAdminCompletedAssignments.events({
+  "submit form.ts-admin-assignment-filter"(e, t) {
+    e.preventDefault();
 
-    Router.go "tsCompletedAssignments",
+    return Router.go("tsCompletedAssignments", {
       days: parseInt(t.find("input[name=filter_days]").value) ||
-        TurkServer.adminSettings.defaultDaysThreshold
+        TurkServer.adminSettings.defaultDaysThreshold,
       limit: parseInt(t.find("input[name=filter_limit]").value) ||
         TurkServer.adminSettings.defaultLimit
+    }
+    );
+  }
+});
 
-Template.tsAdminCompletedAssignments.helpers
-  numAssignments: numAssignments
-  completedAssts: ->
-    Assignments.find {}, { sort: submitTime: -1 }
+Template.tsAdminCompletedAssignments.helpers({
+  numAssignments,
+  completedAssts() {
+    return Assignments.find({}, { sort: {submitTime: -1} });
+  }});
 
-Template.tsAdminCompletedAssignmentsTable.events
-  "click .ts-admin-refresh-assignment": ->
-    TurkServer.callWithModal "ts-admin-refresh-assignment", this._id
+Template.tsAdminCompletedAssignmentsTable.events({
+  "click .ts-admin-refresh-assignment"() {
+    return TurkServer.callWithModal("ts-admin-refresh-assignment", this._id);
+  },
 
-  "click .ts-admin-approve-assignment": ->
-    _asstId = this._id
-    bootbox.prompt "Approve assignment: enter an optional message to send to the worker.", (res) ->
-      TurkServer.callWithModal "ts-admin-approve-assignment", _asstId, res
+  "click .ts-admin-approve-assignment"() {
+    const _asstId = this._id;
+    return bootbox.prompt("Approve assignment: enter an optional message to send to the worker.", res => TurkServer.callWithModal("ts-admin-approve-assignment", _asstId, res));
+  },
 
-  "click .ts-admin-reject-assignment": ->
-    _asstId = this._id
-    bootbox.prompt "1 worker's assignment will be rejected. Enter a message to send to the worker.", (res) ->
-      return unless res
-      TurkServer.callWithModal "ts-admin-reject-assignment", _asstId, res
+  "click .ts-admin-reject-assignment"() {
+    const _asstId = this._id;
+    return bootbox.prompt("1 worker's assignment will be rejected. Enter a message to send to the worker.", function(res) {
+      if (!res) { return; }
+      return TurkServer.callWithModal("ts-admin-reject-assignment", _asstId, res);
+    });
+  },
 
-  "click .ts-admin-unset-bonus": ->
-    Meteor.call("ts-admin-unset-bonus", this._id)
+  "click .ts-admin-unset-bonus"() {
+    return Meteor.call("ts-admin-unset-bonus", this._id);
+  },
 
-  "click .ts-admin-pay-bonus": ->
-    TurkServer._displayModal Template.tsAdminPayBonus, this
+  "click .ts-admin-pay-bonus"() {
+    return TurkServer._displayModal(Template.tsAdminPayBonus, this);
+  }
+});
 
-Template.tsAdminCompletedAssignmentRow.helpers
-  labelStatus: ->
-    switch @mturkStatus
-      when "Submitted" then "label-warning"
-      when "Approved" then "label-primary"
-      when "Rejected" then "label-danger"
-      else "label-default"
-  submitted: ->
-    return @mturkStatus == "Submitted"
+Template.tsAdminCompletedAssignmentRow.helpers({
+  labelStatus() {
+    switch (this.mturkStatus) {
+      case "Submitted": return "label-warning";
+      case "Approved": return "label-primary";
+      case "Rejected": return "label-danger";
+      default: return "label-default";
+    }
+  },
+  submitted() {
+    return this.mturkStatus === "Submitted";
+  }
+});
+
+function __guard__(value, transform) {
+  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+}

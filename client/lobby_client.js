@@ -1,56 +1,81 @@
-###
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS103: Rewrite code to no longer use __guard__
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+/*
   Set up route and auto-redirection for default lobby, unless disabled
 
   As defined below, autoLobby is default true unless explicitly set to false
   TODO document this setting
-###
-unless Meteor.settings?.public?.turkserver?.autoLobby is false
-  Router.map ->
-    @route "lobby",
+*/
+if (__guard__(__guard__(Meteor.settings != null ? Meteor.settings.public : undefined, x1 => x1.turkserver), x => x.autoLobby) !== false) {
+  Router.map(function() {
+    return this.route("lobby", {
       template: "tsBasicLobby",
-      layoutTemplate: "tsContainer"
-      onBeforeAction: ->
-        # Don't show lobby template to unauthenticated users
-        unless Meteor.user()
-          @layout("tsContainer")
-          @render("tsUserAccessDenied")
-        else
-          @next()
+      layoutTemplate: "tsContainer",
+      onBeforeAction() {
+        // Don't show lobby template to unauthenticated users
+        if (!Meteor.user()) {
+          this.layout("tsContainer");
+          return this.render("tsUserAccessDenied");
+        } else {
+          return this.next();
+        }
+      }
+    }
+    );
+  });
 
-  # We need to defer this because iron router can throw errors if a route is
-  # hit before the page is fully loaded
-  Meteor.startup ->
-    Meteor.defer ->
-      # Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
-      Deps.autorun ->
-        return if Package?.tinytest # Don't change routes when being tested
-        if TurkServer.inLobby()
-          Meteor.subscribe("lobby", TurkServer.batch()?._id)
-          Router.go("/lobby")
+  // We need to defer this because iron router can throw errors if a route is
+  // hit before the page is fully loaded
+  Meteor.startup(() => Meteor.defer(() => // Subscribe to lobby if we are in it (auto unsubscribe if we aren't)
+  Deps.autorun(function() {
+    if (typeof Package !== 'undefined' && Package !== null ? Package.tinytest : undefined) { return; } // Don't change routes when being tested
+    if (TurkServer.inLobby()) {
+      Meteor.subscribe("lobby", __guard__(TurkServer.batch(), x2 => x2._id));
+      return Router.go("/lobby");
+    }
+  })));
+}
 
-Meteor.methods
-  "toggleStatus" : ->
-    userId = Meteor.userId()
-    existing = LobbyStatus.findOne(userId) if userId
-    return unless userId and existing
+Meteor.methods({
+  "toggleStatus"() {
+    let existing;
+    const userId = Meteor.userId();
+    if (userId) { existing = LobbyStatus.findOne(userId); }
+    if (!userId || !existing) { return; }
     
-    LobbyStatus.update userId,
-      $set: { status: not existing.status }
+    return LobbyStatus.update(userId,
+      {$set: { status: !existing.status }});
+  }});
 
-Template.tsBasicLobby.helpers
-  count: -> LobbyStatus.find().count()
-  lobbyInfo: -> LobbyStatus.find()
-  identifier: -> Meteor.users.findOne(@_id)?.username || "<i>unnamed user</i>"
+Template.tsBasicLobby.helpers({
+  count() { return LobbyStatus.find().count(); },
+  lobbyInfo() { return LobbyStatus.find(); },
+  identifier() { return __guard__(Meteor.users.findOne(this._id), x2 => x2.username) || "<i>unnamed user</i>"; }
+});
 
-Template.tsLobby.helpers
-  lobbyInfo: -> LobbyStatus.find()
-  identifier: -> Meteor.users.findOne(@_id)?.username || @_id
-  readyEnabled: ->
-    return LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value and @_id is Meteor.userId()
+Template.tsLobby.helpers({
+  lobbyInfo() { return LobbyStatus.find(); },
+  identifier() { return __guard__(Meteor.users.findOne(this._id), x2 => x2.username) || this._id; },
+  readyEnabled() {
+    return (LobbyStatus.find().count() >= TSConfig.findOne("lobbyThreshold").value) && (this._id === Meteor.userId());
+  }
+});
 
-Template.tsLobby.events =
-  "click a.changeStatus": (ev) ->
-    ev.preventDefault()
+Template.tsLobby.events = {
+  "click a.changeStatus"(ev) {
+    ev.preventDefault();
 
-    Meteor.call "toggleStatus", (err, res) ->
-      bootbox.alert err.reason if err
+    return Meteor.call("toggleStatus", function(err, res) {
+      if (err) { return bootbox.alert(err.reason); }
+    });
+  }
+};
+
+function __guard__(value, transform) {
+  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+}

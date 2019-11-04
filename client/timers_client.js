@@ -1,104 +1,151 @@
-###
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS103: Rewrite code to no longer use __guard__
+ * DS203: Remove `|| {}` from converted for-own loops
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+/*
   Reactive time functions
 
   The instance time functions are also used in the admin interface to compute
   individual users' stats.
-###
-class TurkServer.Timers
-  _currentAssignmentInstance = ->
-    return if TurkServer.isAdmin()
-    return unless (group = TurkServer.group())?
-    _.find(Assignments.findOne()?.instances, (inst) -> inst.id is group)
+*/
+(function() {
+  let _currentAssignmentInstance = undefined;
+  let _joinedTime = undefined;
+  let _idleTime = undefined;
+  let _disconnectedTime = undefined;
+  const Cls = (TurkServer.Timers = class Timers {
+    static initClass() {
+      _currentAssignmentInstance = function() {
+        let group;
+        if (TurkServer.isAdmin()) { return; }
+        if ((group = TurkServer.group()) == null) { return; }
+        return _.find(__guard__(Assignments.findOne(), x => x.instances), inst => inst.id === group);
+      };
+  
+      _joinedTime = (instance, serverTime) => Math.max(0, serverTime - instance.joinTime);
+  
+      _idleTime = function(instance, serverTime) {
+        let idleMillis = (instance.idleTime || 0);
+        // If we're idle, add the time since we went idle
+        // TODO add a test for this part
+        if (instance.lastIdle != null) {
+          idleMillis += serverTime - instance.lastIdle;
+        }
+        return idleMillis;
+      };
+  
+      _disconnectedTime = function(instance, serverTime) {
+        let discMillis = instance.disconnectedTime || 0;
+        if (instance.lastDisconnect != null) {
+          discMillis += serverTime - instance.lastDisconnect;
+        }
+        return discMillis;
+      };
+    }
 
-  _joinedTime = (instance, serverTime) -> Math.max(0, serverTime - instance.joinTime)
+    // Milliseconds elapsed since experiment start
+    static elapsedTime() {
+      let exp;
+      if ((exp = Experiments.findOne()) == null) { return; }
+      if (exp.startTime == null) { return; }
+      return Math.max(0, TimeSync.serverTime() - exp.startTime);
+    }
 
-  _idleTime = (instance, serverTime) ->
-    idleMillis = (instance.idleTime || 0)
-    # If we're idle, add the time since we went idle
-    # TODO add a test for this part
-    if instance.lastIdle?
-      idleMillis += serverTime - instance.lastIdle
-    return idleMillis
+    // TODO: clean up code repetition below
 
-  _disconnectedTime = (instance, serverTime) ->
-    discMillis = instance.disconnectedTime || 0
-    if instance.lastDisconnect?
-      discMillis += serverTime - instance.lastDisconnect
-    return discMillis
+    // Milliseconds elapsed since this user joined the experiment instance
+    // This is slightly different than the above
+    static joinedTime(instance) {
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      const serverTime = instance.leaveTime || TimeSync.serverTime();
+      return _joinedTime(instance, serverTime);
+    }
 
-  # Milliseconds elapsed since experiment start
-  @elapsedTime: ->
-    return unless (exp = Experiments.findOne())?
-    return unless exp.startTime?
-    return Math.max(0, TimeSync.serverTime() - exp.startTime)
+    static remainingTime() {
+      let exp;
+      if ((exp = Experiments.findOne()) == null) { return; }
+      if (exp.endTime == null) { return; }
+      return Math.max(0, exp.endTime - TimeSync.serverTime());
+    }
 
-  # TODO: clean up code repetition below
+    /*
+      Emboxed values below because they aren't using per-second reactivity
+    */
 
-  # Milliseconds elapsed since this user joined the experiment instance
-  # This is slightly different than the above
-  @joinedTime: (instance) ->
-    return unless (instance ?= _currentAssignmentInstance())?
-    serverTime = instance.leaveTime || TimeSync.serverTime()
-    return _joinedTime(instance, serverTime)
+    // Milliseconds this user has been idle in the experiment
+    static idleTime(instance) {
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      const serverTime = instance.leaveTime || TimeSync.serverTime();
+      return _idleTime(instance, serverTime);
+    }
 
-  @remainingTime: ->
-    return unless (exp = Experiments.findOne())?
-    return unless exp.endTime?
-    return Math.max(0, exp.endTime - TimeSync.serverTime())
+    // Milliseconds this user has been disconnected in the experiment
+    static disconnectedTime(instance) {
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      const serverTime = instance.leaveTime || TimeSync.serverTime();
+      return _disconnectedTime(instance, serverTime);
+    }
 
-  ###
-    Emboxed values below because they aren't using per-second reactivity
-  ###
+    static activeTime(instance) {
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      // Compute this using helper functions to avoid thrashing
+      const serverTime = instance.leaveTime || TimeSync.serverTime();
+      return _joinedTime(instance, serverTime) - _idleTime(instance, serverTime) - _disconnectedTime(instance, serverTime);
+    }
 
-  # Milliseconds this user has been idle in the experiment
-  @idleTime: (instance) ->
-    return unless (instance ?= _currentAssignmentInstance())?
-    serverTime = instance.leaveTime || TimeSync.serverTime()
-    return _idleTime(instance, serverTime)
+    // Milliseconds elapsed since round start
+    static roundElapsedTime() {
+      let round;
+      if ((round = TurkServer.currentRound()) == null) { return; }
+      if (round.startTime == null) { return; }
+      return Math.max(0, TimeSync.serverTime() - round.startTime);
+    }
 
-  # Milliseconds this user has been disconnected in the experiment
-  @disconnectedTime: (instance) ->
-    return unless (instance ?= _currentAssignmentInstance())?
-    serverTime = instance.leaveTime || TimeSync.serverTime()
-    return _disconnectedTime(instance, serverTime)
+    // Milliseconds until end of round
+    static roundRemainingTime() {
+      let round;
+      if ((round = TurkServer.currentRound()) == null) { return; }
+      if (round.endTime == null) { return; }
+      return Math.max(0, round.endTime - TimeSync.serverTime());
+    }
 
-  @activeTime: (instance) ->
-    return unless (instance ?= _currentAssignmentInstance())?
-    # Compute this using helper functions to avoid thrashing
-    serverTime = instance.leaveTime || TimeSync.serverTime()
-    return _joinedTime(instance, serverTime) - _idleTime(instance, serverTime) - _disconnectedTime(instance, serverTime)
+    // Milliseconds until start of next round, if any
+    static breakRemainingTime() {
+      let nextRound, round;
+      if ((round = TurkServer.currentRound()) == null) { return; }
+      const now = Date.now();
+      if ((round.startTime <= now) && (round.endTime >= now)) {
+        // if we are not at a break, return 0
+        return 0;
+      }
 
-  # Milliseconds elapsed since round start
-  @roundElapsedTime: ->
-    return unless (round = TurkServer.currentRound())?
-    return unless round.startTime?
-    return Math.max(0, TimeSync.serverTime() - round.startTime)
+      // if we are at a break, we already set next round to be active.
+      if ((nextRound = RoundTimers.findOne({index: round.index + 1})) == null) { return; }
+      if (nextRound.startTime == null) { return; }
+      return Math.max(0, nextRound.startTime - TimeSync.serverTime());
+    }
+  });
+  Cls.initClass();
+  return Cls;
+})();
 
-  # Milliseconds until end of round
-  @roundRemainingTime: ->
-    return unless (round = TurkServer.currentRound())?
-    return unless round.endTime?
-    return Math.max(0, round.endTime - TimeSync.serverTime())
+// Register all the helpers in the form tsGlobalHelperTime
+for (var key of Object.keys(TurkServer.Timers || {})) {
+  // camelCase the helper name
+  var helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1);
+  (function() { // Bind the function to the current value inside the closure
+    const func = TurkServer.Timers[key];
+    return UI.registerHelper(helperName, function() {
+      return TurkServer.Util.formatMillis(func.apply(this, arguments));
+  });
+  })();
+}
 
-  # Milliseconds until start of next round, if any
-  @breakRemainingTime: ->
-    return unless (round = TurkServer.currentRound())?
-    now = Date.now()
-    if (round.startTime <= now and round.endTime >= now)
-      # if we are not at a break, return 0
-      return 0
-
-    # if we are at a break, we already set next round to be active.
-    return unless (nextRound = RoundTimers.findOne(index: round.index + 1))?
-    return unless nextRound.startTime?
-    return Math.max(0, nextRound.startTime - TimeSync.serverTime())
-
-# Register all the helpers in the form tsGlobalHelperTime
-for own key of TurkServer.Timers
-  # camelCase the helper name
-  helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1)
-  (-> # Bind the function to the current value inside the closure
-    func = TurkServer.Timers[key]
-    UI.registerHelper helperName, ->
-      TurkServer.Util.formatMillis func.apply(this, arguments)
-  )()
+function __guard__(value, transform) {
+  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+}

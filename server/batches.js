@@ -1,58 +1,85 @@
-class TurkServer.Batch
-  _batches = {}
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * DS206: Consider reworking classes to avoid initClass
+ * DS207: Consider shorter variations of null checks
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+(function() {
+  let _batches = undefined;
+  const Cls = (TurkServer.Batch = class Batch {
+    static initClass() {
+      _batches = {};
+    }
 
-  @getBatch: (batchId) ->
-    check(batchId, String)
-    if (batch = _batches[batchId])?
-      return batch
-    else
-      throw new Error("Batch does not exist") unless Batches.findOne(batchId)?
-      # Return this if another Fiber created it while we yielded
-      return _batches[batchId] ?= new Batch(batchId)
+    static getBatch(batchId) {
+      let batch;
+      check(batchId, String);
+      if ((batch = _batches[batchId]) != null) {
+        return batch;
+      } else {
+        if (Batches.findOne(batchId) == null) { throw new Error("Batch does not exist"); }
+        // Return this if another Fiber created it while we yielded
+        return _batches[batchId] != null ? _batches[batchId] : (_batches[batchId] = new Batch(batchId));
+      }
+    }
 
-  @getBatchByName: (batchName) ->
-    check(batchName, String)
-    batch = Batches.findOne(name: batchName)
-    throw new Error("Batch does not exist") unless batch
-    return @getBatch(batch._id)
+    static getBatchByName(batchName) {
+      check(batchName, String);
+      const batch = Batches.findOne({name: batchName});
+      if (!batch) { throw new Error("Batch does not exist"); }
+      return this.getBatch(batch._id);
+    }
 
-  @currentBatch: ->
-    return unless (userId = Meteor.userId())?
-    return TurkServer.Assignment.getCurrentUserAssignment(userId).getBatch()
+    static currentBatch() {
+      let userId;
+      if ((userId = Meteor.userId()) == null) { return; }
+      return TurkServer.Assignment.getCurrentUserAssignment(userId).getBatch();
+    }
 
-  constructor: (@batchId) ->
-    throw new Error("Batch already exists; use getBatch") if _batches[@batchId]?
-    @lobby = new TurkServer.Lobby(@batchId)
+    constructor(batchId) {
+      this.batchId = batchId;
+      if (_batches[this.batchId] != null) { throw new Error("Batch already exists; use getBatch"); }
+      this.lobby = new TurkServer.Lobby(this.batchId);
+    }
 
-  # Creating an instance does not set it up, or initialize the start time.
-  createInstance: (treatmentNames, fields) ->
-    fields = _.extend fields || {},
-      batchId: @batchId
-      treatments: treatmentNames || []
+    // Creating an instance does not set it up, or initialize the start time.
+    createInstance(treatmentNames, fields) {
+      fields = _.extend(fields || {}, {
+        batchId: this.batchId,
+        treatments: treatmentNames || []
+      });
 
-    groupId = Experiments.insert(fields)
+      const groupId = Experiments.insert(fields);
 
-    # To prevent bugs if the instance is referenced before this returns, we
-    # need to go through getInstance.
-    instance = TurkServer.Instance.getInstance(groupId)
+      // To prevent bugs if the instance is referenced before this returns, we
+      // need to go through getInstance.
+      const instance = TurkServer.Instance.getInstance(groupId);
 
-    instance.bindOperation ->
-      TurkServer.log
-        _meta: "created"
+      instance.bindOperation(() => TurkServer.log({
+        _meta: "created"}));
 
-    return instance
+      return instance;
+    }
 
-  getTreatments: -> Batches.findOne(@batchId).treatments
+    getTreatments() { return Batches.findOne(this.batchId).treatments; }
 
-  setAssigner: (assigner) ->
-    throw new Error("Assigner already set for this batch") if @assigner?
-    @assigner = assigner
-    assigner.initialize(this)
+    setAssigner(assigner) {
+      if (this.assigner != null) { throw new Error("Assigner already set for this batch"); }
+      this.assigner = assigner;
+      return assigner.initialize(this);
+    }
+  });
+  Cls.initClass();
+  return Cls;
+})();
 
-TurkServer.ensureBatchExists = (props) ->
-  throw new Error("Batch must have a name") unless props.name?
-  Batches.upsert {name: props.name}, props
+TurkServer.ensureBatchExists = function(props) {
+  if (props.name == null) { throw new Error("Batch must have a name"); }
+  return Batches.upsert({name: props.name}, props);
+};
 
-TurkServer.ensureTreatmentExists = (props) ->
-  throw new Error("Treatment must have a name") unless props.name?
-  Treatments.upsert {name: props.name}, props
+TurkServer.ensureTreatmentExists = function(props) {
+  if (props.name == null) { throw new Error("Treatment must have a name"); }
+  return Treatments.upsert({name: props.name}, props);
+};
