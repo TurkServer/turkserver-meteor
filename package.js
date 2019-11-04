@@ -33,7 +33,6 @@ Package.onUse(function (api) {
     'jquery',
     'random',
     'underscore',
-    'coffeescript',
     'ecmascript',
     'facts'
   ]);
@@ -65,26 +64,26 @@ Package.onUse(function (api) {
   // Shared files
   api.addFiles([
     'lib/shared.js',
-    'lib/common.coffee',
-    'lib/util.coffee'
+    'lib/common.js',
+    'lib/util.js'
   ]);
 
   // Server files
   api.addFiles([
     'server/config.js',
-    'server/turkserver.coffee',
+    'server/turkserver.js',
     'server/server_api.js',
     'server/mturk.js',
-    'server/lobby_server.coffee',
-    'server/batches.coffee',
+    'server/lobby_server.js',
+    'server/batches.js',
     'server/instance.js',
-    'server/logging.coffee',
+    'server/logging.js',
     'server/assigners.js',
     'server/assigners_extra.js',
     'server/assignment.js',
-    'server/connections.coffee',
+    'server/connections.js',
     'server/timers_server.js',
-    'server/accounts_mturk.coffee'
+    'server/accounts_mturk.js'
   ], 'server');
 
   // Client
@@ -93,32 +92,32 @@ Package.onUse(function (api) {
     'client/login.html',
     'client/client_api.js',
     'client/ts_client.css',
-    'client/ts_client.coffee',
-    'client/login.coffee',
-    'client/logging_client.coffee',
-    'client/timers_client.coffee',
-    'client/helpers.coffee',
+    'client/ts_client.js',
+    'client/login.js',
+    'client/logging_client.js',
+    'client/timers_client.js',
+    'client/helpers.js',
     'client/lobby_client.html',
-    'client/lobby_client.coffee',
-    'client/dialogs.coffee'
+    'client/lobby_client.js',
+    'client/dialogs.js'
   ], 'client');
 
   // Admin
   api.addFiles([
     'admin/admin.css',
     'admin/util.html',
-    'admin/util.coffee',
+    'admin/util.js',
     'admin/clientAdmin.html',
-    'admin/clientAdmin.coffee',
+    'admin/clientAdmin.js',
     'admin/mturkAdmin.html',
-    'admin/mturkAdmin.coffee',
+    'admin/mturkAdmin.js',
     'admin/experimentAdmin.html',
-    'admin/experimentAdmin.coffee',
+    'admin/experimentAdmin.js',
     'admin/lobbyAdmin.html',
-    'admin/lobbyAdmin.coffee'
+    'admin/lobbyAdmin.js'
   ], 'client');
 
-  api.addFiles('admin/admin.coffee', 'server');
+  api.addFiles('admin/admin.js', 'server');
 
   api.export(['TurkServer']);
 
@@ -137,7 +136,6 @@ Package.onTest(function (api) {
     'accounts-password',
     'check',
     'deps',
-    'coffeescript',
     'mongo',
     'random',
     'ui',
@@ -159,20 +157,20 @@ Package.onTest(function (api) {
 
   api.addFiles("tests/display_fix.css");
 
-  api.addFiles('tests/utils.coffee'); // Deletes users so do it before insecure login
+  api.addFiles('tests/utils.js'); // Deletes users so do it before insecure login
   api.addFiles("tests/insecure_login.js");
 
-  api.addFiles('tests/lobby_tests.coffee');
-  api.addFiles('tests/admin_tests.coffee', 'server');
-  api.addFiles('tests/auth_tests.coffee', 'server');
-  api.addFiles('tests/connection_tests.coffee', 'server');
-  api.addFiles('tests/experiment_tests.coffee', 'server');
-  api.addFiles('tests/experiment_client_tests.coffee');
-  api.addFiles('tests/timer_tests.coffee', 'server');
-  api.addFiles('tests/logging_tests.coffee');
+  api.addFiles('tests/lobby_tests.js');
+  api.addFiles('tests/admin_tests.js', 'server');
+  api.addFiles('tests/auth_tests.js', 'server');
+  api.addFiles('tests/connection_tests.js', 'server');
+  api.addFiles('tests/experiment_tests.js', 'server');
+  api.addFiles('tests/experiment_client_tests.js');
+  api.addFiles('tests/timer_tests.js', 'server');
+  api.addFiles('tests/logging_tests.js');
   // This goes after experiment tests, so we can be sure that assigning works
-  api.addFiles('tests/assigner_tests.coffee', 'server');
+  api.addFiles('tests/assigner_tests.js', 'server');
 
   // This runs after user is logged in, as it requires a userId
-  api.addFiles('tests/helper_tests.coffee');
+  api.addFiles('tests/helper_tests.js');
 });
