@@ -12,7 +12,7 @@ Npm.depends({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom("1.2.0.1");
+  api.versionsFrom("1.4.4.6");
 
   // Client-only deps
   api.use([
@@ -30,7 +30,6 @@ Package.onUse(function (api) {
     'check',
     'deps',
     'ejson',
-    'stylus',
     'jquery',
     'random',
     'underscore',
@@ -93,7 +92,7 @@ Package.onUse(function (api) {
     'client/templates.html',
     'client/login.html',
     'client/client_api.js',
-    'client/ts_client.styl',
+    'client/ts_client.css',
     'client/ts_client.coffee',
     'client/login.coffee',
     'client/logging_client.coffee',
@@ -106,7 +105,7 @@ Package.onUse(function (api) {
 
   // Admin
   api.addFiles([
-    'admin/admin.styl',
+    'admin/admin.css',
     'admin/util.html',
     'admin/util.coffee',
     'admin/clientAdmin.html',
