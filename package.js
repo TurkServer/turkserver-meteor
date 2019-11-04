@@ -64,7 +64,7 @@ Package.onUse(function (api) {
 
   // Shared files
   api.addFiles([
-    'lib/common.js',
+    'lib/shared.js',
     'lib/common.coffee',
     'lib/util.coffee'
   ]);
