@@ -47,12 +47,9 @@ HITs.upsert({HITId: hitId2},
 const withCleanup = TestUtils.getCleanupWrapper({
   before() {
     return Batches.update(authBatchId, {
-      $set: { active: true
-    },
-      $unset: { allowReturns: null
-    }
-    }
-    );
+      $set: { active: true },
+      $unset: { allowReturns: null }
+    });
   },
   after() {
     // Only remove assignments created here to avoid side effects on server-client tests
