@@ -16,18 +16,28 @@ Logs._ensureIndex({
 Logs.before.insert(function(userId, doc) {
   // Never log admin actions
   // TODO this means admin-initiated teardown events aren't recorded
-  if (__guard__(Meteor.users.findOne(userId), x => x.admin)) { return false; }
+  if (__guard__(Meteor.users.findOne(userId), x => x.admin)) {
+    return false;
+  }
   let groupId = Partitioner._currentGroup.get();
 
   if (!groupId) {
-    if (!userId) { throw new Meteor.Error(403, ErrMsg.userIdErr); }
+    if (!userId) {
+      throw new Meteor.Error(403, ErrMsg.userIdErr);
+    }
     groupId = Partitioner.getUserGroup(userId);
-    if (!groupId) { throw new Meteor.Error(403, ErrMsg.groupErr); }
+    if (!groupId) {
+      throw new Meteor.Error(403, ErrMsg.groupErr);
+    }
   }
 
-  if (userId) { doc._userId = userId; }
+  if (userId) {
+    doc._userId = userId;
+  }
   doc._groupId = groupId;
-  if (doc._timestamp == null) { doc._timestamp = new Date(); } // Allow specification of custom timestamps
+  if (doc._timestamp == null) {
+    doc._timestamp = new Date();
+  } // Allow specification of custom timestamps
   return true;
 });
 
@@ -35,12 +45,13 @@ TurkServer.log = (doc, callback) => Logs.insert(doc, callback);
 
 Meteor.methods({
   "ts-log"(doc) {
-    if (!Meteor.userId()) { Meteor._debug("Warning; received log request for anonymous user: ", doc); }
+    if (!Meteor.userId()) {
+      Meteor._debug("Warning; received log request for anonymous user: ", doc);
+    }
     Logs.insert(doc);
   }
 });
 
-
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

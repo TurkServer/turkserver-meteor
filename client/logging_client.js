@@ -6,4 +6,3 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 TurkServer.log = (doc, callback) => Meteor.call("ts-log", doc, callback);
-

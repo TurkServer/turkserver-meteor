@@ -12,25 +12,40 @@ const quals = () => Qualifications.find();
 const hitTypes = () => HITTypes.find();
 
 Template.tsAdminMTurk.helpers({
-  selectedHITType() { return HITTypes.findOne(Session.get("_tsSelectedHITType")); }});
+  selectedHITType() {
+    return HITTypes.findOne(Session.get("_tsSelectedHITType"));
+  }
+});
 
-Template.tsAdminMTurk.events =
-  {"click .-ts-new-hittype"() { return Session.set("_tsSelectedHITType", undefined); }};
+Template.tsAdminMTurk.events = {
+  "click .-ts-new-hittype"() {
+    return Session.set("_tsSelectedHITType", undefined);
+  }
+};
 
-Template.tsAdminHitTypes.events =
-  {"click tr"() { return Session.set("_tsSelectedHITType", this._id); }};
+Template.tsAdminHitTypes.events = {
+  "click tr"() {
+    return Session.set("_tsSelectedHITType", this._id);
+  }
+};
 
 Template.tsAdminHitTypes.helpers({
   hitTypes,
   selectedClass() {
-    if (Session.equals("_tsSelectedHITType", this._id)) { return "info"; } else { return ""; }
+    if (Session.equals("_tsSelectedHITType", this._id)) {
+      return "info";
+    } else {
+      return "";
+    }
   }
 });
 
 Template.tsAdminViewHitType.events = {
   "click .-ts-register-hittype"() {
     return Meteor.call("ts-admin-register-hittype", this._id, function(err, res) {
-      if (err) { return bootbox.alert(err.reason); }
+      if (err) {
+        return bootbox.alert(err.reason);
+      }
     });
   },
   "click .-ts-delete-hittype"() {
@@ -39,9 +54,15 @@ Template.tsAdminViewHitType.events = {
 };
 
 Template.tsAdminViewHitType.helpers({
-  batchName() { return __guard__(Batches.findOne(this.batchId), x => x.name) || "(none)"; },
-  renderReward() { return this.Reward.toFixed(2); },
-  qualName() { return __guard__(Qualifications.findOne(""+this), x => x.name); }
+  batchName() {
+    return __guard__(Batches.findOne(this.batchId), x => x.name) || "(none)";
+  },
+  renderReward() {
+    return this.Reward.toFixed(2);
+  },
+  qualName() {
+    return __guard__(Qualifications.findOne("" + this), x => x.name);
+  }
 });
 
 Template.tsAdminNewHitType.events = {
@@ -65,7 +86,9 @@ Template.tsAdminNewHitType.events = {
 
 Template.tsAdminNewHitType.helpers({
   quals,
-  batches() { return Batches.find(); }
+  batches() {
+    return Batches.find();
+  }
 });
 
 Template.tsAdminQuals.events = {
@@ -92,12 +115,12 @@ Template.tsAdminNewQual.events = {
     const name = tmpl.find("input[name=name]").value;
     let type = tmpl.find("input[name=type]").value;
     const comp = tmpl.find("select[name=comp]").value;
-    const {
-      value
-    } = tmpl.find("input[name=value]");
+    const { value } = tmpl.find("input[name=value]");
     const preview = tmpl.find("input[name=preview]").checked;
 
-    if (!name || !type || !comp) { return; }
+    if (!name || !type || !comp) {
+      return;
+    }
 
     const qual = {
       name,
@@ -108,11 +131,15 @@ Template.tsAdminNewQual.events = {
 
     try {
       switch (comp) {
-        case "Exists": case "DoesNotExist":
-          if (!!value) { throw new Error("No value should be specified for Exists or DoesNotExist"); }
+        case "Exists":
+        case "DoesNotExist":
+          if (!!value) {
+            throw new Error("No value should be specified for Exists or DoesNotExist");
+          }
           break;
 
-        case "In": case "NotIn":
+        case "In":
+        case "NotIn":
           // Parse value as a comma-separated array
           var vals = [];
           type = null;
@@ -121,9 +148,11 @@ Template.tsAdminNewQual.events = {
           // TODO we don't check for the validity of the type here
           for (let v of Array.from(value.split(/[\s,]+/))) {
             var newType, numV;
-            if (!v) { continue; }
+            if (!v) {
+              continue;
+            }
 
-            if (numV = parseInt(v)) {
+            if ((numV = parseInt(v))) {
               vals.push(numV);
               newType = "Integer";
             } else {
@@ -131,11 +160,15 @@ Template.tsAdminNewQual.events = {
               newType = "String";
             }
 
-            if ((type != null) && (newType !== type)) { throw new Error("Must be all Integers or Locales"); }
+            if (type != null && newType !== type) {
+              throw new Error("Must be all Integers or Locales");
+            }
             type = newType;
           }
 
-          if (type == null) { throw new Error("Must specify at least one value for In or NotIn"); }
+          if (type == null) {
+            throw new Error("Must specify at least one value for In or NotIn");
+          }
 
           if (type === "Integer") {
             qual.IntegerValue = vals;
@@ -144,7 +177,8 @@ Template.tsAdminNewQual.events = {
           }
           break;
 
-        default: // Things with values
+        default:
+          // Things with values
           if (!!value) {
             if (parseInt(value)) {
               qual.IntegerValue = value;
@@ -163,13 +197,21 @@ Template.tsAdminNewQual.events = {
 };
 
 Template.tsAdminHits.events = {
-  "click tr"() { return Session.set("_tsSelectedHIT", this._id); },
-  "click .-ts-new-hit"() { return Session.set("_tsSelectedHIT", undefined); }
+  "click tr"() {
+    return Session.set("_tsSelectedHIT", this._id);
+  },
+  "click .-ts-new-hit"() {
+    return Session.set("_tsSelectedHIT", undefined);
+  }
 };
 
 Template.tsAdminHits.helpers({
-  hits() { return HITs.find({}, {sort: {CreationTime: -1}}); },
-  selectedHIT() { return HITs.findOne(Session.get("_tsSelectedHIT")); }
+  hits() {
+    return HITs.find({}, { sort: { CreationTime: -1 } });
+  },
+  selectedHIT() {
+    return HITs.findOne(Session.get("_tsSelectedHIT"));
+  }
 });
 
 Template.tsAdminViewHit.events = {
@@ -184,9 +226,7 @@ Template.tsAdminViewHit.events = {
   "submit .-ts-change-hittype"(e, tmpl) {
     e.preventDefault();
     const htId = tmpl.find("select[name=hittype]").value;
-    const {
-      HITTypeId
-    } = HITTypes.findOne(htId);
+    const { HITTypeId } = HITTypes.findOne(htId);
     if (!HITTypeId) {
       bootbox.alert("Register that HIT Type first");
       return;
@@ -219,7 +259,8 @@ Template.tsAdminViewHit.events = {
 };
 
 Template.tsAdminViewHit.helpers({
-  hitTypes});
+  hitTypes
+});
 
 Template.tsAdminNewHit.events = {
   "submit form"(e, tmpl) {
@@ -233,8 +274,8 @@ Template.tsAdminNewHit.events = {
     }
 
     const params = {
-      MaxAssignments:parseInt(tmpl.find("input[name=maxAssts]").value),
-      LifetimeInSeconds:parseInt(tmpl.find("input[name=lifetime]").value)
+      MaxAssignments: parseInt(tmpl.find("input[name=maxAssts]").value),
+      LifetimeInSeconds: parseInt(tmpl.find("input[name=lifetime]").value)
     };
 
     return TurkServer.callWithModal("ts-admin-create-hit", hitTypeId, params);
@@ -242,7 +283,8 @@ Template.tsAdminNewHit.events = {
 };
 
 Template.tsAdminNewHit.helpers({
-  hitTypes});
+  hitTypes
+});
 
 Template.tsAdminWorkers.helpers({
   settings: {
@@ -266,26 +308,32 @@ Template.tsAdminWorkers.helpers({
     ]
   },
 
-  workerData() { return Workers.findOne(this.workerId); },
+  workerData() {
+    return Workers.findOne(this.workerId);
+  },
 
   workerActiveAssts() {
-    return Assignments.find({
-      workerId: this.workerId,
-      status: { $ne: "completed" }
-    }, {
-      sort: { acceptTime: -1
-    }
-    });
+    return Assignments.find(
+      {
+        workerId: this.workerId,
+        status: { $ne: "completed" }
+      },
+      {
+        sort: { acceptTime: -1 }
+      }
+    );
   },
 
   workerCompletedAssts() {
-    return Assignments.find({
-      workerId: this.workerId,
-      status: "completed"
-    }, {
-      sort: { submitTime: -1
-    }
-    });
+    return Assignments.find(
+      {
+        workerId: this.workerId,
+        status: "completed"
+      },
+      {
+        sort: { submitTime: -1 }
+      }
+    );
   },
 
   numCompletedAssts() {
@@ -296,10 +344,11 @@ Template.tsAdminWorkers.helpers({
   }
 });
 
-
 Template.tsAdminWorkers.events({
   "autocompleteselect input"(e, t, user) {
-    if (user.workerId != null) { return Router.go("tsWorkers", {workerId: user.workerId}); }
+    if (user.workerId != null) {
+      return Router.go("tsWorkers", { workerId: user.workerId });
+    }
   }
 });
 
@@ -312,35 +361,38 @@ Template.tsAdminPanel.rendered = function() {
     bottom: 30
   };
 
-  const x = d3.scale.linear()
-    .range([0, $svg.width() - margin.left]);
+  const x = d3.scale.linear().range([0, $svg.width() - margin.left]);
 
-  const y = d3.scale.ordinal()
+  const y = d3.scale
+    .ordinal()
     // Data was originally stored in GMT -5 so just display that
-    .domain(Array.from(TurkServer.Util._defaultTimeSlots()).map((m) => m.zone(300).format("HH ZZ")))
+    .domain(Array.from(TurkServer.Util._defaultTimeSlots()).map(m => m.zone(300).format("HH ZZ")))
     .rangeBands([0, $svg.height() - margin.bottom], 0.2);
 
-  const xAxis = d3.svg.axis()
+  const xAxis = d3.svg
+    .axis()
     .scale(x)
     .orient("bottom");
 
-  const yAxis = d3.svg.axis()
+  const yAxis = d3.svg
+    .axis()
     .scale(y)
     .orient("left");
 
   // Draw axes
-  const chart = svg.append("g")
-    .attr("transform", "translate(" + margin.left + ",0)");
+  const chart = svg.append("g").attr("transform", "translate(" + margin.left + ",0)");
 
-  chart.append("g")
+  chart
+    .append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + ($svg.height() - margin.bottom) + ")")
     .call(xAxis);
 
-  chart.append("g")
+  chart
+    .append("g")
     .attr("class", "y axis")
     .call(yAxis)
-  .append("text")
+    .append("text")
     .attr("transform", "rotate(-90)")
     .attr("y", -80)
     .attr("dy", ".71em")
@@ -351,7 +403,9 @@ Template.tsAdminPanel.rendered = function() {
 
   let newData = false;
   const redraw = function() {
-    if (!newData) { return; }
+    if (!newData) {
+      return;
+    }
     newData = false;
 
     const entries = d3.entries(data);
@@ -360,38 +414,45 @@ Template.tsAdminPanel.rendered = function() {
     x.domain([0, d3.max(entries, d => d.value)]);
     chart.select("g.x.axis").call(xAxis);
 
-    const bars = chart.selectAll(".bar")
-      .data(entries, d => d.key);
+    const bars = chart.selectAll(".bar").data(entries, d => d.key);
 
     // Add any new bars in the enter selection
-    bars.enter()
+    bars
+      .enter()
       .append("rect")
       .attr("class", "bar")
       .attr("y", d => y(d.key))
       .attr("height", y.rangeBand());
 
     // Update widths in the update selection, including entered nodes
-    return bars.attr("data-value", d => d.value)
+    return bars
+      .attr("data-value", d => d.value)
       .transition()
       .attr("width", d => x(d.value));
   };
 
   // Aggregate the worker times into the current timezone
-  return this.handle = Workers.find().observeChanges({
+  return (this.handle = Workers.find().observeChanges({
     added(id, fields) {
       // Only use data from workers who agreed to be contacted
-      if (!fields.contact || (fields.available == null)) { return; }
+      if (!fields.contact || fields.available == null) {
+        return;
+      }
       for (let time of Array.from(fields.available.times)) {
         // normalize into buckets
-        if (!time) { continue; } // Ignore invalid (empty) entries
-        if (data[time] == null) { data[time] = 0; }
+        if (!time) {
+          continue;
+        } // Ignore invalid (empty) entries
+        if (data[time] == null) {
+          data[time] = 0;
+        }
         data[time] += 1;
       }
 
       newData = true;
       return Meteor.defer(redraw);
     }
-  });
+  }));
 };
 
 Template.tsAdminPanel.destroyed = function() {
@@ -399,30 +460,41 @@ Template.tsAdminPanel.destroyed = function() {
 };
 
 Template.tsAdminPanel.helpers({
-  workerContact() { return Workers.find({contact: true}).count(); },
-  workerTotal() { return Workers.find().count(); }
+  workerContact() {
+    return Workers.find({ contact: true }).count();
+  },
+  workerTotal() {
+    return Workers.find().count();
+  }
 });
 
 const recipientsHelper = function(recipients) {
-    if (recipients.length === 1) {
-      return recipients;
-    } else {
-      return recipients.length;
-    }
-  };
+  if (recipients.length === 1) {
+    return recipients;
+  } else {
+    return recipients.length;
+  }
+};
 
 Template.tsAdminEmail.helpers({
-  messages() { return WorkerEmails.find({}, {sort: {sentTime: -1}}); },
+  messages() {
+    return WorkerEmails.find({}, { sort: { sentTime: -1 } });
+  },
   recipientsHelper
 });
 
 Template.tsAdminEmail.events({
-  "click tr"() { return Session.set("_tsSelectedEmailId", this._id); }});
+  "click tr"() {
+    return Session.set("_tsSelectedEmailId", this._id);
+  }
+});
 
 Template.tsAdminEmailMessage.helpers({
   selectedMessage() {
     const emailId = Session.get("_tsSelectedEmailId");
-    if (emailId != null) { return WorkerEmails.findOne(emailId); }
+    if (emailId != null) {
+      return WorkerEmails.findOne(emailId);
+    }
   },
   recipientsHelper
 });
@@ -447,10 +519,13 @@ Template.tsAdminEmailMessage.events({
 
 Template.tsAdminNewEmail.helpers({
   messages() {
-    return WorkerEmails.find({}, {
-      fields: {subject: 1},
-      sort: {sentTime: -1}
-    });
+    return WorkerEmails.find(
+      {},
+      {
+        fields: { subject: 1 },
+        sort: { sentTime: -1 }
+      }
+    );
   }
 });
 
@@ -472,17 +547,24 @@ Template.tsAdminNewEmail.events({
       }
     }
 
-    return TurkServer.callWithModal("ts-admin-create-message", subject, message, copyFromId, res => // Display the new message
-    Session.set("_tsSelectedEmailId", res));
+    return TurkServer.callWithModal("ts-admin-create-message", subject, message, copyFromId, (
+      res // Display the new message
+    ) => Session.set("_tsSelectedEmailId", res));
   }
 });
 
 Template.tsAdminAssignmentMaintenance.events({
   "click .-ts-cancel-assignments"() {
-    const message = "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? ";
+    const message =
+      "This will cancel all assignments of users are disconnected. You should only do this if these users will definitely not return to their work. Continue? ";
     return bootbox.confirm(message, function(res) {
-      if (!res) { return; }
-      return TurkServer.callWithModal("ts-admin-cancel-assignments", Session.get("_tsViewingBatchId"));
+      if (!res) {
+        return;
+      }
+      return TurkServer.callWithModal(
+        "ts-admin-cancel-assignments",
+        Session.get("_tsViewingBatchId")
+      );
     });
   }
 });
@@ -492,8 +574,9 @@ const numAssignments = () => Assignments.find().count();
 Template.tsAdminActiveAssignments.helpers({
   numAssignments,
   activeAssts() {
-    return Assignments.find({}, { sort: {acceptTime: -1} });
-  }});
+    return Assignments.find({}, { sort: { acceptTime: -1 } });
+  }
+});
 
 const checkBatch = function(batchId) {
   if (batchId == null) {
@@ -506,13 +589,17 @@ const checkBatch = function(batchId) {
 Template.tsAdminCompletedMaintenance.events({
   "click .-ts-refresh-assignments"() {
     const batchId = Session.get("_tsViewingBatchId");
-    if (!checkBatch(batchId)) { return; }
+    if (!checkBatch(batchId)) {
+      return;
+    }
     return TurkServer.callWithModal("ts-admin-refresh-assignments", batchId);
   },
 
   "click .-ts-approve-all"() {
     const batchId = Session.get("_tsViewingBatchId");
-    if (!checkBatch(batchId)) { return; }
+    if (!checkBatch(batchId)) {
+      return;
+    }
 
     return TurkServer.callWithModal("ts-admin-count-submitted", batchId, function(count) {
       if (count === 0) {
@@ -520,16 +607,23 @@ Template.tsAdminCompletedMaintenance.events({
         return;
       }
 
-      return bootbox.prompt(`${count} assignments will be approved. Enter a (possibly blank) message to send to each worker.`, function(res) {
-        if (res == null) { return; }
-        return TurkServer.callWithModal("ts-admin-approve-all", batchId, res);
-      });
+      return bootbox.prompt(
+        `${count} assignments will be approved. Enter a (possibly blank) message to send to each worker.`,
+        function(res) {
+          if (res == null) {
+            return;
+          }
+          return TurkServer.callWithModal("ts-admin-approve-all", batchId, res);
+        }
+      );
     });
   },
 
   "click .-ts-pay-bonuses"() {
     const batchId = Session.get("_tsViewingBatchId");
-    if (!checkBatch(batchId)) { return; }
+    if (!checkBatch(batchId)) {
+      return;
+    }
 
     return TurkServer.callWithModal("ts-admin-count-unpaid-bonuses", batchId, function(data) {
       if (data.numPaid === 0) {
@@ -537,10 +631,15 @@ Template.tsAdminCompletedMaintenance.events({
         return;
       }
 
-      return bootbox.prompt(`${data.numPaid} workers will be paid, for a total of $${data.amt}. Enter a message to send to each worker.`, function(res) {
-        if (!res) { return; }
-        return TurkServer.callWithModal("ts-admin-pay-bonuses", batchId, res);
-      });
+      return bootbox.prompt(
+        `${data.numPaid} workers will be paid, for a total of $${data.amt}. Enter a message to send to each worker.`,
+        function(res) {
+          if (!res) {
+            return;
+          }
+          return TurkServer.callWithModal("ts-admin-pay-bonuses", batchId, res);
+        }
+      );
     });
   }
 });
@@ -550,20 +649,21 @@ Template.tsAdminCompletedAssignments.events({
     e.preventDefault();
 
     return Router.go("tsCompletedAssignments", {
-      days: parseInt(t.find("input[name=filter_days]").value) ||
+      days:
+        parseInt(t.find("input[name=filter_days]").value) ||
         TurkServer.adminSettings.defaultDaysThreshold,
-      limit: parseInt(t.find("input[name=filter_limit]").value) ||
-        TurkServer.adminSettings.defaultLimit
-    }
-    );
+      limit:
+        parseInt(t.find("input[name=filter_limit]").value) || TurkServer.adminSettings.defaultLimit
+    });
   }
 });
 
 Template.tsAdminCompletedAssignments.helpers({
   numAssignments,
   completedAssts() {
-    return Assignments.find({}, { sort: {submitTime: -1} });
-  }});
+    return Assignments.find({}, { sort: { submitTime: -1 } });
+  }
+});
 
 Template.tsAdminCompletedAssignmentsTable.events({
   "click .ts-admin-refresh-assignment"() {
@@ -572,15 +672,23 @@ Template.tsAdminCompletedAssignmentsTable.events({
 
   "click .ts-admin-approve-assignment"() {
     const _asstId = this._id;
-    return bootbox.prompt("Approve assignment: enter an optional message to send to the worker.", res => TurkServer.callWithModal("ts-admin-approve-assignment", _asstId, res));
+    return bootbox.prompt(
+      "Approve assignment: enter an optional message to send to the worker.",
+      res => TurkServer.callWithModal("ts-admin-approve-assignment", _asstId, res)
+    );
   },
 
   "click .ts-admin-reject-assignment"() {
     const _asstId = this._id;
-    return bootbox.prompt("1 worker's assignment will be rejected. Enter a message to send to the worker.", function(res) {
-      if (!res) { return; }
-      return TurkServer.callWithModal("ts-admin-reject-assignment", _asstId, res);
-    });
+    return bootbox.prompt(
+      "1 worker's assignment will be rejected. Enter a message to send to the worker.",
+      function(res) {
+        if (!res) {
+          return;
+        }
+        return TurkServer.callWithModal("ts-admin-reject-assignment", _asstId, res);
+      }
+    );
   },
 
   "click .ts-admin-unset-bonus"() {
@@ -595,10 +703,14 @@ Template.tsAdminCompletedAssignmentsTable.events({
 Template.tsAdminCompletedAssignmentRow.helpers({
   labelStatus() {
     switch (this.mturkStatus) {
-      case "Submitted": return "label-warning";
-      case "Approved": return "label-primary";
-      case "Rejected": return "label-danger";
-      default: return "label-default";
+      case "Submitted":
+        return "label-warning";
+      case "Approved":
+        return "label-primary";
+      case "Rejected":
+        return "label-danger";
+      default:
+        return "label-default";
     }
   },
   submitted() {
@@ -607,5 +719,5 @@ Template.tsAdminCompletedAssignmentRow.helpers({
 });
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

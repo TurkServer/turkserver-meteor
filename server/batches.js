@@ -20,28 +20,38 @@
       if ((batch = _batches[batchId]) != null) {
         return batch;
       } else {
-        if (Batches.findOne(batchId) == null) { throw new Error("Batch does not exist"); }
+        if (Batches.findOne(batchId) == null) {
+          throw new Error("Batch does not exist");
+        }
         // Return this if another Fiber created it while we yielded
-        return _batches[batchId] != null ? _batches[batchId] : (_batches[batchId] = new Batch(batchId));
+        return _batches[batchId] != null
+          ? _batches[batchId]
+          : (_batches[batchId] = new Batch(batchId));
       }
     }
 
     static getBatchByName(batchName) {
       check(batchName, String);
-      const batch = Batches.findOne({name: batchName});
-      if (!batch) { throw new Error("Batch does not exist"); }
+      const batch = Batches.findOne({ name: batchName });
+      if (!batch) {
+        throw new Error("Batch does not exist");
+      }
       return this.getBatch(batch._id);
     }
 
     static currentBatch() {
       let userId;
-      if ((userId = Meteor.userId()) == null) { return; }
+      if ((userId = Meteor.userId()) == null) {
+        return;
+      }
       return TurkServer.Assignment.getCurrentUserAssignment(userId).getBatch();
     }
 
     constructor(batchId) {
       this.batchId = batchId;
-      if (_batches[this.batchId] != null) { throw new Error("Batch already exists; use getBatch"); }
+      if (_batches[this.batchId] != null) {
+        throw new Error("Batch already exists; use getBatch");
+      }
       this.lobby = new TurkServer.Lobby(this.batchId);
     }
 
@@ -58,16 +68,23 @@
       // need to go through getInstance.
       const instance = TurkServer.Instance.getInstance(groupId);
 
-      instance.bindOperation(() => TurkServer.log({
-        _meta: "created"}));
+      instance.bindOperation(() =>
+        TurkServer.log({
+          _meta: "created"
+        })
+      );
 
       return instance;
     }
 
-    getTreatments() { return Batches.findOne(this.batchId).treatments; }
+    getTreatments() {
+      return Batches.findOne(this.batchId).treatments;
+    }
 
     setAssigner(assigner) {
-      if (this.assigner != null) { throw new Error("Assigner already set for this batch"); }
+      if (this.assigner != null) {
+        throw new Error("Assigner already set for this batch");
+      }
       this.assigner = assigner;
       return assigner.initialize(this);
     }
@@ -77,11 +94,15 @@
 })();
 
 TurkServer.ensureBatchExists = function(props) {
-  if (props.name == null) { throw new Error("Batch must have a name"); }
-  return Batches.upsert({name: props.name}, props);
+  if (props.name == null) {
+    throw new Error("Batch must have a name");
+  }
+  return Batches.upsert({ name: props.name }, props);
 };
 
 TurkServer.ensureTreatmentExists = function(props) {
-  if (props.name == null) { throw new Error("Treatment must have a name"); }
-  return Treatments.upsert({name: props.name}, props);
+  if (props.name == null) {
+    throw new Error("Treatment must have a name");
+  }
+  return Treatments.upsert({ name: props.name }, props);
 };

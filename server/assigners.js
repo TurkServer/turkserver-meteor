@@ -7,7 +7,6 @@
  * @instancename assigner
  */
 class Assigner {
-
   /**
    * @summary Initialize this assigner for a particular batch. This should set up the assigner's internal state, including reconstructing state after a server restart.
    * @param {String} batch The {@link TurkServer.Batch} object to initialize this assigner on.
@@ -30,7 +29,7 @@ class Assigner {
    */
   assignToNewInstance(assts, treatments) {
     this.lobby.pluckUsers(_.pluck(assts, "userId"));
-    
+
     const instance = this.batch.createInstance(treatments);
     for (let asst of assts) {
       instance.addAssignment(asst);
@@ -43,9 +42,7 @@ class Assigner {
    * @summary Function that is called when a user enters the lobby, either from the initial entry or after returning from a world.
    * @param asst The user assignment {@link TurkServer.Assignment} (session) that just entered the lobby.
    */
-  userJoined(asst) {
-
-  }
+  userJoined(asst) {}
 
   /**
    * @summary Function that is called when the status of a user in the lobby changes (such as the user changing from not ready to ready.)
@@ -53,17 +50,13 @@ class Assigner {
    * changed status.
    * @param newStatus
    */
-  userStatusChanged(asst, newStatus) {
-
-  }
+  userStatusChanged(asst, newStatus) {}
 
   /**
    * @summary Function that is called when a user disconnects from the lobby. This is only triggered by users losing connectivity, not from being assigned to a new instance).
    * @param asst The user assignment {@link TurkServer.Assignment}  that departed.
    */
-  userLeft(asst) {
-
-  }
+  userLeft(asst) {}
 }
 
 TurkServer.Assigner = Assigner;
@@ -83,13 +76,12 @@ TurkServer.Assigners = {};
  * @alias TestAssigner
  */
 TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
-
   initialize(batch) {
     super.initialize(batch);
-    const exp = Experiments.findOne({batchId: this.batch.batchId});
+    const exp = Experiments.findOne({ batchId: this.batch.batchId });
 
     // Take any experiment from this batch, creating it if it doesn't exist
-    if ( exp != null) {
+    if (exp != null) {
       this.instance = TurkServer.Instance.getInstance(exp._id);
     } else {
       // TODO: refactor once batch treatments are separated from instance
@@ -108,7 +100,6 @@ TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
       this.lobby.pluckUsers([asst.userId]);
     }
   }
-
 };
 
 /**
@@ -119,7 +110,6 @@ TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
  * @alias SimpleAssigner
  */
 TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
-
   userJoined(asst) {
     if (asst.getInstances().length > 0) {
       this.lobby.pluckUsers([asst.userId]);
@@ -129,7 +119,6 @@ TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
       this.assignToNewInstance([asst], treatments);
     }
   }
-
 };
 
 /************************************************************************
@@ -169,7 +158,7 @@ TurkServer.Assigners.RoundRobinAssigner = class extends TurkServer.Assigner {
     this.instanceIds = instanceIds;
 
     // Create instances if they don't exist
-    for( let instanceId of this.instanceIds ) {
+    for (let instanceId of this.instanceIds) {
       let instance;
 
       try {
@@ -215,5 +204,4 @@ TurkServer.Assigners.SequentialAssigner = class extends TurkServer.Assigner {
     this.lobby.pluckUsers([asst.userId]);
     this.instance.addAssignment(asst);
   }
-
 };

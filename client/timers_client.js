@@ -24,15 +24,22 @@
     static initClass() {
       _currentAssignmentInstance = function() {
         let group;
-        if (TurkServer.isAdmin()) { return; }
-        if ((group = TurkServer.group()) == null) { return; }
-        return _.find(__guard__(Assignments.findOne(), x => x.instances), inst => inst.id === group);
+        if (TurkServer.isAdmin()) {
+          return;
+        }
+        if ((group = TurkServer.group()) == null) {
+          return;
+        }
+        return _.find(
+          __guard__(Assignments.findOne(), x => x.instances),
+          inst => inst.id === group
+        );
       };
-  
+
       _joinedTime = (instance, serverTime) => Math.max(0, serverTime - instance.joinTime);
-  
+
       _idleTime = function(instance, serverTime) {
-        let idleMillis = (instance.idleTime || 0);
+        let idleMillis = instance.idleTime || 0;
         // If we're idle, add the time since we went idle
         // TODO add a test for this part
         if (instance.lastIdle != null) {
@@ -40,7 +47,7 @@
         }
         return idleMillis;
       };
-  
+
       _disconnectedTime = function(instance, serverTime) {
         let discMillis = instance.disconnectedTime || 0;
         if (instance.lastDisconnect != null) {
@@ -53,8 +60,12 @@
     // Milliseconds elapsed since experiment start
     static elapsedTime() {
       let exp;
-      if ((exp = Experiments.findOne()) == null) { return; }
-      if (exp.startTime == null) { return; }
+      if ((exp = Experiments.findOne()) == null) {
+        return;
+      }
+      if (exp.startTime == null) {
+        return;
+      }
       return Math.max(0, TimeSync.serverTime() - exp.startTime);
     }
 
@@ -63,15 +74,21 @@
     // Milliseconds elapsed since this user joined the experiment instance
     // This is slightly different than the above
     static joinedTime(instance) {
-      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) {
+        return;
+      }
       const serverTime = instance.leaveTime || TimeSync.serverTime();
       return _joinedTime(instance, serverTime);
     }
 
     static remainingTime() {
       let exp;
-      if ((exp = Experiments.findOne()) == null) { return; }
-      if (exp.endTime == null) { return; }
+      if ((exp = Experiments.findOne()) == null) {
+        return;
+      }
+      if (exp.endTime == null) {
+        return;
+      }
       return Math.max(0, exp.endTime - TimeSync.serverTime());
     }
 
@@ -81,54 +98,78 @@
 
     // Milliseconds this user has been idle in the experiment
     static idleTime(instance) {
-      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) {
+        return;
+      }
       const serverTime = instance.leaveTime || TimeSync.serverTime();
       return _idleTime(instance, serverTime);
     }
 
     // Milliseconds this user has been disconnected in the experiment
     static disconnectedTime(instance) {
-      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) {
+        return;
+      }
       const serverTime = instance.leaveTime || TimeSync.serverTime();
       return _disconnectedTime(instance, serverTime);
     }
 
     static activeTime(instance) {
-      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) { return; }
+      if ((instance != null ? instance : (instance = _currentAssignmentInstance())) == null) {
+        return;
+      }
       // Compute this using helper functions to avoid thrashing
       const serverTime = instance.leaveTime || TimeSync.serverTime();
-      return _joinedTime(instance, serverTime) - _idleTime(instance, serverTime) - _disconnectedTime(instance, serverTime);
+      return (
+        _joinedTime(instance, serverTime) -
+        _idleTime(instance, serverTime) -
+        _disconnectedTime(instance, serverTime)
+      );
     }
 
     // Milliseconds elapsed since round start
     static roundElapsedTime() {
       let round;
-      if ((round = TurkServer.currentRound()) == null) { return; }
-      if (round.startTime == null) { return; }
+      if ((round = TurkServer.currentRound()) == null) {
+        return;
+      }
+      if (round.startTime == null) {
+        return;
+      }
       return Math.max(0, TimeSync.serverTime() - round.startTime);
     }
 
     // Milliseconds until end of round
     static roundRemainingTime() {
       let round;
-      if ((round = TurkServer.currentRound()) == null) { return; }
-      if (round.endTime == null) { return; }
+      if ((round = TurkServer.currentRound()) == null) {
+        return;
+      }
+      if (round.endTime == null) {
+        return;
+      }
       return Math.max(0, round.endTime - TimeSync.serverTime());
     }
 
     // Milliseconds until start of next round, if any
     static breakRemainingTime() {
       let nextRound, round;
-      if ((round = TurkServer.currentRound()) == null) { return; }
+      if ((round = TurkServer.currentRound()) == null) {
+        return;
+      }
       const now = Date.now();
-      if ((round.startTime <= now) && (round.endTime >= now)) {
+      if (round.startTime <= now && round.endTime >= now) {
         // if we are not at a break, return 0
         return 0;
       }
 
       // if we are at a break, we already set next round to be active.
-      if ((nextRound = RoundTimers.findOne({index: round.index + 1})) == null) { return; }
-      if (nextRound.startTime == null) { return; }
+      if ((nextRound = RoundTimers.findOne({ index: round.index + 1 })) == null) {
+        return;
+      }
+      if (nextRound.startTime == null) {
+        return;
+      }
       return Math.max(0, nextRound.startTime - TimeSync.serverTime());
     }
   });
@@ -140,14 +181,15 @@
 for (var key of Object.keys(TurkServer.Timers || {})) {
   // camelCase the helper name
   var helperName = "ts" + key.charAt(0).toUpperCase() + key.slice(1);
-  (function() { // Bind the function to the current value inside the closure
+  (function() {
+    // Bind the function to the current value inside the closure
     const func = TurkServer.Timers[key];
     return UI.registerHelper(helperName, function() {
       return TurkServer.Util.formatMillis(func.apply(this, arguments));
-  });
+    });
   })();
 }
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }
