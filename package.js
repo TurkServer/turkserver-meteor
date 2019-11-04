@@ -136,6 +136,7 @@ Package.onTest(function(api) {
     "accounts-password",
     "check",
     "deps",
+    "ecmascript",
     "mongo",
     "random",
     "ui",
