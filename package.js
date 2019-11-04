@@ -39,6 +39,9 @@ Package.onUse(function(api) {
 
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
+  // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
+  // adornis:typescript from [1.4, 1.8)
+  api.use("barbatus:typescript");
 
   api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.11");

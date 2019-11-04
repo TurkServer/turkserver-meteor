@@ -1,0 +1,6 @@
+{
+  "files.exclude": {
+    "**/.npm": true, // this excludes all folders from the explore tree
+    "packages": true // this excludes the folder only from the root
+  }
+}
