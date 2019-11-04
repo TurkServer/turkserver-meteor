@@ -7,8 +7,9 @@ before_install:
   - "curl -L https://git.io/ejPSng | /bin/sh"
 
 # Later stuff for Meteor 1.4: see https://github.com/arunoda/travis-ci-meteor-packages/pull/45
+# Make sure this matches what is in package.json.
 env:
-  - CXX=g++-4.8 METEOR_RELEASE=1.4.4.3
+  - CXX=g++-4.8 METEOR_RELEASE=1.4.4.6
 addons:
   apt:
     sources:
