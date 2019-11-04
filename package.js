@@ -6,7 +6,7 @@ Package.describe({
 });
 
 Npm.depends({
-  "mturk-api": "1.3.2",
+  "aws-sdk": "2.562.0",
   jspath: "0.3.2",
   deepmerge: "0.2.7" // For merging config parameters
 });
