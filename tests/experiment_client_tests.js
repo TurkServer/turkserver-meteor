@@ -9,7 +9,6 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 if (Meteor.isServer) {
-
   // Set up a treatment for testing
   TurkServer.ensureTreatmentExists({
     name: "expWorldTreatment",
@@ -23,7 +22,9 @@ if (Meteor.isServer) {
 
   // Some functions to make sure things are set up for the client login
   Accounts.validateLoginAttempt(function(info) {
-    if (!info.allowed) { return; } // Don't handle if login is being rejected
+    if (!info.allowed) {
+      return;
+    } // Don't handle if login is being rejected
     const userId = info.user._id;
 
     Partitioner.clearUserGroup(userId); // Remove any previous user group
@@ -38,14 +39,13 @@ if (Meteor.isServer) {
 
     // Reset assignment for this worker
     Assignments.upsert(asst.asstId, {
-      $unset: { instances: null,
-      $unset: { treatments: null
-    }
-    }
-    }
-    );
+      $unset: { instances: null, $unset: { treatments: null } }
+    });
 
-    asst.getBatch().createInstance(["expWorldTreatment"]).addAssignment(asst);
+    asst
+      .getBatch()
+      .createInstance(["expWorldTreatment"])
+      .addAssignment(asst);
 
     asst.addTreatment("expUserTreatment");
 
@@ -55,11 +55,11 @@ if (Meteor.isServer) {
   Meteor.methods({
     getAssignmentData() {
       const userId = Meteor.userId();
-      if (!userId) { throw new Meteor.Error(500, "Not logged in"); }
-      const {
-        workerId
-      } = Meteor.users.findOne(userId);
-      return Assignments.findOne({workerId, status: "assigned"});
+      if (!userId) {
+        throw new Meteor.Error(500, "Not logged in");
+      }
+      const { workerId } = Meteor.users.findOne(userId);
+      return Assignments.findOne({ workerId, status: "assigned" });
     },
 
     setAssignmentPayment(amount) {
@@ -72,7 +72,7 @@ if (Meteor.isServer) {
         status: "assigned"
       };
 
-      if (!(Assignments.update(selector, {$set: {instances: arr}}) > 0)) {
+      if (!(Assignments.update(selector, { $set: { instances: arr } }) > 0)) {
         throw new Meteor.Error(400, "Could not find assignment to update");
       }
     },
@@ -92,23 +92,34 @@ if (Meteor.isClient) {
   const big_tol = 500; // max range we tolerate in a round trip to the server (async method)
 
   const expectedTreatment = {
-    fooProperty: "bar",  // world
-    foo2: "baz"         // user
+    fooProperty: "bar", // world
+    foo2: "baz" // user
   };
 
-  const checkTreatments = (test, obj) => (() => {
-    const result = [];
-    for (let k in expectedTreatment) {
-      const v = expectedTreatment[k];
-      result.push(test.equal(obj[k], v, `for key ${k} actual value ${obj[k]} doesn't match expected value ${v}`));
-    }
-    return result;
-  })();
+  const checkTreatments = (test, obj) =>
+    (() => {
+      const result = [];
+      for (let k in expectedTreatment) {
+        const v = expectedTreatment[k];
+        result.push(
+          test.equal(
+            obj[k],
+            v,
+            `for key ${k} actual value ${obj[k]} doesn't match expected value ${v}`
+          )
+        );
+      }
+      return result;
+    })();
 
-  Tinytest.addAsync("experiment - client - login and creation of assignment metadata", (test, next) => InsecureLogin.ready(function() {
-    test.isTrue(Meteor.userId());
-    return next();
-  }));
+  Tinytest.addAsync(
+    "experiment - client - login and creation of assignment metadata",
+    (test, next) =>
+      InsecureLogin.ready(function() {
+        test.isTrue(Meteor.userId());
+        return next();
+      })
+  );
 
   Tinytest.addAsync("experiment - client - IP address saved", function(test, next) {
     let returned = false;
@@ -118,7 +129,12 @@ if (Meteor.isClient) {
       console.log("Got assignment data", JSON.stringify(res));
 
       test.isTrue(__guard__(res != null ? res.ipAddr : undefined, x => x[0]));
-      if (Package['test-in-console'] == null) { test.equal(__guard__(res != null ? res.userAgent : undefined, x1 => x1[0]), navigator.userAgent); }
+      if (Package["test-in-console"] == null) {
+        test.equal(
+          __guard__(res != null ? res.userAgent : undefined, x1 => x1[0]),
+          navigator.userAgent
+        );
+      }
 
       return next();
     });
@@ -128,10 +144,13 @@ if (Meteor.isClient) {
       return next();
     };
 
-    return simplePoll((() => returned), (function() {}), fail, 2000);
+    return simplePoll(() => returned, function() {}, fail, 2000);
   });
 
-  Tinytest.addAsync("experiment - client - received experiment and treatment", function(test, next) {
+  Tinytest.addAsync("experiment - client - received experiment and treatment", function(
+    test,
+    next
+  ) {
     let treatment = null;
 
     const verify = function() {
@@ -164,20 +183,33 @@ if (Meteor.isClient) {
     };
 
     // Poll until both treatments arrives
-    return simplePoll((function() {
-      treatment = TurkServer.treatment();
-      if (treatment.treatments.length) { return true; }
-    }), verify, fail, 2000);
+    return simplePoll(
+      function() {
+        treatment = TurkServer.treatment();
+        if (treatment.treatments.length) {
+          return true;
+        }
+      },
+      verify,
+      fail,
+      2000
+    );
   });
 
-  Tinytest.addAsync("experiment - assignment - test treatments on server", (test, next) => // Even though this is a "client" test, it is testing a server function
-  // because assignment treatments are different on the client and server
-  Meteor.call("getServerTreatment", function(err, res) {
-    if (err != null) { test.fail(); }
+  Tinytest.addAsync("experiment - assignment - test treatments on server", (
+    test,
+    next // Even though this is a "client" test, it is testing a server function
+  ) =>
+    // because assignment treatments are different on the client and server
+    Meteor.call("getServerTreatment", function(err, res) {
+      if (err != null) {
+        test.fail();
+      }
 
-    checkTreatments(test, res);
-    return next();
-  }));
+      checkTreatments(test, res);
+      return next();
+    })
+  );
 
   Tinytest.addAsync("experiment - client - current payment variable", function(test, next) {
     const amount = 0.42;
@@ -188,7 +220,10 @@ if (Meteor.isClient) {
     });
   });
 
-  Tinytest.addAsync("experiment - assignment - assignment metadata and local time vars", function(test, next) {
+  Tinytest.addAsync("experiment - assignment - assignment metadata and local time vars", function(
+    test,
+    next
+  ) {
     let asstData = null;
 
     const verify = function() {
@@ -212,10 +247,17 @@ if (Meteor.isClient) {
     };
 
     // Poll until treatment data arrives
-    return simplePoll((function() {
-      asstData = Assignments.findOne();
-      if (asstData != null) { return true; }
-    }), verify, fail, 2000);
+    return simplePoll(
+      function() {
+        asstData = Assignments.findOne();
+        if (asstData != null) {
+          return true;
+        }
+      },
+      verify,
+      fail,
+      2000
+    );
   });
 
   Tinytest.addAsync("experiment - assignment - no time fields", function(test, next) {
@@ -269,8 +311,8 @@ if (Meteor.isClient) {
       const activeTime = TurkServer.Timers.activeTime();
 
       test.isTrue(joinedTime >= 3000);
-      test.isTrue(joinedTime < (3000 + big_tol));
-      test.isTrue(Math.abs((activeTime + 3000) - joinedTime) < tol);
+      test.isTrue(joinedTime < 3000 + big_tol);
+      test.isTrue(Math.abs(activeTime + 3000 - joinedTime) < tol);
       test.isTrue(activeTime >= 0);
 
       test.equal(UI._globalHelpers.tsIdleTime(), "0:00:01");
@@ -297,49 +339,52 @@ if (Meteor.isClient) {
     Next test edits instance fields, so client APIs may break state
   */
 
-  Tinytest.addAsync(`experiment - instance - client selects correct instance of \
-multiple`, function(test, next) {
-    const fields = [
-      {
-        id: Random.id(),
-        joinTime: new Date(TimeSync.serverTime() - (3600*1000)),
-        idleTime: 3000,
-        disconnectedTime: 5000
-      },
-      {
-        id: TurkServer.group(),
-        joinTime: new Date(TimeSync.serverTime() - 5000),
-        idleTime: 1000,
-        disconnectedTime: 2000
-      }
-    ];
+  Tinytest.addAsync(
+    `experiment - instance - client selects correct instance of \
+multiple`,
+    function(test, next) {
+      const fields = [
+        {
+          id: Random.id(),
+          joinTime: new Date(TimeSync.serverTime() - 3600 * 1000),
+          idleTime: 3000,
+          disconnectedTime: 5000
+        },
+        {
+          id: TurkServer.group(),
+          joinTime: new Date(TimeSync.serverTime() - 5000),
+          idleTime: 1000,
+          disconnectedTime: 2000
+        }
+      ];
 
-    return Meteor.call("setAssignmentInstanceData", fields, function(err, res) {
-      test.isFalse(err);
-      Deps.flush(); // Help out the emboxed value thingies
+      return Meteor.call("setAssignmentInstanceData", fields, function(err, res) {
+        test.isFalse(err);
+        Deps.flush(); // Help out the emboxed value thingies
 
-      test.equal(TurkServer.Timers.idleTime(), 1000);
-      test.equal(TurkServer.Timers.disconnectedTime(), 2000);
+        test.equal(TurkServer.Timers.idleTime(), 1000);
+        test.equal(TurkServer.Timers.disconnectedTime(), 2000);
 
-      const joinedTime = TurkServer.Timers.joinedTime();
-      const activeTime = TurkServer.Timers.activeTime();
+        const joinedTime = TurkServer.Timers.joinedTime();
+        const activeTime = TurkServer.Timers.activeTime();
 
-      test.isTrue(joinedTime >= 5000);
-      test.isTrue(joinedTime < (5000 + big_tol));
+        test.isTrue(joinedTime >= 5000);
+        test.isTrue(joinedTime < 5000 + big_tol);
 
-      test.isTrue(Math.abs((activeTime + 3000) - joinedTime) < tol);
-      test.isTrue(activeTime >= 0); // Should not be negative
+        test.isTrue(Math.abs(activeTime + 3000 - joinedTime) < tol);
+        test.isTrue(activeTime >= 0); // Should not be negative
 
-      test.equal(UI._globalHelpers.tsIdleTime(), "0:00:01");
-      test.equal(UI._globalHelpers.tsDisconnectedTime(), "0:00:02");
+        test.equal(UI._globalHelpers.tsIdleTime(), "0:00:01");
+        test.equal(UI._globalHelpers.tsDisconnectedTime(), "0:00:02");
 
-      return next();
-    });
-  });
+        return next();
+      });
+    }
+  );
 }
 
-  // TODO: add a test for submitting HIT and verify that resume token is removed
+// TODO: add a test for submitting HIT and verify that resume token is removed
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

@@ -8,12 +8,16 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const attemptCallbacks = (callbacks, context, errMsg) => Array.from(callbacks).map((cb) =>
-  (() => { try {
-    return cb.call(context);
-  } catch (e) {
-    return Meteor._debug(errMsg, e);
-  } })());
+const attemptCallbacks = (callbacks, context, errMsg) =>
+  Array.from(callbacks).map(cb =>
+    (() => {
+      try {
+        return cb.call(context);
+      } catch (e) {
+        return Meteor._debug(errMsg, e);
+      }
+    })()
+  );
 
 const connectCallbacks = [];
 const disconnectCallbacks = [];
@@ -28,7 +32,9 @@ TurkServer.onActive = func => activeCallbacks.push(func);
 // When getting user records in a session callback, we have to check if admin
 const getUserNonAdmin = function(userId) {
   const user = Meteor.users.findOne(userId);
-  if ((user == null) || (user != null ? user.admin : undefined)) { return; }
+  if (user == null || (user != null ? user.admin : undefined)) {
+    return;
+  }
   return user;
 };
 
@@ -39,12 +45,16 @@ const getUserNonAdmin = function(userId) {
   user.group takes a moment to be propagated.
 */
 const sessionReconnect = function(doc) {
-  if (getUserNonAdmin(doc.userId) == null) { return; }
+  if (getUserNonAdmin(doc.userId) == null) {
+    return;
+  }
 
   const asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId);
 
   // TODO possible debug message, but probably caught below.
-  if (asst == null) { return; }
+  if (asst == null) {
+    return;
+  }
 
   // Save IP address and UA; multiple connections from different IPs/browsers
   // are recorded for diagnostic purposes.
@@ -52,7 +62,8 @@ const sessionReconnect = function(doc) {
     $addToSet: {
       ipAddr: doc.ipAddr,
       userAgent: doc.userAgent
-    }});
+    }
+  });
 };
 
 const userReconnect = function(user) {
@@ -67,28 +78,32 @@ const userReconnect = function(user) {
 
   // Ensure user is in a valid state; add to lobby if not
   const state = user.turkserver != null ? user.turkserver.state : undefined;
-  if ((state === "lobby") || (state == null)) {
+  if (state === "lobby" || state == null) {
     asst._enterLobby();
     return;
   }
 
   // We only call the group operations below if the user was in a group at the
   // time of connection
-  if ((groupId = Partitioner.getUserGroup(user._id)) == null) { return; }
+  if ((groupId = Partitioner.getUserGroup(user._id)) == null) {
+    return;
+  }
   asst._reconnected(groupId);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(function() {
-    TurkServer.log({
-      _userId: user._id,
-      _meta: "connected"
-    });
+  return TurkServer.Instance.getInstance(groupId).bindOperation(
+    function() {
+      TurkServer.log({
+        _userId: user._id,
+        _meta: "connected"
+      });
 
-    attemptCallbacks(connectCallbacks, this, "Exception in user connect callback");
-  }
-  , {
+      attemptCallbacks(connectCallbacks, this, "Exception in user connect callback");
+    },
+    {
       userId: user._id,
       event: "connected"
-    });
+    }
+  );
 };
 
 const userDisconnect = function(user) {
@@ -97,26 +112,32 @@ const userDisconnect = function(user) {
 
   // If they are disconnecting after completing an assignment, there will be no
   // current assignment.
-  if (asst == null) { return; }
+  if (asst == null) {
+    return;
+  }
 
   // If user was in lobby, remove them
   asst._removeFromLobby();
 
-  if ((groupId = Partitioner.getUserGroup(user._id)) == null) { return; }
+  if ((groupId = Partitioner.getUserGroup(user._id)) == null) {
+    return;
+  }
   asst._disconnected(groupId);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(function() {
-    TurkServer.log({
-      _userId: user._id,
-      _meta: "disconnected"
-    });
+  return TurkServer.Instance.getInstance(groupId).bindOperation(
+    function() {
+      TurkServer.log({
+        _userId: user._id,
+        _meta: "disconnected"
+      });
 
-    attemptCallbacks(disconnectCallbacks, this, "Exception in user disconnect callback");
-  }
-  , {
+      attemptCallbacks(disconnectCallbacks, this, "Exception in user disconnect callback");
+    },
+    {
       userId: user._id,
       event: "disconnected"
-    });
+    }
+  );
 };
 
 /*
@@ -125,50 +146,60 @@ const userDisconnect = function(user) {
 
 const userIdle = function(user) {
   let groupId;
-  if ((groupId = Partitioner.getUserGroup(user._id)) == null) { return; }
+  if ((groupId = Partitioner.getUserGroup(user._id)) == null) {
+    return;
+  }
 
   const asst = TurkServer.Assignment.getCurrentUserAssignment(user._id);
   asst._isIdle(groupId, user.status.lastActivity);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(function() {
-    TurkServer.log({
-      _userId: user._id,
-      _meta: "idle",
-      _timestamp: user.status.lastActivity
-    }); // Overridden to a past value
+  return TurkServer.Instance.getInstance(groupId).bindOperation(
+    function() {
+      TurkServer.log({
+        _userId: user._id,
+        _meta: "idle",
+        _timestamp: user.status.lastActivity
+      }); // Overridden to a past value
 
-    attemptCallbacks(idleCallbacks, this, "Exception in user idle callback");
-  }
-  , {
+      attemptCallbacks(idleCallbacks, this, "Exception in user idle callback");
+    },
+    {
       userId: user._id,
       event: "idle"
-    });
+    }
+  );
 };
 
 // Because activity on any session will make a user active, we use this in
 // order to properly record the last activity time on the client
 const sessionActive = function(doc) {
   let groupId;
-  if (getUserNonAdmin(doc.userId) == null) { return; }
+  if (getUserNonAdmin(doc.userId) == null) {
+    return;
+  }
 
-  if ((groupId = Partitioner.getUserGroup(doc.userId)) == null) { return; }
+  if ((groupId = Partitioner.getUserGroup(doc.userId)) == null) {
+    return;
+  }
 
   const asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId);
   asst._isActive(groupId, doc.lastActivity);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(function() {
-    TurkServer.log({
-      _userId: doc.userId,
-      _meta: "active",
-      _timestamp: doc.lastActivity
-    }); // Also overridden
+  return TurkServer.Instance.getInstance(groupId).bindOperation(
+    function() {
+      TurkServer.log({
+        _userId: doc.userId,
+        _meta: "active",
+        _timestamp: doc.lastActivity
+      }); // Also overridden
 
-    attemptCallbacks(activeCallbacks, this, "Exception in user active callback");
-  }
-  , {
+      attemptCallbacks(activeCallbacks, this, "Exception in user active callback");
+    },
+    {
       userId: doc.userId,
       event: "active"
-    });
+    }
+  );
 };
 
 /*
@@ -184,21 +215,24 @@ UserStatus.events.on("connectionActive", sessionActive);
 // we're interested in the contents of the entire user document when someone goes
 // online/offline or idle/active.
 Meteor.startup(function() {
-
-  Meteor.users.find({
-    "admin": {$exists: false}, // Excluding admin
-    "status.online": true // User is online
-  }).observe({
+  Meteor.users
+    .find({
+      admin: { $exists: false }, // Excluding admin
+      "status.online": true // User is online
+    })
+    .observe({
       added: userReconnect,
       removed: userDisconnect
     });
 
-  return Meteor.users.find({
-    "admin": {$exists: false}, // Excluding admin
-    "status.idle": true // User is idle
-  }).observe({
-    added: userIdle
-  });
+  return Meteor.users
+    .find({
+      admin: { $exists: false }, // Excluding admin
+      "status.idle": true // User is idle
+    })
+    .observe({
+      added: userIdle
+    });
 });
 
 /*
@@ -211,20 +245,21 @@ Meteor.startup(function() {
 TestUtils.connCallbacks = {
   sessionReconnect(doc) {
     sessionReconnect(doc);
-    return userReconnect( Meteor.users.findOne(doc.userId) );
+    return userReconnect(Meteor.users.findOne(doc.userId));
   },
 
   sessionDisconnect(doc) {
-    return userDisconnect( Meteor.users.findOne(doc.userId) );
+    return userDisconnect(Meteor.users.findOne(doc.userId));
   },
 
   sessionIdle(doc) {
     // We need to set the status.lastActivity field here, as in user-status,
     // because the callback expects to read its value
-    Meteor.users.update(doc.userId,
-      {$set: {"status.lastActivity": doc.lastActivity }});
+    Meteor.users.update(doc.userId, {
+      $set: { "status.lastActivity": doc.lastActivity }
+    });
 
-    return userIdle( Meteor.users.findOne(doc.userId) );
+    return userIdle(Meteor.users.findOne(doc.userId));
   },
 
   sessionActive
@@ -238,22 +273,25 @@ Meteor.methods({
   "ts-set-username"(username) {
     // TODO may need validation here due to bad browsers/bad people
     const userId = Meteor.userId();
-    if (!userId) { return; }
+    if (!userId) {
+      return;
+    }
 
     // No directOperation needed here since partitioner recognizes username as
     // a unique index
-    if (Meteor.users.findOne({username}) != null) {
+    if (Meteor.users.findOne({ username }) != null) {
       throw new Meteor.Error(409, ErrMsg.usernameTaken);
     }
 
-    return Meteor.users.update(userId,
-      {$set: {username}});
+    return Meteor.users.update(userId, { $set: { username } });
   },
 
   "ts-submit-exitdata"(doc, panel) {
     let token;
     const userId = Meteor.userId();
-    if (!userId) { throw new Meteor.Error(403, ErrMsg.authErr); }
+    if (!userId) {
+      throw new Meteor.Error(403, ErrMsg.authErr);
+    }
 
     // TODO what if this doesn't exist?
     const asst = TurkServer.Assignment.currentAssignment();
@@ -268,7 +306,7 @@ Meteor.methods({
         contact: panel.contact,
         available: {
           times: panel.times,
-          updated: new Date
+          updated: new Date()
         }
       });
     }
@@ -276,7 +314,7 @@ Meteor.methods({
     // Destroy the token for this connection, so that a resume login will not
     // be used for future HITs. Returning true should cause the HIT to submit on
     // the client side, but if that doesn't work, the user will be logged out.
-    if (token = Accounts._getLoginToken(this.connection.id)) {
+    if ((token = Accounts._getLoginToken(this.connection.id))) {
       // This $pulls tokens from services.resume.loginTokens, and should work
       // in the same way that Accounts._expireTokens effects cleanup.
       Accounts.destroyToken(userId, token);
@@ -286,4 +324,3 @@ Meteor.methods({
     return true;
   }
 });
-

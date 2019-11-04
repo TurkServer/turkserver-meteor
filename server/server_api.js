@@ -8,12 +8,14 @@ TurkServer.treatment = function() {
   const instance = TurkServer.Instance.currentInstance();
   const asst = TurkServer.Assignment.currentAssignment();
 
-  const instTreatments = instance && instance.getTreatmentNames() || [];
-  const asstTreatments = asst && asst.getTreatmentNames() || [];
+  const instTreatments = (instance && instance.getTreatmentNames()) || [];
+  const asstTreatments = (asst && asst.getTreatmentNames()) || [];
 
-  return TurkServer._mergeTreatments(Treatments.find({
+  return TurkServer._mergeTreatments(
+    Treatments.find({
       name: {
         $in: instTreatments.concat(asstTreatments)
       }
-    }));
+    })
+  );
 };

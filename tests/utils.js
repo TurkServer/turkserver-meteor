@@ -9,8 +9,11 @@
 if (Meteor.isClient) {
   // Prevent router from complaining about missing path
   Router.map(function() {
-    return this.route("/",
-      {onBeforeAction() { return this.render(null); }});
+    return this.route("/", {
+      onBeforeAction() {
+        return this.render(null);
+      }
+    });
   });
 }
 
@@ -30,51 +33,50 @@ if (Meteor.isServer) {
   TurkServer.mturk = function(op, params) {
     TestUtils.mturkAPI.op = op;
     TestUtils.mturkAPI.params = params;
-    return (typeof TestUtils.mturkAPI.handler === 'function' ? TestUtils.mturkAPI.handler(op, params) : undefined);
+    return typeof TestUtils.mturkAPI.handler === "function"
+      ? TestUtils.mturkAPI.handler(op, params)
+      : undefined;
   };
 }
 
 // Get a wrapper that runs a before and after function wrapping some test function.
 TestUtils.getCleanupWrapper = function(settings) {
-  const {
-    before
-  } = settings;
-  const {
-    after
-  } = settings;
+  const { before } = settings;
+  const { after } = settings;
   // Take a function...
-  return fn => // Return a function that, when called, executes the hooks around the function.
-  (function() {
-    const next = arguments[1];
-    if (typeof before === 'function') {
-      before();
-    }
+  return (
+    fn // Return a function that, when called, executes the hooks around the function.
+  ) =>
+    function() {
+      const next = arguments[1];
+      if (typeof before === "function") {
+        before();
+      }
 
-    if (next == null) {
-      // Synchronous version - Tinytest.add
-      try {
-        return fn.apply(this, arguments);
-      } catch (error) {
-        throw error;
-      }
-      finally {
-        if (typeof after === 'function') {
-          after();
+      if (next == null) {
+        // Synchronous version - Tinytest.add
+        try {
+          return fn.apply(this, arguments);
+        } catch (error) {
+          throw error;
+        } finally {
+          if (typeof after === "function") {
+            after();
+          }
         }
+      } else {
+        // Asynchronous version - Tinytest.addAsync
+        const hookedNext = function() {
+          if (typeof after === "function") {
+            after();
+          }
+          return next();
+        };
+        return fn.call(this, arguments[0], hookedNext);
       }
-    } else {
-      // Asynchronous version - Tinytest.addAsync
-      const hookedNext = function() {
-        if (typeof after === 'function') {
-          after();
-        }
-        return next();
-      };
-      return fn.call(this, arguments[0], hookedNext);
-    }
-  });
+    };
 };
 
-TestUtils.sleep = Meteor.wrapAsync((time, cb) => Meteor.setTimeout((() => cb(undefined)), time));
+TestUtils.sleep = Meteor.wrapAsync((time, cb) => Meteor.setTimeout(() => cb(undefined), time));
 
 TestUtils.blockingCall = Meteor.wrapAsync(Meteor.call);

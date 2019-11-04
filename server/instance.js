@@ -10,13 +10,12 @@ const _instances = new Map();
 
 /**
  * @summary Represents a group or slice on the server, containing some users.
-  * These functions are available only on the server. This object is
-  * automatically constructed from TurkServer.Instance.getInstance.
+ * These functions are available only on the server. This object is
+ * automatically constructed from TurkServer.Instance.getInstance.
  * @class
  * @instancename instance
  */
 class Instance {
-
   /**
    * @summary Get the instance by its id.
    * @param {String} groupId
@@ -26,14 +25,14 @@ class Instance {
     check(groupId, String);
 
     let inst = _instances.get(groupId);
-    if( inst != null ) return inst;
+    if (inst != null) return inst;
 
     if (Experiments.findOne(groupId) == null) {
       throw new Error(`Instance does not exist: ${groupId}`);
     }
 
     // A fiber may have created this at the same time; if so use that one
-    if( inst = _instances.get(groupId) && inst != null ) return inst;
+    if ((inst = _instances.get(groupId) && inst != null)) return inst;
 
     inst = new TurkServer.Instance(groupId);
     _instances.set(groupId, inst);
@@ -58,7 +57,7 @@ class Instance {
   }
 
   constructor(groupId) {
-    if ( _instances.get(groupId) ) {
+    if (_instances.get(groupId)) {
       throw new Error("Instance already exists; use getInstance");
     }
 
@@ -81,16 +80,15 @@ class Instance {
    */
   setup() {
     // Can't use fat arrow here.
-    this.bindOperation( function() {
+    this.bindOperation(function() {
       TurkServer.log({
         _meta: "initialized",
         treatmentData: this.instance.treatment()
       });
 
-      for( var handler of init_queue ) {
+      for (var handler of init_queue) {
         handler.call(this);
       }
-
     });
   }
 
@@ -121,14 +119,17 @@ class Instance {
     });
 
     // Set experiment start time if this was first person to join
-    Experiments.update({
-      _id: this.groupId,
-      startTime: null
-    }, {
-      $set: {
-        startTime: new Date
+    Experiments.update(
+      {
+        _id: this.groupId,
+        startTime: null
+      },
+      {
+        $set: {
+          startTime: new Date()
+        }
       }
-    });
+    );
 
     // Record instance Id in Assignment
     asst._joinInstance(this.groupId);
@@ -158,7 +159,7 @@ class Instance {
   getTreatmentNames() {
     const instance = Experiments.findOne(this.groupId);
 
-    return instance && instance.treatments || [];
+    return (instance && instance.treatments) || [];
   }
 
   /**
@@ -168,11 +169,16 @@ class Instance {
   treatment() {
     const instance = Experiments.findOne(this.groupId);
 
-    return instance && TurkServer._mergeTreatments(Treatments.find({
-      name: {
-        $in: instance.treatments
-      }
-    }));
+    return (
+      instance &&
+      TurkServer._mergeTreatments(
+        Treatments.find({
+          name: {
+            $in: instance.treatments
+          }
+        })
+      )
+    );
   }
 
   /**
@@ -181,7 +187,7 @@ class Instance {
    */
   getDuration() {
     const instance = Experiments.findOne(this.groupId);
-    return (instance.endTime || new Date) - instance.startTime;
+    return (instance.endTime || new Date()) - instance.startTime;
   }
 
   /**
@@ -217,12 +223,12 @@ class Instance {
     });
 
     // Sometimes we may want to allow users to continue to access partition data
-    if( !returnToLobby ) return;
+    if (!returnToLobby) return;
 
     const users = Experiments.findOne(this.groupId).users;
     if (users == null) return;
 
-    for( userId of users ) {
+    for (userId of users) {
       this.sendUserToLobby(userId);
     }
   }

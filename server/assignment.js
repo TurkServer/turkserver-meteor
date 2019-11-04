@@ -6,11 +6,11 @@ const _userAssignments = {};
 
 // XXX the first query might be a little slow due to not having an index,
 // but it will run quickly for subsequent live updates.
-Assignments.find({status: "assigned"}, {fields: {workerId: 1}}).observe({
-   removed: function(asstDoc) {
-     const user = Meteor.users.findOne({workerId: asstDoc.workerId});
-     if( user != null ) delete _userAssignments[user._id];
-   }
+Assignments.find({ status: "assigned" }, { fields: { workerId: 1 } }).observe({
+  removed: function(asstDoc) {
+    const user = Meteor.users.findOne({ workerId: asstDoc.workerId });
+    if (user != null) delete _userAssignments[user._id];
+  }
 });
 
 /**
@@ -22,10 +22,9 @@ Assignments.find({status: "assigned"}, {fields: {workerId: 1}}).observe({
  * @instancename assignment
  */
 class Assignment {
-
   static createAssignment(data) {
     const asstId = Assignments.insert(data);
-    return _assignments[asstId] = new Assignment(asstId, data);
+    return (_assignments[asstId] = new Assignment(asstId, data));
   }
 
   /**
@@ -38,7 +37,7 @@ class Assignment {
     check(asstId, String);
 
     let asst = _assignments[asstId];
-    if( asst != null ) return asst;
+    if (asst != null) return asst;
 
     const data = Assignments.findOne(asstId);
     if (data == null) throw new Error(`Assignment ${asstId} doesn't exist`);
@@ -63,11 +62,11 @@ class Assignment {
 
     // Check for cached assignment
     let asst = _userAssignments[userId];
-    if (asst != null ) return asst;
+    if (asst != null) return asst;
 
     let user = Meteor.users.findOne(userId);
 
-    if( user == null || user.workerId == null ) return;
+    if (user == null || user.workerId == null) return;
 
     let asstData = Assignments.findOne({
       workerId: user.workerId,
@@ -76,7 +75,7 @@ class Assignment {
 
     if (asstData != null) {
       // Cache assignment and return
-      return _userAssignments[userId] = Assignment.getAssignment(asstData._id);
+      return (_userAssignments[userId] = Assignment.getAssignment(asstData._id));
     }
     // return null
   }
@@ -89,8 +88,7 @@ class Assignment {
     let userId = null;
     try {
       userId = Meteor.userId();
-    }
-    catch (e) {
+    } catch (e) {
       // We aren't in a method, so Meteor throws this error:
       // "Error: Meteor.userId can only be invoked in method calls. Use this.userId in publish functions."
       // Note that isn't just publish functions, but any server code not
@@ -105,16 +103,11 @@ class Assignment {
   constructor(asstId, props) {
     check(asstId, String);
 
-    if ( _assignments[asstId] != null ) {
+    if (_assignments[asstId] != null) {
       throw new Error(`Assignment ${asstId} already exists; use getAssignment`);
     }
 
-    let {
-      batchId,
-      hitId,
-      assignmentId,
-      workerId
-      } = props || Assignments.findOne(asstId);
+    let { batchId, hitId, assignmentId, workerId } = props || Assignments.findOne(asstId);
 
     check(batchId, String);
     check(hitId, String);
@@ -171,12 +164,11 @@ class Assignment {
      */
     if (_.isArray(names)) {
       Assignments.update(this.asstId, {
-         $addToSet: { treatments: { $each: names } }
+        $addToSet: { treatments: { $each: names } }
       });
-    }
-    else {
+    } else {
       Assignments.update(this.asstId, {
-         $addToSet: { treatments: names }
+        $addToSet: { treatments: names }
       });
     }
   }
@@ -260,7 +252,7 @@ class Assignment {
    * @returns {Number} The current bonus payment.
    */
   getPayment() {
-     return Assignments.findOne(this.asstId).bonusPayment || 0;
+    return Assignments.findOne(this.asstId).bonusPayment || 0;
   }
 
   /**
@@ -279,8 +271,7 @@ class Assignment {
           bonusPayment: amount
         }
       };
-    }
-    else {
+    } else {
       modifier = {
         $unset: {
           bonusPayment: null
@@ -288,10 +279,13 @@ class Assignment {
       };
     }
 
-    const update = Assignments.update({
-      _id: this.asstId,
-      bonusPaid: null
-    }, modifier);
+    const update = Assignments.update(
+      {
+        _id: this.asstId,
+        bonusPaid: null
+      },
+      modifier
+    );
 
     if (update === 0) {
       throw new Error("Can't modify a bonus that was already paid");
@@ -305,14 +299,17 @@ class Assignment {
   addPayment(amount) {
     check(amount, Number);
 
-    const update = Assignments.update({
-      _id: this.asstId,
-      bonusPaid: null
-    }, {
-      $inc: {
-        bonusPayment: amount
+    const update = Assignments.update(
+      {
+        _id: this.asstId,
+        bonusPaid: null
+      },
+      {
+        $inc: {
+          bonusPayment: amount
+        }
       }
-    });
+    );
 
     if (update === 0) {
       throw new Error("Can't modify a bonus that was already paid");
@@ -326,12 +323,12 @@ class Assignment {
   refreshStatus() {
     // Since MTurk AssignmentIds may be re-used, it's important we only query
     // for completed assignments.
-    if ( !this.isCompleted() ) {
+    if (!this.isCompleted()) {
       throw new Error("Assignment not completed");
     }
 
     // Just a warning for running in testing mode.
-    if ( this.assignmentId.endsWith("_Asst") ) {
+    if (this.assignmentId.endsWith("_Asst")) {
       throw new Meteor.Error(403, "This is a fake test assignment that does not exist on MTurk.");
     }
 
@@ -345,18 +342,18 @@ class Assignment {
       // XXX this is a bit hacky and will break if the exact error message changes
       // Moreover, it will remove assignment records if run *LONG AFTER*
       // MTurk no longer has kept track of an assignment.
-      if ( e.toString().indexOf("does not exist") >= 0 ) {
-        Meteor._debug(`${this.asstId} seems to have been returned on MTurk.`);        
+      if (e.toString().indexOf("does not exist") >= 0) {
+        Meteor._debug(`${this.asstId} seems to have been returned on MTurk.`);
         this.setReturned();
         return;
       }
-      
-      throw new Meteor.Error(500, e.toString()); 
+
+      throw new Meteor.Error(500, e.toString());
     }
-    
+
     // XXX Just in case, check that it's actually the same worker here,
     // and not a reassignment to someone else.
-    if ( this.workerId !== asstData.WorkerId ) {
+    if (this.workerId !== asstData.WorkerId) {
       throw new Error("Worker ID doesn't match");
     }
 
@@ -370,7 +367,7 @@ class Assignment {
   }
 
   _checkSubmittedStatus() {
-    if ( !this.isCompleted() ) {
+    if (!this.isCompleted()) {
       throw new Error("Assignment not completed");
     }
 
@@ -506,7 +503,7 @@ class Assignment {
     // Is the worker reconnecting to an exit survey?
     let user = Meteor.users.findOne(this.userId);
     let state = user && user.turkserver && user.turkserver.state;
-    if ( state === "exitsurvey") {
+    if (state === "exitsurvey") {
       Meteor._debug(`${this.userId} is reconnecting to the exit survey`);
     }
 
@@ -545,11 +542,11 @@ class Assignment {
   }
 
   _leaveInstance(instanceId) {
-    var exp = Experiments.findOne({_id: instanceId});
+    var exp = Experiments.findOne({ _id: instanceId });
 
     // if experiment has ended, use the end time as the user's leave time
     // else, if experiment is ongoing, use current time
-    const leaveTime = exp.endTime || new Date;
+    const leaveTime = exp.endTime || new Date();
 
     const updateObj = {
       $set: {
@@ -559,18 +556,21 @@ class Assignment {
 
     let discTime, idleTime;
     // If in disconnected state, compute total disconnected time
-    if ( (discTime = this._getLastDisconnect(instanceId)) != null) {
+    if ((discTime = this._getLastDisconnect(instanceId)) != null) {
       addResetDisconnectedUpdateFields(updateObj, leaveTime.getTime() - discTime);
     }
     // If in idle state, compute total idle time
-    if ( (idleTime = this._getLastIdle(instanceId)) != null) {
+    if ((idleTime = this._getLastIdle(instanceId)) != null) {
       addResetIdleUpdateFields(updateObj, leaveTime.getTime() - idleTime);
     }
 
-    Assignments.update({
-      _id: this.asstId,
-      "instances.id": instanceId
-    }, updateObj);
+    Assignments.update(
+      {
+        _id: this.asstId,
+        "instances.id": instanceId
+      },
+      updateObj
+    );
   }
 
   // Handle a disconnection by this user
@@ -588,14 +588,17 @@ class Assignment {
     // If we are idle, add the total idle time to the running amount;
     // A new idle session will start when the user reconnects
     let idleTime;
-    if (( idleTime = this._getLastIdle(instanceId)) != null ) {
+    if ((idleTime = this._getLastIdle(instanceId)) != null) {
       addResetIdleUpdateFields(updateObj, now.getTime() - idleTime);
     }
 
-    Assignments.update({
-      _id: this.asstId,
-      "instances.id": instanceId
-    }, updateObj);
+    Assignments.update(
+      {
+        _id: this.asstId,
+        "instances.id": instanceId
+      },
+      updateObj
+    );
   }
 
   // Handle a reconnection by a user, if they were assigned prior to the reconnection
@@ -608,51 +611,62 @@ class Assignment {
     };
 
     let discTime;
-    if ( (discTime = this._getLastDisconnect(instanceId)) != null ) {
+    if ((discTime = this._getLastDisconnect(instanceId)) != null) {
       addResetDisconnectedUpdateFields(updateObj, Date.now() - discTime);
     }
 
-    Assignments.update({
-      _id: this.asstId,
-      "instances.id": instanceId
-    }, updateObj);
+    Assignments.update(
+      {
+        _id: this.asstId,
+        "instances.id": instanceId
+      },
+      updateObj
+    );
   }
 
   _isIdle(instanceId, timestamp) {
     // TODO: ignore this update if user is disconnected
-    Assignments.update({
-      _id: this.asstId,
-      "instances.id": instanceId
-    }, {
-      $set: {
-        "instances.$.lastIdle": timestamp
+    Assignments.update(
+      {
+        _id: this.asstId,
+        "instances.id": instanceId
+      },
+      {
+        $set: {
+          "instances.$.lastIdle": timestamp
+        }
       }
-    });
+    );
   }
 
   _isActive(instanceId, timestamp) {
     const idleTime = this._getLastIdle(instanceId);
-    if ( !idleTime ) return;
+    if (!idleTime) return;
 
-    Assignments.update({
-      _id: this.asstId,
-      "instances.id": instanceId
-    }, addResetIdleUpdateFields({}, timestamp - idleTime));
+    Assignments.update(
+      {
+        _id: this.asstId,
+        "instances.id": instanceId
+      },
+      addResetIdleUpdateFields({}, timestamp - idleTime)
+    );
   }
 
   // Helper functions
   // TODO test that these are grabbing the right numbers
   _getLastDisconnect(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances,
-      (inst) => { return inst.id === instanceId });
+    const instanceData = _.find(instances, inst => {
+      return inst.id === instanceId;
+    });
     return instanceData && instanceData.lastDisconnect;
   }
 
   _getLastIdle(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances,
-      (inst) => { return inst.id === instanceId });
+    const instanceData = _.find(instances, inst => {
+      return inst.id === instanceId;
+    });
     return instanceData && instanceData.lastIdle;
   }
 }

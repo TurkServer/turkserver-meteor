@@ -26,28 +26,28 @@ TurkServer._delayedStartup(function() {
   return Deps.autorun(function() {
     const status = Meteor.status();
 
-    if (status.connected && (disconnectDialog != null)) {
+    if (status.connected && disconnectDialog != null) {
       disconnectDialog.modal("hide");
       disconnectDialog = null;
       return;
     }
 
-    if (!status.connected && (disconnectDialog === null)) {
+    if (!status.connected && disconnectDialog === null) {
       disconnectDialog = bootbox.dialog({
         closeButton: false,
-        message:
-          `<h3>You have been disconnected from the server.
+        message: `<h3>You have been disconnected from the server.
 Please check your Internet connection.</h3>`
       });
       return;
     }
   });
-}
-, disconnectWarningDelay);
+}, disconnectWarningDelay);
 
 TurkServer._displayModal = function(template, data, options) {
   // minimum options to get message to show
-  if (options == null) { options = { message: " " }; }
+  if (options == null) {
+    options = { message: " " };
+  }
   const dialog = bootbox.dialog(options);
   // Take out the thing that bootbox rendered
   dialog.find(".bootbox-body").remove();
@@ -74,7 +74,10 @@ TurkServer.ensureUsername = function() {
     }
 
     // TODO: stop the username dialog popping up during the subscription process
-    const username = __guard__(Meteor.users.findOne(userId, {fields: {username: 1}}), x => x.username);
+    const username = __guard__(
+      Meteor.users.findOne(userId, { fields: { username: 1 } }),
+      x => x.username
+    );
 
     if (username && usernameDialog) {
       usernameDialog.modal("hide");
@@ -82,8 +85,8 @@ TurkServer.ensureUsername = function() {
       return;
     }
 
-    if (!username && (usernameDialog === null)) {
-      usernameDialog = bootbox.dialog({message: " "}).html('');
+    if (!username && usernameDialog === null) {
+      usernameDialog = bootbox.dialog({ message: " " }).html("");
       Blaze.render(Template.tsRequestUsername, usernameDialog[0]);
       return;
     }
@@ -91,21 +94,28 @@ TurkServer.ensureUsername = function() {
 };
 
 Template.tsRequestUsername.events = {
-  "focus input"() { return Session.set("_tsUsernameError", undefined); },
+  "focus input"() {
+    return Session.set("_tsUsernameError", undefined);
+  },
   "submit form"(e, tmpl) {
     e.preventDefault();
     const input = tmpl.find("input[name=username]");
     input.blur();
     const username = input.value;
     return Meteor.call("ts-set-username", username, function(err, res) {
-      if (err) { return Session.set("_tsUsernameError", err.reason); }
+      if (err) {
+        return Session.set("_tsUsernameError", err.reason);
+      }
     });
   }
 };
 
 Template.tsRequestUsername.helpers({
-  usernameError() { return Session.get("_tsUsernameError"); }});
+  usernameError() {
+    return Session.get("_tsUsernameError");
+  }
+});
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

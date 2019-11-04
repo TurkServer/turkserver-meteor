@@ -18,9 +18,15 @@ const adminOnly = {
 };
 
 const always = {
-  insert() { return true; },
-  update() { return true; },
-  remove() { return true; }
+  insert() {
+    return true;
+  },
+  update() {
+    return true;
+  },
+  remove() {
+    return true;
+  }
 };
 
 /*
@@ -32,7 +38,7 @@ const always = {
 Batches.allow(adminOnly);
 Treatments.allow(adminOnly);
 
-Treatments._ensureIndex({name: 1}, {unique: 1});
+Treatments._ensureIndex({ name: 1 }, { unique: 1 });
 
 // Allow admin to make emergency adjustments to the lobby collection just in case
 LobbyStatus.allow(adminOnly);
@@ -73,23 +79,28 @@ try {
 } catch (error) {}
 
 // Index HITTypes, but only for those that exist
-HITTypes._ensureIndex({HITTypeId: 1}, {
-  name: "HITTypeId_1_sparse",
-  unique: 1,
-  sparse: 1
-});
+HITTypes._ensureIndex(
+  { HITTypeId: 1 },
+  {
+    name: "HITTypeId_1_sparse",
+    unique: 1,
+    sparse: 1
+  }
+);
 
-HITs._ensureIndex({HITId: 1}, {unique: 1});
+HITs._ensureIndex({ HITId: 1 }, { unique: 1 });
 
 // TODO more careful indices on these collections
 
 // Index on unique assignment-worker pairs
-Assignments._ensureIndex({
-  hitId: 1,
-  assignmentId: 1,
-  workerId: 1
-}
-, { unique: 1 });
+Assignments._ensureIndex(
+  {
+    hitId: 1,
+    assignmentId: 1,
+    workerId: 1
+  },
+  { unique: 1 }
+);
 
 // Allow fast lookup of a worker's HIT assignments by status
 Assignments._ensureIndex({
@@ -118,26 +129,29 @@ try {
 // Publish turkserver user fields to a user
 Meteor.publish(null, function() {
   let workerId;
-  if (!this.userId) { return null; }
+  if (!this.userId) {
+    return null;
+  }
 
-  const cursors = [
-    Meteor.users.find(this.userId,
-      {fields: { turkserver: 1 }})
-  ];
+  const cursors = [Meteor.users.find(this.userId, { fields: { turkserver: 1 } })];
 
   // Current user assignment data, including idle and disconnection time
   // This won't be sent for the admin user
   if ((workerId = __guard__(Meteor.users.findOne(this.userId), x => x.workerId)) != null) {
-    cursors.push(Assignments.find({
-      workerId,
-      status: "assigned"
-    }, {
-      fields: {
-        instances: 1,
-        treatments: 1,
-        bonusPayment: 1
-      }
-    })
+    cursors.push(
+      Assignments.find(
+        {
+          workerId,
+          status: "assigned"
+        },
+        {
+          fields: {
+            instances: 1,
+            treatments: 1,
+            bonusPayment: 1
+          }
+        }
+      )
     );
   }
 
@@ -145,15 +159,19 @@ Meteor.publish(null, function() {
 });
 
 Meteor.publish("tsTreatments", function(names) {
-  if ((names == null) || (names[0] == null)) { return []; }
+  if (names == null || names[0] == null) {
+    return [];
+  }
   check(names, [String]);
-  return Treatments.find({name: { $in: names }});
+  return Treatments.find({ name: { $in: names } });
 });
 
 // Publish current experiment for a user, if it exists
 // This includes the data sent to the admin user
 Meteor.publish("tsCurrentExperiment", function(group) {
-  if (!this.userId) { return; }
+  if (!this.userId) {
+    return;
+  }
   return [
     Experiments.find(group),
     RoundTimers.find() // Partitioned by group
@@ -164,10 +182,12 @@ Meteor.publish("tsCurrentExperiment", function(group) {
 // TODO make this a bit more secure
 Meteor.publish("tsLoginBatches", function(batchId) {
   // Never send the batch list to logged-in users.
-  if (this.userId != null) { return []; }
+  if (this.userId != null) {
+    return [];
+  }
 
   // If an erroneous batchId was sent, don't just send the whole list.
-  if ((arguments.length > 0) && (batchId != null)) {
+  if (arguments.length > 0 && batchId != null) {
     return Batches.find(batchId);
   } else {
     return Batches.find();
@@ -176,23 +196,26 @@ Meteor.publish("tsLoginBatches", function(batchId) {
 
 Meteor.publish(null, function() {
   let workerId;
-  if (this.userId == null) { return []; }
+  if (this.userId == null) {
+    return [];
+  }
   // Publish specific batch if logged in
   // This should work for now because an assignment is made upon login
-  if ((workerId = __guard__(Meteor.users.findOne(this.userId), x => x.workerId)) == null) { return []; }
+  if ((workerId = __guard__(Meteor.users.findOne(this.userId), x => x.workerId)) == null) {
+    return [];
+  }
 
   const sub = this;
-  const handle = Assignments.find({workerId, status: "assigned"}).observeChanges({
+  const handle = Assignments.find({
+    workerId,
+    status: "assigned"
+  }).observeChanges({
     added(id, fields) {
-      const {
-        batchId
-      } = Assignments.findOne(id);
+      const { batchId } = Assignments.findOne(id);
       return sub.added("ts.batches", batchId, Batches.findOne(batchId));
     },
     removed(id) {
-      const {
-        batchId
-      } = Assignments.findOne(id);
+      const { batchId } = Assignments.findOne(id);
       return sub.removed("ts.batches", batchId);
     }
   });
@@ -204,5 +227,5 @@ Meteor.publish(null, function() {
 TurkServer.startup = func => Meteor.startup(() => Partitioner.directOperation(func));
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

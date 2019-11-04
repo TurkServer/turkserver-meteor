@@ -11,9 +11,7 @@ if (Meteor.isServer) {
   const batchId = "lobbyBatchTest";
   Batches.upsert({ _id: batchId }, { _id: batchId });
 
-  const {
-    lobby
-  } = TurkServer.Batch.getBatch(batchId);
+  const { lobby } = TurkServer.Batch.getBatch(batchId);
 
   const userId = "lobbyUser";
 
@@ -23,15 +21,18 @@ if (Meteor.isServer) {
     }
   });
 
-  Assignments.upsert({
-    batchId,
-    hitId: "lobbyTestHIT",
-    assignmentId: "lobbyTestAsst"
-  }, { $set: {
-    workerId: "lobbyTestWorker",
-    status: "assigned"
-  }
-}
+  Assignments.upsert(
+    {
+      batchId,
+      hitId: "lobbyTestHIT",
+      assignmentId: "lobbyTestAsst"
+    },
+    {
+      $set: {
+        workerId: "lobbyTestWorker",
+        status: "assigned"
+      }
+    }
   );
 
   const asst = TurkServer.Assignment.getCurrentUserAssignment(userId);
@@ -40,84 +41,92 @@ if (Meteor.isServer) {
   let changedUserId = null;
   let leftUserId = null;
 
-  lobby.events.on("user-join", asst => joinedUserId = asst.userId);
-  lobby.events.on("user-status", asst => changedUserId = asst.userId);
-  lobby.events.on("user-leave", asst => leftUserId = asst.userId);
+  lobby.events.on("user-join", asst => (joinedUserId = asst.userId));
+  lobby.events.on("user-status", asst => (changedUserId = asst.userId));
+  lobby.events.on("user-leave", asst => (leftUserId = asst.userId));
 
   const withCleanup = TestUtils.getCleanupWrapper({
     before() {
       lobby.pluckUsers([userId]);
       joinedUserId = null;
       changedUserId = null;
-      return leftUserId = null;
+      return (leftUserId = null);
     },
     after() {}
   });
 
   // Basic tests just to make sure joining/leaving works as intended
-  Tinytest.addAsync("lobby - add user", withCleanup(function(test, next) {
-    lobby.addAssignment(asst);
+  Tinytest.addAsync(
+    "lobby - add user",
+    withCleanup(function(test, next) {
+      lobby.addAssignment(asst);
 
-    return Meteor.defer(function() {
-      test.equal(joinedUserId, userId);
+      return Meteor.defer(function() {
+        test.equal(joinedUserId, userId);
 
-      const lobbyAssts = lobby.getAssignments();
-      test.length(lobbyAssts, 1);
-      test.equal(lobbyAssts[0], asst);
-      test.equal(lobbyAssts[0].userId, userId);
+        const lobbyAssts = lobby.getAssignments();
+        test.length(lobbyAssts, 1);
+        test.equal(lobbyAssts[0], asst);
+        test.equal(lobbyAssts[0].userId, userId);
 
-      const lobbyData = LobbyStatus.findOne(userId);
-      test.equal(lobbyData.batchId, batchId);
-      test.equal(lobbyData.asstId, asst.asstId);
+        const lobbyData = LobbyStatus.findOne(userId);
+        test.equal(lobbyData.batchId, batchId);
+        test.equal(lobbyData.asstId, asst.asstId);
 
-      return next();
-    });
-  })
+        return next();
+      });
+    })
   );
 
   // TODO update this test for generalized lobby user state
-  Tinytest.addAsync("lobby - change state", withCleanup(function(test, next) {
-    lobby.addAssignment(asst);
-    lobby.toggleStatus(asst.userId);
+  Tinytest.addAsync(
+    "lobby - change state",
+    withCleanup(function(test, next) {
+      lobby.addAssignment(asst);
+      lobby.toggleStatus(asst.userId);
 
-    const lobbyUsers = lobby.getAssignments();
-    test.length(lobbyUsers, 1);
-    test.equal(lobbyUsers[0], asst);
-    test.equal(lobbyUsers[0].userId, userId);
+      const lobbyUsers = lobby.getAssignments();
+      test.length(lobbyUsers, 1);
+      test.equal(lobbyUsers[0], asst);
+      test.equal(lobbyUsers[0].userId, userId);
 
-    // TODO: use better API for accessing user status
-    test.equal(__guard__(LobbyStatus.findOne(asst.userId), x => x.status), true);
+      // TODO: use better API for accessing user status
+      test.equal(__guard__(LobbyStatus.findOne(asst.userId), x => x.status), true);
 
-    return Meteor.defer(function() {
-      test.equal(changedUserId, userId);
-      return next();
-    });
-  })
+      return Meteor.defer(function() {
+        test.equal(changedUserId, userId);
+        return next();
+      });
+    })
   );
 
-  Tinytest.addAsync("lobby - remove user", withCleanup(function(test, next) {
-    lobby.addAssignment(asst);
-    lobby.removeAssignment(asst);
+  Tinytest.addAsync(
+    "lobby - remove user",
+    withCleanup(function(test, next) {
+      lobby.addAssignment(asst);
+      lobby.removeAssignment(asst);
 
-    const lobbyUsers = lobby.getAssignments();
-    test.length(lobbyUsers, 0);
+      const lobbyUsers = lobby.getAssignments();
+      test.length(lobbyUsers, 0);
 
-    return Meteor.defer(function() {
-      test.equal(leftUserId, userId);
-      return next();
-    });
-  })
+      return Meteor.defer(function() {
+        test.equal(leftUserId, userId);
+        return next();
+      });
+    })
   );
 
-  Tinytest.addAsync("lobby - remove nonexistent user", withCleanup(function(test, next) {
-    // TODO create an assignment with some other state here
-    lobby.removeAssignment("rando");
+  Tinytest.addAsync(
+    "lobby - remove nonexistent user",
+    withCleanup(function(test, next) {
+      // TODO create an assignment with some other state here
+      lobby.removeAssignment("rando");
 
-    return Meteor.defer(function() {
-      test.equal(leftUserId, null);
-      return next();
-    });
-  })
+      return Meteor.defer(function() {
+        test.equal(leftUserId, null);
+        return next();
+      });
+    })
   );
 }
 
@@ -140,5 +149,5 @@ if (Meteor.isClient) {
 //    simplePoll (-> (groupSize = TSConfig.findOne("lobbyThreshold"))? ), verify, fail, 2000
 
 function __guard__(value, transform) {
-  return (typeof value !== 'undefined' && value !== null) ? transform(value) : undefined;
+  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
 }

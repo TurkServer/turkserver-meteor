@@ -7,7 +7,9 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-if (TurkServer.Util == null) { TurkServer.Util = {}; }
+if (TurkServer.Util == null) {
+  TurkServer.Util = {};
+}
 
 TurkServer.Util.duration = function(millis) {
   const diff = moment.utc(millis);
@@ -16,11 +18,15 @@ TurkServer.Util.duration = function(millis) {
   return (days !== 0 ? days + "d " : "") + time;
 };
 
-TurkServer.Util.timeSince = timestamp => TurkServer.Util.duration(TimeSync.serverTime() - timestamp);
-TurkServer.Util.timeUntil = timestamp => TurkServer.Util.duration(timestamp - TimeSync.serverTime());
+TurkServer.Util.timeSince = timestamp =>
+  TurkServer.Util.duration(TimeSync.serverTime() - timestamp);
+TurkServer.Util.timeUntil = timestamp =>
+  TurkServer.Util.duration(timestamp - TimeSync.serverTime());
 
 TurkServer.callWithModal = function(...args1) {
-  let adjustedLength = Math.max(args1.length, 1), args = args1.slice(0, adjustedLength - 1), callback = args1[adjustedLength - 1];
+  let adjustedLength = Math.max(args1.length, 1),
+    args = args1.slice(0, adjustedLength - 1),
+    callback = args1[adjustedLength - 1];
   const dialog = bootbox.dialog({
     closeButton: false,
     message: "<h3>Working...</h3>"
@@ -41,7 +47,7 @@ TurkServer.callWithModal = function(...args1) {
     }
 
     // If callback is given, calls it with data, otherwise just alert
-    if ((res != null) && (callback != null)) {
+    if (res != null && callback != null) {
       return callback(res);
     } else if (res != null) {
       return bootbox.alert(res);
@@ -53,7 +59,9 @@ TurkServer.callWithModal = function(...args1) {
 
 UI.registerHelper("_tsViewingBatch", () => Batches.findOne(Session.get("_tsViewingBatchId")));
 
-UI.registerHelper("_tsLookupTreatment", function() { return Treatments.findOne({name: ""+this}); });
+UI.registerHelper("_tsLookupTreatment", function() {
+  return Treatments.findOne({ name: "" + this });
+});
 
 UI.registerHelper("_tsRenderTime", timestamp => new Date(timestamp).toLocaleString());
 UI.registerHelper("_tsRenderTimeMillis", function(timestamp) {
@@ -70,7 +78,7 @@ UI.registerHelper("_tsRenderISOTime", function(isoString) {
 });
 
 // https://github.com/kvz/phpjs/blob/master/functions/strings/nl2br.js
-const nl2br = str => (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br>$2');
+const nl2br = str => (str + "").replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, "$1<br>$2");
 
 UI.registerHelper("_tsnl2br", nl2br);
 
@@ -83,10 +91,18 @@ Template.tsBatchSelector.events = {
 };
 
 Template.tsBatchSelector.helpers({
-  batches() { return Batches.find({}, {sort: {name: 1}}); },
-  noBatchSelection() { return !Session.get("_tsViewingBatchId"); },
-  selected() { return Session.equals("_tsViewingBatchId", this._id); },
-  viewingBatchId() { return Session.get("_tsViewingBatchId"); }
+  batches() {
+    return Batches.find({}, { sort: { name: 1 } });
+  },
+  noBatchSelection() {
+    return !Session.get("_tsViewingBatchId");
+  },
+  selected() {
+    return Session.equals("_tsViewingBatchId", this._id);
+  },
+  viewingBatchId() {
+    return Session.get("_tsViewingBatchId");
+  }
 });
 
 Template.tsAdminInstance.rendered = function() {
@@ -95,7 +111,10 @@ Template.tsAdminInstance.rendered = function() {
 };
 
 Template.tsAdminInstance.helpers({
-  instance() { return Experiments.findOne(this+""); }});
+  instance() {
+    return Experiments.findOne(this + "");
+  }
+});
 
 Template.tsAdminPayBonus.events({
   "submit form"(e, t) {
@@ -103,7 +122,9 @@ Template.tsAdminPayBonus.events({
     const amount = parseFloat(t.find("input[name=amount]").value);
     const reason = t.find("textarea[name=reason]").value;
 
-    $(t.firstNode).closest(".bootbox.modal").modal('hide');
+    $(t.firstNode)
+      .closest(".bootbox.modal")
+      .modal("hide");
 
     return TurkServer.callWithModal("ts-admin-pay-bonus", this._id, amount, reason);
   }
@@ -118,7 +139,9 @@ Template.tsAdminEmailWorker.events({
 
     const emailId = WorkerEmails.insert({ subject, message, recipients });
 
-    $(t.firstNode).closest(".bootbox.modal").modal('hide');
+    $(t.firstNode)
+      .closest(".bootbox.modal")
+      .modal("hide");
 
     return TurkServer.callWithModal("ts-admin-send-message", emailId);
   }
@@ -126,9 +149,12 @@ Template.tsAdminEmailWorker.events({
 
 const userLabelClass = function() {
   switch (false) {
-    case !(this.status != null ? this.status.idle : undefined): return "label-warning";
-    case !(this.status != null ? this.status.online : undefined): return "label-success";
-    default: return "label-default";
+    case !(this.status != null ? this.status.idle : undefined):
+      return "label-warning";
+    case !(this.status != null ? this.status.online : undefined):
+      return "label-success";
+    default:
+      return "label-default";
   }
 };
 
@@ -150,9 +176,12 @@ Template.tsAdminWorkerItem.helpers({
 Template.tsUserPill.helpers({
   user() {
     switch (false) {
-      case !this.userId: return Meteor.users.findOne(this.userId);
-      case !this.workerId: return Meteor.users.findOne({workerId: this.workerId});
-      default: return this;
+      case !this.userId:
+        return Meteor.users.findOne(this.userId);
+      case !this.workerId:
+        return Meteor.users.findOne({ workerId: this.workerId });
+      default:
+        return this;
     }
   }, // Object was already passed in
   labelClass: userLabelClass,
@@ -170,16 +199,19 @@ Template.tsDescList.helpers({
     const result = [];
     for (let key in this) {
       const value = this[key];
-      result.push({key, value});
+      result.push({ key, value });
     }
     return result;
   },
   // Special rules for rendering description lists
   value() {
     switch (false) {
-      case this.value !== false: return "false";
-      case !_.isObject(this.value): return JSON.stringify(this.value);
-      default: return nl2br(this.value);
+      case this.value !== false:
+        return "false";
+      case !_.isObject(this.value):
+        return JSON.stringify(this.value);
+      default:
+        return nl2br(this.value);
     }
   }
 });

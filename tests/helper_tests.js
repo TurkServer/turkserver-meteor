@@ -8,15 +8,19 @@
 // TODO: try implementing Meteor.isServer stuff with setUserId
 
 if (Meteor.isClient) {
-  Tinytest.addAsync("helpers - isAdmin", (test, next) => InsecureLogin.ready(function() {
-    // this should be straight up false - isFalse might take `undefined` for an answer.
-    test.equal(TurkServer.isAdmin(), false);
-    return next();
-  }));
+  Tinytest.addAsync("helpers - isAdmin", (test, next) =>
+    InsecureLogin.ready(function() {
+      // this should be straight up false - isFalse might take `undefined` for an answer.
+      test.equal(TurkServer.isAdmin(), false);
+      return next();
+    })
+  );
 
   Tinytest.addAsync("helpers - checkAdmin", function(test, next) {
-    test.throws(() => TurkServer.checkAdmin()
-    , e => (e.error === 403) && (e.reason === ErrMsg.notAdminErr));
+    test.throws(
+      () => TurkServer.checkAdmin(),
+      e => e.error === 403 && e.reason === ErrMsg.notAdminErr
+    );
     return next();
   });
 
@@ -30,6 +34,10 @@ if (Meteor.isClient) {
 /*
   Timer helper tests - server/client
 */
-Tinytest.add("timers - formatMillis renders 0 properly", test => test.equal(TurkServer.Util.formatMillis(0), "0:00:00"));
+Tinytest.add("timers - formatMillis renders 0 properly", test =>
+  test.equal(TurkServer.Util.formatMillis(0), "0:00:00")
+);
 
-Tinytest.add("timers - formatMillis renders negative values properly", test => test.equal(TurkServer.Util.formatMillis(-1000), "-0:00:01"));
+Tinytest.add("timers - formatMillis renders negative values properly", test =>
+  test.equal(TurkServer.Util.formatMillis(-1000), "-0:00:01")
+);
