@@ -115,7 +115,7 @@ Template.tsAdminNewQual.events = {
     const name = tmpl.find("input[name=name]").value;
     let type = tmpl.find("input[name=type]").value;
     const comp = tmpl.find("select[name=comp]").value;
-    const { value } = tmpl.find("input[name=value]");
+    const value = tmpl.find("input[name=value]").value;
     const preview = tmpl.find("input[name=preview]").checked;
 
     if (!name || !type || !comp) {
@@ -226,7 +226,8 @@ Template.tsAdminViewHit.events = {
   "submit .-ts-change-hittype"(e, tmpl) {
     e.preventDefault();
     const htId = tmpl.find("select[name=hittype]").value;
-    const { HITTypeId } = HITTypes.findOne(htId);
+    // TODO destructuring assignment
+    const HITTypeId = HITTypes.findOne(htId).HITTypeId;
     if (!HITTypeId) {
       bootbox.alert("Register that HIT Type first");
       return;

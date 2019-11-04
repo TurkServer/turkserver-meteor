@@ -392,7 +392,8 @@ Meteor.methods({
       throw new Error(403, "Message already sent");
     }
 
-    const { recipients } = email;
+    // TODO destructuring assignment
+    const recipients = email.recipients;
 
     check(email.subject, String);
     check(email.message, String);

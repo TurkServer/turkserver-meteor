@@ -58,7 +58,7 @@ if (Meteor.isServer) {
       if (!userId) {
         throw new Meteor.Error(500, "Not logged in");
       }
-      const { workerId } = Meteor.users.findOne(userId);
+      const workerId = Meteor.users.findOne(userId).workerId;
       return Assignments.findOne({ workerId, status: "assigned" });
     },
 

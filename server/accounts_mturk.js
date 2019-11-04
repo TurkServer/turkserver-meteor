@@ -42,7 +42,11 @@ Accounts.validateLoginAttempt(function(info) {
   Returns an assignment object corresponding to the assignment.
 */
 const authenticateWorker = function(loginRequest) {
-  const { batchId, hitId, assignmentId, workerId } = loginRequest;
+  // TODO destructuring assignment
+  const batchId = loginRequest.batchId;
+  const hitId = loginRequest.hitId;
+  const assignmentId = loginRequest.assignmentId;
+  const workerId = loginRequest.workerId;
 
   // check if batchId is correct except for testing logins
   if (!loginRequest.test && !TurkServer.config.hits.acceptUnknownHits) {

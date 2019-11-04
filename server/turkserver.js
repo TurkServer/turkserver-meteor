@@ -211,11 +211,13 @@ Meteor.publish(null, function() {
     status: "assigned"
   }).observeChanges({
     added(id, fields) {
-      const { batchId } = Assignments.findOne(id);
+      // TODO destructuring assignment
+      const batchId = Assignments.findOne(id).batchId;
       return sub.added("ts.batches", batchId, Batches.findOne(batchId));
     },
     removed(id) {
-      const { batchId } = Assignments.findOne(id);
+      // TODO destructuring assignment
+      const batchId = Assignments.findOne(id).batchId;
       return sub.removed("ts.batches", batchId);
     }
   });

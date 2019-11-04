@@ -41,8 +41,9 @@ if (Meteor.isServer) {
 
 // Get a wrapper that runs a before and after function wrapping some test function.
 TestUtils.getCleanupWrapper = function(settings) {
-  const { before } = settings;
-  const { after } = settings;
+  // TODO destructuring assignment
+  const before = settings.before;
+  const after = settings.after;
   // Take a function...
   return (
     fn // Return a function that, when called, executes the hooks around the function.

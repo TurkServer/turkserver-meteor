@@ -11,7 +11,7 @@ if (Meteor.isServer) {
   const batchId = "lobbyBatchTest";
   Batches.upsert({ _id: batchId }, { _id: batchId });
 
-  const { lobby } = TurkServer.Batch.getBatch(batchId);
+  const lobby = TurkServer.Batch.getBatch(batchId).lobby;
 
   const userId = "lobbyUser";
 
