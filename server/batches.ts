@@ -21,6 +21,10 @@ import { Assignment } from "./assignment";
 const _batches = {};
 
 export class Batch {
+  batchId: string;
+  lobby: Lobby;
+  assigner: Assigner;
+
   static getBatch(batchId) {
     let batch;
     check(batchId, String);

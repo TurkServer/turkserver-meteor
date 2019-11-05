@@ -27,6 +27,7 @@ import {
 } from "../lib/common";
 import { Assignment } from "../server/assignment";
 import { Instance } from "../server/instance";
+import { Batch } from "../server/batches";
 
 function isAdmin(userId: string): boolean {
   if (userId == null) return false;
@@ -381,7 +382,7 @@ Meteor.methods({
     checkAdmin();
     check(batchId, String);
 
-    const batch = TurkServer.Batch.getBatch(batchId);
+    const batch = Batch.getBatch(batchId);
     if (batch == null) {
       throw new Meteor.Error(500, `Batch ${batchId} does not exist`);
     }

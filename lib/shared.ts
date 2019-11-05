@@ -30,7 +30,9 @@ export const Treatments = new Mongo.Collection<Treatment>("ts.treatments");
 
 export interface Experiment {
   _id: string;
+  batchId: string;
   users: string[];
+  treatments: string[];
   startTime?: Date;
   endTime?: Date;
 }

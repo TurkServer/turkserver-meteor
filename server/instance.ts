@@ -1,9 +1,10 @@
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
-import { Experiments } from "../lib/shared";
+import { Experiments, Treatments } from "../lib/shared";
 import { TurkServer } from "../lib/common";
 import { Assignment } from "./assignment";
+import { Batch } from "./batches";
 
 const init_queue = [];
 
@@ -23,6 +24,8 @@ const _instances = new Map();
  * @instancename instance
  */
 export class Instance {
+  groupId: string;
+
   /**
    * @summary Get the instance by its id.
    * @param {String} groupId
@@ -77,7 +80,7 @@ export class Instance {
    * @param {Function} func The function to execute.
    * @param {Object} context Optional context to pass to the function.
    */
-  bindOperation(func, context = {}) {
+  bindOperation(func, context: any = {}) {
     context.instance = this;
     Partitioner.bindGroup(this.groupId, func.bind(context));
   }

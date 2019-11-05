@@ -3,6 +3,7 @@ import { check, Match } from "meteor/check";
 
 import { Assignments, TurkServer, ErrMsg, Workers } from "../lib/common";
 import { Experiments } from "../lib/shared";
+import { Batch } from "./batches";
 
 const _assignments = {};
 const _userAssignments = {};
@@ -28,6 +29,15 @@ Assignments.find({ status: "assigned" }, { fields: { workerId: 1 } }).observe({
  * @instancename assignment
  */
 export class Assignment {
+  userId: string;
+  asstId: string;
+  batchId: string;
+
+  // MTurk strings
+  hitId: string;
+  assignmentId: string;
+  workerId: string;
+
   static createAssignment(data) {
     const asstId = Assignments.insert(data);
     return (_assignments[asstId] = new Assignment(asstId, data));
@@ -158,7 +168,7 @@ export class Assignment {
    * @summary Add one or more treatments to a user's assignment. These treatments will be available on the client side through TurkServer.treatment()
    * @param {String | String[]} String or list of strings corresponding to treatments to associate to the user
    */
-  addTreatment(names) {
+  addTreatment(names: string | string[]): void {
     check(names, Match.OneOf(String, [String]));
 
     /*
@@ -168,7 +178,7 @@ export class Assignment {
          treatments: [ "foo, "bar" ]
        }
      */
-    if (_.isArray(names)) {
+    if (Array.isArray(names)) {
       Assignments.update(this.asstId, {
         $addToSet: { treatments: { $each: names } }
       });

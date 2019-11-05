@@ -29,9 +29,11 @@ export type InstanceData = {
 export interface IAssignment {
   _id: string;
   workerId: string;
+  assignmentId: string;
   instances: InstanceData[];
   treatments: string[];
   mturkStatus: MTurkStatus;
+  status: "assigned" | "completed" | "returned";
   bonusPaid: Date;
   bonusPayment: number;
 }
