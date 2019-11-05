@@ -8,8 +8,31 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-// Server admin code
-const isAdmin = userId => userId != null && __guard__(Meteor.users.findOne(userId), x => x.admin);
+
+// Server admin code.
+import { Meteor } from "meteor/meteor";
+import { check } from "meteor/check";
+import { Accounts } from "meteor/accounts-base";
+
+import { Batches, Experiments, Treatments, Logs } from "../lib/shared";
+import {
+  TurkServer,
+  Qualifications,
+  HITTypes,
+  HITs,
+  Workers,
+  Assignments,
+  WorkerEmails,
+  checkAdmin
+} from "../lib/common";
+import { Assignment } from "../server/assignment";
+import { Instance } from "../server/instance";
+
+function isAdmin(userId: string): boolean {
+  if (userId == null) return false;
+  const user = Meteor.users.findOne(userId);
+  return (user && user.admin) || false;
+}
 
 // Only admin gets server facts
 Facts.setUserIdFilter(isAdmin);
@@ -211,7 +234,7 @@ const getAndCheckHitType = function(hitTypeId) {
 
 Meteor.methods({
   "ts-admin-account-balance"() {
-    TurkServer.checkAdmin();
+    checkAdmin();
     try {
       return TurkServer.mturk("GetAccountBalance", {});
     } catch (e) {
@@ -221,7 +244,7 @@ Meteor.methods({
 
   // This is the only method that uses the _id field of HITType instead of HITTypeId.
   "ts-admin-register-hittype"(hitType_id) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     // Build up the params to register the HIT Type
     const params = HITTypes.findOne(hitType_id);
     delete params._id;
@@ -265,7 +288,7 @@ Meteor.methods({
   },
 
   "ts-admin-create-hit"(hitTypeId, params) {
-    TurkServer.checkAdmin();
+    checkAdmin();
 
     const hitType = getAndCheckHitType(hitTypeId);
 
@@ -294,7 +317,7 @@ Meteor.methods({
   },
 
   "ts-admin-refresh-hit"(HITId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     if (!HITId) {
       throw new Meteor.Error(400, "HIT ID not specified");
     }
@@ -307,7 +330,7 @@ Meteor.methods({
   },
 
   "ts-admin-expire-hit"(HITId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     if (!HITId) {
       throw new Meteor.Error(400, "HIT ID not specified");
     }
@@ -322,7 +345,7 @@ Meteor.methods({
   },
 
   "ts-admin-change-hittype"(params) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(params.HITId, String);
     check(params.HITTypeId, String);
 
@@ -337,7 +360,7 @@ Meteor.methods({
   },
 
   "ts-admin-extend-hit"(params) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(params.HITId, String);
 
     const hit = HITs.findOne({ HITId: params.HITId });
@@ -355,7 +378,7 @@ Meteor.methods({
   },
 
   "ts-admin-lobby-event"(batchId, event) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     const batch = TurkServer.Batch.getBatch(batchId);
@@ -368,7 +391,7 @@ Meteor.methods({
 
   "ts-admin-create-message"(subject, message, copyFromId) {
     let recipients;
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(subject, String);
     check(message, String);
 
@@ -384,12 +407,12 @@ Meteor.methods({
   },
 
   "ts-admin-send-message"(emailId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(emailId, String);
 
     const email = WorkerEmails.findOne(emailId);
     if (email.sentTime != null) {
-      throw new Error(403, "Message already sent");
+      throw new Meteor.Error(403, "Message already sent");
     }
 
     const { recipients } = email;
@@ -399,7 +422,7 @@ Meteor.methods({
     check(recipients, Array);
 
     if (recipients.length === 0) {
-      throw new Error(403, "No recipients on e-mail");
+      throw new Meteor.Error(403, "No recipients on e-mail");
     }
 
     let count = 0;
@@ -441,14 +464,14 @@ Meteor.methods({
 
   // TODO implement this
   "ts-admin-resend-message"(emailId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(emailId, String);
 
     throw new Meteor.Error(500, "Not implemented");
   },
 
   "ts-admin-copy-message"(emailId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(emailId, String);
 
     const email = WorkerEmails.findOne(emailId);
@@ -460,7 +483,7 @@ Meteor.methods({
   },
 
   "ts-admin-delete-message"(emailId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(emailId, String);
 
     const email = WorkerEmails.findOne(emailId);
@@ -472,11 +495,11 @@ Meteor.methods({
   },
 
   "ts-admin-cleanup-user-state"() {
-    TurkServer.checkAdmin();
+    checkAdmin();
     // Find all users that are state: experiment but don't have an active assignment
     // This shouldn't have to be used in most cases
     Meteor.users.find({ "turkserver.state": "experiment" }).map(function(user) {
-      if (TurkServer.Assignment.getCurrentUserAssignment(user._id) != null) {
+      if (Assignment.getCurrentUserAssignment(user._id) != null) {
         return;
       }
       return Meteor.users.update(user._id, {
@@ -486,7 +509,7 @@ Meteor.methods({
   },
 
   "ts-admin-cancel-assignments"(batchId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     let count = 0;
@@ -496,7 +519,7 @@ Meteor.methods({
       if (user.status != null ? user.status.online : undefined) {
         return;
       }
-      const tsAsst = TurkServer.Assignment.getAssignment(asst._id);
+      const tsAsst = Assignment.getAssignment(asst._id);
       tsAsst.setReturned();
 
       // if they were disconnected in the middle of an experiment,
@@ -515,7 +538,7 @@ Meteor.methods({
 
   // Refresh all assignments in a batch that are either unknown or submitted
   "ts-admin-refresh-assignments"(batchId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     // We may encounter more than one error when refreshing a bunch of
@@ -528,7 +551,7 @@ Meteor.methods({
       status: "completed",
       mturkStatus: { $in: [null, "Submitted"] }
     }).forEach(function(a) {
-      const asst = TurkServer.Assignment.getAssignment(a._id);
+      const asst = Assignment.getAssignment(a._id);
       // Refresh submitted assignments as they may have been auto-approved
       try {
         return asst.refreshStatus();
@@ -543,29 +566,29 @@ Meteor.methods({
   },
 
   "ts-admin-refresh-assignment"(asstId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(asstId, String);
 
-    TurkServer.Assignment.getAssignment(asstId).refreshStatus();
+    Assignment.getAssignment(asstId).refreshStatus();
   },
 
   "ts-admin-approve-assignment"(asstId, msg) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(asstId, String);
 
-    TurkServer.Assignment.getAssignment(asstId).approve(msg);
+    Assignment.getAssignment(asstId).approve(msg);
   },
 
   "ts-admin-reject-assignment"(asstId, msg) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(asstId, String);
 
-    TurkServer.Assignment.getAssignment(asstId).reject(msg);
+    Assignment.getAssignment(asstId).reject(msg);
   },
 
   // Count number of submitted assignments in a batch
   "ts-admin-count-submitted"(batchId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     // First refresh everything
@@ -579,18 +602,18 @@ Meteor.methods({
 
   // Approve all submitted assignments in a batch
   "ts-admin-approve-all"(batchId, msg) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     return Assignments.find({
       batchId,
       mturkStatus: "Submitted"
-    }).forEach(asst => TurkServer.Assignment.getAssignment(asst._id).approve(msg));
+    }).forEach(asst => Assignment.getAssignment(asst._id).approve(msg));
   },
 
   // Count number of unpaid bonuses in a batch
   "ts-admin-count-unpaid-bonuses"(batchId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     // First refresh everything
@@ -616,7 +639,7 @@ Meteor.methods({
 
   // Pay all unpaid bonuses in a batch
   "ts-admin-pay-bonuses"(batchId, msg) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     Assignments.find({
@@ -624,18 +647,18 @@ Meteor.methods({
       mturkStatus: "Approved",
       bonusPayment: { $gt: 0 },
       bonusPaid: { $exists: false }
-    }).forEach(asst => TurkServer.Assignment.getAssignment(asst._id).payBonus(msg));
+    }).forEach(asst => Assignment.getAssignment(asst._id).payBonus(msg));
   },
 
   "ts-admin-unset-bonus"(asstId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(asstId, String);
 
-    return TurkServer.Assignment.getAssignment(asstId).setPayment(null);
+    return Assignment.getAssignment(asstId).setPayment(null);
   },
 
   "ts-admin-pay-bonus"(asstId, amount, reason) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(asstId, String);
     check(amount, Number);
     check(reason, String);
@@ -645,7 +668,7 @@ Meteor.methods({
       throw new Meteor.Error(403, `You probably didn't mean to pay ${amount}`);
     }
 
-    const asst = TurkServer.Assignment.getAssignment(asstId);
+    const asst = Assignment.getAssignment(asstId);
     try {
       asst.setPayment(amount);
       asst.payBonus(reason);
@@ -655,19 +678,19 @@ Meteor.methods({
   },
 
   "ts-admin-stop-experiment"(groupId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(groupId, String);
 
-    TurkServer.Instance.getInstance(groupId).teardown();
+    Instance.getInstance(groupId).teardown();
   },
 
   "ts-admin-stop-all-experiments"(batchId) {
-    TurkServer.checkAdmin();
+    checkAdmin();
     check(batchId, String);
 
     let count = 0;
     Experiments.find({ batchId, endTime: { $exists: false } }).map(function(instance) {
-      TurkServer.Instance.getInstance(instance._id).teardown();
+      Instance.getInstance(instance._id).teardown();
       return count++;
     });
 

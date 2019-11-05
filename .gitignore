@@ -1,8 +1,7 @@
 .idea
 .npm
+node_modules
 packages/*
-smart.lock
-versions.json
 
 docs/client/data
 

@@ -60,7 +60,7 @@ Package.onUse(function(api) {
   api.use("mizzao:user-status@0.6.5");
 
   // Shared files
-  api.addFiles(["lib/shared.js", "lib/common.js", "lib/util.js"]);
+  api.addFiles(["lib/shared.ts", "lib/common.ts", "lib/util.js"]);
 
   // Server files
   api.addFiles(
@@ -70,12 +70,12 @@ Package.onUse(function(api) {
       "server/server_api.js",
       "server/mturk.js",
       "server/lobby_server.js",
-      "server/batches.js",
-      "server/instance.js",
+      "server/batches.ts",
+      "server/instance.ts",
       "server/logging.js",
       "server/assigners.js",
       "server/assigners_extra.js",
-      "server/assignment.js",
+      "server/assignment.ts",
       "server/connections.js",
       "server/timers_server.js",
       "server/accounts_mturk.js"
@@ -120,7 +120,7 @@ Package.onUse(function(api) {
     "client"
   );
 
-  api.addFiles("admin/admin.js", "server");
+  api.addFiles("admin/admin.ts", "server");
 
   api.export(["TurkServer"]);
 
@@ -149,6 +149,8 @@ Package.onTest(function(api) {
   api.use(["tinytest", "test-helpers"]);
 
   api.use("session", "client");
+
+  api.use("barbatus:typescript"); // For compiling files below
 
   api.use("iron:router"); // Needed so we can un-configure the router
   api.use("mizzao:partitioner");

@@ -1,3 +1,10 @@
+import { Meteor } from "meteor/meteor";
+import { check } from "meteor/check";
+
+import { Experiments } from "../lib/shared";
+import { TurkServer } from "../lib/common";
+import { Assignment } from "./assignment";
+
 const init_queue = [];
 
 /*
@@ -15,7 +22,7 @@ const _instances = new Map();
  * @class
  * @instancename instance
  */
-class Instance {
+export class Instance {
   /**
    * @summary Get the instance by its id.
    * @param {String} groupId
@@ -34,7 +41,7 @@ class Instance {
     // A fiber may have created this at the same time; if so use that one
     if ((inst = _instances.get(groupId) && inst != null)) return inst;
 
-    inst = new TurkServer.Instance(groupId);
+    inst = new Instance(groupId);
     _instances.set(groupId, inst);
     return inst;
   }
@@ -97,7 +104,7 @@ class Instance {
    * @param {TurkServer.Assignment} asst The user assignment to add.
    */
   addAssignment(asst) {
-    check(asst, TurkServer.Assignment);
+    check(asst, Assignment);
 
     if (this.isEnded()) {
       throw new Error("Cannot add a user to an instance that has ended.");
@@ -149,7 +156,7 @@ class Instance {
    */
   batch() {
     const instance = Experiments.findOne(this.groupId);
-    return instance && TurkServer.Batch.getBatch(instance.batchId);
+    return instance && Batch.getBatch(instance.batchId);
   }
 
   /**
@@ -228,7 +235,7 @@ class Instance {
     const users = Experiments.findOne(this.groupId).users;
     if (users == null) return;
 
-    for (userId of users) {
+    for (let userId of users) {
       this.sendUserToLobby(userId);
     }
   }
@@ -239,7 +246,7 @@ class Instance {
    */
   sendUserToLobby(userId) {
     Partitioner.clearUserGroup(userId);
-    let asst = TurkServer.Assignment.getCurrentUserAssignment(userId);
+    let asst = Assignment.getCurrentUserAssignment(userId);
     if (asst == null) return;
 
     // If the user is still assigned, do final accounting and put them in lobby
@@ -253,4 +260,4 @@ class Instance {
 TurkServer.Instance = Instance;
 
 // XXX back-compat
-TurkServer.initialize = TurkServer.Instance.initialize;
+TurkServer.initialize = Instance.initialize;

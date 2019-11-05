@@ -1,3 +1,9 @@
+import { Meteor } from "meteor/meteor";
+import { check, Match } from "meteor/check";
+
+import { Assignments, TurkServer, ErrMsg, Workers } from "../lib/common";
+import { Experiments } from "../lib/shared";
+
 const _assignments = {};
 const _userAssignments = {};
 
@@ -21,7 +27,7 @@ Assignments.find({ status: "assigned" }, { fields: { workerId: 1 } }).observe({
  * @class
  * @instancename assignment
  */
-class Assignment {
+export class Assignment {
   static createAssignment(data) {
     const asstId = Assignments.insert(data);
     return (_assignments[asstId] = new Assignment(asstId, data));
@@ -137,7 +143,7 @@ class Assignment {
    * @returns {TurkServer.Batch} The assignment's batch.
    */
   getBatch() {
-    return TurkServer.Batch.getBatch(this.batchId);
+    return Batch.getBatch(this.batchId);
   }
 
   /**
@@ -579,7 +585,7 @@ class Assignment {
 
     // Record a disconnect time if we are currently part of an instance
     const now = new Date();
-    updateObj = {
+    const updateObj = {
       $set: {
         "instances.$.lastDisconnect": now
       }
@@ -696,5 +702,3 @@ function addResetIdleUpdateFields(obj, idleDurationMillis) {
   obj.$unset["instances.$.lastIdle"] = null;
   return obj;
 }
-
-TurkServer.Assignment = Assignment;
