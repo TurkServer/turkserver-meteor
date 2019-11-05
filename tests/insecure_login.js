@@ -1,16 +1,16 @@
 InsecureLogin = {
   queue: [],
   ran: false,
-  ready: function (callback) {
+  ready: function(callback) {
     this.queue.push(callback);
     if (this.ran) this.unwind();
   },
-  run: function () {
+  run: function() {
     this.ran = true;
     this.unwind();
   },
-  unwind: function () {
-    _.each(this.queue, function (callback) {
+  unwind: function() {
+    _.each(this.queue, function(callback) {
       callback();
     });
     this.queue = [];
@@ -24,14 +24,16 @@ if (Meteor.isClient) {
   var batchId = "expClientBatch";
 
   Accounts.callLoginMethod({
-    methodArguments: [{
-      hitId: hitId,
-      assignmentId: assignmentId,
-      workerId: workerId,
-      batchId: batchId,
-      test: true
-    }],
-    userCallback: function (err) {
+    methodArguments: [
+      {
+        hitId: hitId,
+        assignmentId: assignmentId,
+        workerId: workerId,
+        batchId: batchId,
+        test: true
+      }
+    ],
+    userCallback: function(err) {
       if (err) console.log(err);
       else {
         console.info("HIT login successful!");

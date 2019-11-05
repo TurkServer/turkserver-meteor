@@ -1,5 +1,5 @@
-const os = Npm.require('os');
-const merge = Npm.require('deepmerge');
+const os = Npm.require("os");
+const merge = Npm.require("deepmerge");
 
 // Client-side default settings, for reference
 const defaultPublicSettings = {
