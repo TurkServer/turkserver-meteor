@@ -35,15 +35,17 @@ Package.onUse(function(api) {
   api.use(["ddp", "mongo"]); // For pub/sub and collections
 
   // To use the promises in mturk-api from Fibers code
-  api.use("promise");
+  // api.use("promise");
   // Modules: https://docs.meteor.com/v1.4/packages/modules.html
   api.use("modules");
 
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
+
   // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
   // adornis:typescript from [1.4, 1.8)
-  api.use("barbatus:typescript");
+  // api.use("adornis:typescript@0.9.14");
+  api.use("barbatus:typescript@0.7.0");
 
   api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.11");
@@ -70,7 +72,7 @@ Package.onUse(function(api) {
       "server/config.ts",
       "server/turkserver.js",
       "server/server_api.js",
-      "server/mturk.js",
+      "server/mturk.ts",
       "server/lobby_server.ts",
       "server/batches.ts",
       "server/instance.ts",
@@ -155,7 +157,7 @@ Package.onTest(function(api) {
 
   api.use("session", "client");
 
-  api.use("barbatus:typescript"); // For compiling files below
+  api.use("barbatus:typescript@0.7.0"); // For compiling files below
 
   api.use("iron:router"); // Needed so we can un-configure the router
   api.use("mizzao:partitioner");
