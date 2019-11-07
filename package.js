@@ -44,8 +44,8 @@ Package.onUse(function(api) {
 
   // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
   // adornis:typescript from [1.4, 1.8)
-  // api.use("adornis:typescript@0.9.14");
-  api.use("barbatus:typescript@0.7.0");
+  api.use("adornis:typescript@0.9.14");
+  // api.use("barbatus:typescript@0.7.0");
 
   api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.11");
@@ -157,7 +157,8 @@ Package.onTest(function(api) {
 
   api.use("session", "client");
 
-  api.use("barbatus:typescript@0.7.0"); // For compiling files below
+  // api.use("barbatus:typescript@0.7.0"); // For compiling files below
+  api.use("adornis:typescript");
 
   api.use("iron:router"); // Needed so we can un-configure the router
   api.use("mizzao:partitioner");
