@@ -31,4 +31,6 @@ const defaultSettings = {
 // Read and merge settings on startup
 let inputSettings = Meteor.settings && Meteor.settings.turkserver;
 
+console.log(merge);
+
 export const config = merge(defaultSettings, inputSettings || {});
