@@ -40,6 +40,8 @@ export const Experiments = new Mongo.Collection<Experiment>("ts.experiments");
 
 export interface ILobbyStatus {
   _id: string;
+  asstId: string;
+  status: boolean; // Whether the user has clicked "ready"
 }
 export const LobbyStatus = new Mongo.Collection<ILobbyStatus>("ts.lobby");
 

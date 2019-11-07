@@ -4,6 +4,7 @@ import { check, Match } from "meteor/check";
 import { Assignments, TurkServer, ErrMsg, Workers } from "../lib/common";
 import { Experiments } from "../lib/shared";
 import { Batch } from "./batches";
+import { mturk } from "./mturk";
 
 const _assignments = {};
 const _userAssignments = {};
@@ -351,7 +352,7 @@ export class Assignment {
     let asstData;
 
     try {
-      asstData = TurkServer.mturk("GetAssignment", {
+      asstData = mturk("GetAssignment", {
         AssignmentId: this.assignmentId
       });
     } catch (e) {
@@ -402,7 +403,7 @@ export class Assignment {
     check(message, String);
     this._checkSubmittedStatus();
 
-    TurkServer.mturk("ApproveAssignment", {
+    mturk("ApproveAssignment", {
       AssignmentId: this.assignmentId,
       RequesterFeedback: message
     });
@@ -426,7 +427,7 @@ export class Assignment {
     check(message, String);
     this._checkSubmittedStatus();
 
-    TurkServer.mturk("RejectAssignment", {
+    mturk("RejectAssignment", {
       AssignmentId: this.assignmentId,
       RequesterFeedback: message
     });
@@ -454,7 +455,7 @@ export class Assignment {
       throw new Error("Bonus already paid");
     }
 
-    TurkServer.mturk("GrantBonus", {
+    mturk("GrantBonus", {
       WorkerId: data.workerId,
       AssignmentId: data.assignmentId,
       BonusAmount: {
@@ -672,7 +673,7 @@ export class Assignment {
   // TODO test that these are grabbing the right numbers
   _getLastDisconnect(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances, inst => {
+    const instanceData = instances.find(inst => {
       return inst.id === instanceId;
     });
     return instanceData && instanceData.lastDisconnect;
@@ -680,7 +681,7 @@ export class Assignment {
 
   _getLastIdle(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances, inst => {
+    const instanceData = instances.find(inst => {
       return inst.id === instanceId;
     });
     return instanceData && instanceData.lastIdle;

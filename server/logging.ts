@@ -1,3 +1,6 @@
+import { Logs } from "../lib/shared";
+import { ErrMsg } from "../lib/common";
+
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
 /*
@@ -41,7 +44,9 @@ Logs.before.insert(function(userId, doc) {
   return true;
 });
 
-TurkServer.log = (doc, callback) => Logs.insert(doc, callback);
+export function log(doc, callback = null) {
+  Logs.insert(doc, callback);
+}
 
 Meteor.methods({
   "ts-log"(doc) {

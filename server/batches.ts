@@ -1,3 +1,5 @@
+import * as _ from "underscore";
+
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
@@ -6,6 +8,9 @@ import { Batches, Treatments, Experiments } from "../lib/shared";
 
 import { Instance } from "./instance";
 import { Assignment } from "./assignment";
+import { Lobby } from "./lobby_server";
+import { Assigner } from "./assigners";
+import { log } from "./logging";
 
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
@@ -67,8 +72,8 @@ export class Batch {
   }
 
   // Creating an instance does not set it up, or initialize the start time.
-  createInstance(treatmentNames, fields) {
-    fields = _.extend(fields || {}, {
+  createInstance(treatmentNames: string[] = [], fields = {}) {
+    fields = _.extend(fields, {
       batchId: this.batchId,
       treatments: treatmentNames || []
     });
@@ -80,7 +85,7 @@ export class Batch {
     const instance = Instance.getInstance(groupId);
 
     instance.bindOperation(() =>
-      TurkServer.log({
+      log({
         _meta: "created"
       })
     );
@@ -101,16 +106,16 @@ export class Batch {
   }
 }
 
-TurkServer.ensureBatchExists = function(props) {
+export function ensureBatchExists(props) {
   if (props.name == null) {
     throw new Error("Batch must have a name");
   }
   return Batches.upsert({ name: props.name }, props);
-};
+}
 
-TurkServer.ensureTreatmentExists = function(props) {
+export function ensureTreatmentExists(props) {
   if (props.name == null) {
     throw new Error("Treatment must have a name");
   }
   return Treatments.upsert({ name: props.name }, props);
-};
+}

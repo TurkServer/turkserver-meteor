@@ -16,7 +16,6 @@ import { Accounts } from "meteor/accounts-base";
 
 import { Batches, Experiments, Treatments, Logs } from "../lib/shared";
 import {
-  TurkServer,
   Qualifications,
   HITTypes,
   HITs,
@@ -28,6 +27,7 @@ import {
 import { Assignment } from "../server/assignment";
 import { Instance } from "../server/instance";
 import { Batch } from "../server/batches";
+import { mturk } from "../server/mturk";
 
 function isAdmin(userId: string): boolean {
   if (userId == null) return false;
@@ -237,7 +237,7 @@ Meteor.methods({
   "ts-admin-account-balance"() {
     checkAdmin();
     try {
-      return TurkServer.mturk("GetAccountBalance", {});
+      return mturk("GetAccountBalance", {});
     } catch (e) {
       throw new Meteor.Error(403, e.toString());
     }
@@ -280,7 +280,7 @@ Meteor.methods({
 
     let hitTypeId = null;
     try {
-      hitTypeId = TurkServer.mturk("RegisterHITType", params);
+      hitTypeId = mturk("RegisterHITType", params);
     } catch (e) {
       throw new Meteor.Error(500, e.toString());
     }
@@ -302,7 +302,7 @@ Meteor.methods({
 
     let hitId = null;
     try {
-      hitId = TurkServer.mturk("CreateHIT", params);
+      hitId = mturk("CreateHIT", params);
     } catch (e) {
       throw new Meteor.Error(500, e.toString());
     }
@@ -323,7 +323,7 @@ Meteor.methods({
       throw new Meteor.Error(400, "HIT ID not specified");
     }
     try {
-      const hitData = TurkServer.mturk("GetHIT", { HITId });
+      const hitData = mturk("GetHIT", { HITId });
       HITs.update({ HITId }, { $set: hitData });
     } catch (e) {
       throw new Meteor.Error(500, e.toString());
@@ -336,7 +336,7 @@ Meteor.methods({
       throw new Meteor.Error(400, "HIT ID not specified");
     }
     try {
-      const hitData = TurkServer.mturk("ForceExpireHIT", { HITId });
+      const hitData = mturk("ForceExpireHIT", { HITId });
 
       this.unblock(); // If successful, refresh the HIT
       Meteor.call("ts-admin-refresh-hit", HITId);
@@ -352,7 +352,7 @@ Meteor.methods({
 
     // TODO: don't allow change if the old HIT Type has a different batchId from the new one
     try {
-      TurkServer.mturk("ChangeHITTypeOfHIT", params);
+      mturk("ChangeHITTypeOfHIT", params);
       this.unblock(); // If successful, refresh the HIT
       Meteor.call("ts-admin-refresh-hit", params.HITId);
     } catch (e) {
@@ -369,7 +369,7 @@ Meteor.methods({
     getAndCheckHitType(hit.HITTypeId);
 
     try {
-      TurkServer.mturk("ExtendHIT", params);
+      mturk("ExtendHIT", params);
 
       this.unblock(); // If successful, refresh the HIT
       Meteor.call("ts-admin-refresh-hit", params.HITId);
@@ -439,7 +439,7 @@ Meteor.methods({
       };
 
       try {
-        TurkServer.mturk("NotifyWorkers", params);
+        mturk("NotifyWorkers", params);
       } catch (e) {
         throw new Meteor.Error(500, e.toString());
       }

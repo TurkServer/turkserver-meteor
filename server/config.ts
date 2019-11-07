@@ -1,5 +1,5 @@
-const os = Npm.require("os");
-const merge = Npm.require("deepmerge");
+import * as os from "os";
+import merge from "deepmerge";
 
 // Client-side default settings, for reference
 const defaultPublicSettings = {
@@ -30,4 +30,5 @@ const defaultSettings = {
 
 // Read and merge settings on startup
 let inputSettings = Meteor.settings && Meteor.settings.turkserver;
-TurkServer.config = merge(defaultSettings, inputSettings || {});
+
+export const config = merge(defaultSettings, inputSettings || {});

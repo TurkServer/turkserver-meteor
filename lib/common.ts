@@ -24,6 +24,8 @@ export type MTurkStatus = "Submitted" | "Approved" | "Rejected";
 export type InstanceData = {
   id: string;
   joinTime: Date;
+  lastDisconnect?: Date;
+  lastIdle?: Date;
 };
 
 export interface IAssignment {
@@ -50,6 +52,8 @@ export const WorkerEmails = new Mongo.Collection<WorkerMemo>("ts.workeremails");
 // TODO: check if we just get these from the AWS SDK.
 export interface Qualification {
   _id: string;
+  name: string;
+  LocaleValue?: any;
 }
 export const Qualifications = new Mongo.Collection<Qualification>("ts.qualifications");
 
@@ -58,6 +62,9 @@ export interface HITType {
   batchId: string;
   // MTurk fields
   HITTypeId: string;
+  // TODO shim until we replace with aws-sdk
+  Reward: any;
+  QualificationRequirement: any[];
 }
 export const HITTypes = new Mongo.Collection<HITType>("ts.hittypes");
 

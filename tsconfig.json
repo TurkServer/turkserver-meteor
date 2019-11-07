@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es2015"],
-    "typeRoots": ["types/"]
+    "lib": ["es2015", "dom"],
+    "typeRoots": ["types/", "node_modules/@types"]
   }
 }

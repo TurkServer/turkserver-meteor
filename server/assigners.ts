@@ -1,3 +1,11 @@
+import * as _ from "underscore";
+
+import { Batch } from "./batches";
+import { Lobby } from "./lobby_server";
+import { Experiments } from "../lib/shared";
+import { Instance } from "./instance";
+import { Assignment } from "./assignment";
+
 /**
  * @summary Top-level class that determines flow of users in and out of the
  * lobby. Overriding functions on this class controls how users are grouped
@@ -6,7 +14,10 @@
  * @class
  * @instancename assigner
  */
-class Assigner {
+export abstract class Assigner {
+  batch: Batch;
+  lobby: Lobby;
+
   /**
    * @summary Initialize this assigner for a particular batch. This should set up the assigner's internal state, including reconstructing state after a server restart.
    * @param {String} batch The {@link TurkServer.Batch} object to initialize this assigner on.
@@ -42,7 +53,7 @@ class Assigner {
    * @summary Function that is called when a user enters the lobby, either from the initial entry or after returning from a world.
    * @param asst The user assignment {@link TurkServer.Assignment} (session) that just entered the lobby.
    */
-  userJoined(asst) {}
+  abstract userJoined(asst: Assignment);
 
   /**
    * @summary Function that is called when the status of a user in the lobby changes (such as the user changing from not ready to ready.)
@@ -50,39 +61,31 @@ class Assigner {
    * changed status.
    * @param newStatus
    */
-  userStatusChanged(asst, newStatus) {}
+  abstract userStatusChanged(asst: Assignment, newStatus: boolean);
 
   /**
    * @summary Function that is called when a user disconnects from the lobby. This is only triggered by users losing connectivity, not from being assigned to a new instance).
    * @param asst The user assignment {@link TurkServer.Assignment}  that departed.
    */
-  userLeft(asst) {}
+  abstract userLeft(asst: Assignment);
 }
-
-TurkServer.Assigner = Assigner;
-
-/**
- * @summary Pre-implemented assignment mechanisms.
- * @name Assigners
- */
-TurkServer.Assigners = {};
 
 /**
  * @summary Basic assigner that simulates a standalone app.
  * It puts everyone who joins into a single group.
  * Once the instance ends, puts users in exit survey.
  * @class
- * @memberof Assigners
- * @alias TestAssigner
  */
-TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
+export class TestAssigner extends Assigner {
+  instance: Instance;
+
   initialize(batch) {
     super.initialize(batch);
     const exp = Experiments.findOne({ batchId: this.batch.batchId });
 
     // Take any experiment from this batch, creating it if it doesn't exist
     if (exp != null) {
-      this.instance = TurkServer.Instance.getInstance(exp._id);
+      this.instance = Instance.getInstance(exp._id);
     } else {
       // TODO: refactor once batch treatments are separated from instance
       // treatments
@@ -91,7 +94,7 @@ TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
     }
   }
 
-  userJoined(asst) {
+  userJoined(asst: Assignment) {
     if (asst.getInstances().length > 0) {
       this.lobby.pluckUsers([asst.userId]);
       asst.showExitSurvey();
@@ -100,16 +103,17 @@ TurkServer.Assigners.TestAssigner = class extends TurkServer.Assigner {
       this.lobby.pluckUsers([asst.userId]);
     }
   }
-};
+
+  userStatusChanged(asst: Assignment, newStatus: boolean) {}
+  userLeft(asst: Assignment) {}
+}
 
 /**
  * @summary Assigns everyone who joins in a separate group
  * Anyone who is done with their instance goes into the exit survey
  * @class
- * @memberof Assigners
- * @alias SimpleAssigner
  */
-TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
+export class SimpleAssigner extends Assigner {
   userJoined(asst) {
     if (asst.getInstances().length > 0) {
       this.lobby.pluckUsers([asst.userId]);
@@ -119,7 +123,10 @@ TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
       this.assignToNewInstance([asst], treatments);
     }
   }
-};
+
+  userStatusChanged(asst: Assignment, newStatus: boolean): void {}
+  userLeft(asst: Assignment): void {}
+}
 
 /************************************************************************
  * The assigners below are examples of different types of functionality.
@@ -128,11 +135,15 @@ TurkServer.Assigners.SimpleAssigner = class extends TurkServer.Assigner {
 /*
  Allows people to opt in after reaching a certain threshold.
  */
-TurkServer.Assigners.ThresholdAssigner = class extends TurkServer.Assigner {
+export class ThresholdAssigner extends Assigner {
+  readonly groupSize: number;
+
   constructor(groupSize) {
     super();
     this.groupSize = groupSize;
   }
+
+  userJoined(asst: Assignment) {}
 
   userStatusChanged() {
     const readyAssts = this.lobby.getAssignments({
@@ -146,23 +157,29 @@ TurkServer.Assigners.ThresholdAssigner = class extends TurkServer.Assigner {
     const treatment = _.sample(this.batch.getTreatments());
     this.assignToNewInstance(readyAssts, [treatment]);
   }
-};
+
+  userLeft(asst: Assignment) {}
+}
 
 /*
  Assigns users to groups in a randomized, round-robin fashion
  as soon as the join the lobby
  */
-TurkServer.Assigners.RoundRobinAssigner = class extends TurkServer.Assigner {
+export class RoundRobinAssigner extends Assigner {
+  readonly instanceIds: string[];
+  readonly instances: Instance[];
+
   constructor(instanceIds) {
     super();
     this.instanceIds = instanceIds;
+    this.instances = [];
 
     // Create instances if they don't exist
     for (let instanceId of this.instanceIds) {
       let instance;
 
       try {
-        instance = TurkServer.Instance.getInstance(instanceId);
+        instance = Instance.getInstance(instanceId);
       } catch (err) {
         // TODO pick treatments when creating instances
         instance = this.batch.createInstance();
@@ -180,12 +197,18 @@ TurkServer.Assigners.RoundRobinAssigner = class extends TurkServer.Assigner {
     this.lobby.pluckUsers([asst.userId]);
     minUserInstance.addAssignment(asst);
   }
-};
+
+  userStatusChanged(asst: Assignment, newStatus: boolean) {}
+  userLeft(asst: Assignment) {}
+}
 
 /*
  Assign users to fixed size experiments sequentially, as they arrive
  */
-TurkServer.Assigners.SequentialAssigner = class extends TurkServer.Assigner {
+export class SequentialAssigner extends Assigner {
+  readonly groupSize: number;
+  instance: Instance;
+
   constructor(groupSize, instance) {
     super();
     this.groupSize = groupSize;
@@ -196,7 +219,7 @@ TurkServer.Assigners.SequentialAssigner = class extends TurkServer.Assigner {
   userJoined(asst) {
     if (this.instance.users().length >= this.groupSize) {
       // Create a new instance, replacing the one we are holding
-      const treatment = _.sample(this.batch.getTreatments());
+      const treatment: string = _.sample(this.batch.getTreatments());
       this.instance = this.batch.createInstance([treatment]);
       this.instance.setup();
     }
@@ -204,4 +227,6 @@ TurkServer.Assigners.SequentialAssigner = class extends TurkServer.Assigner {
     this.lobby.pluckUsers([asst.userId]);
     this.instance.addAssignment(asst);
   }
-};
+  userStatusChanged(asst: Assignment, newStatus: boolean) {}
+  userLeft(asst: Assignment) {}
+}

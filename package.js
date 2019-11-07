@@ -27,7 +27,7 @@ Package.onUse(function(api) {
     "ejson",
     "jquery",
     "random",
-    "underscore",
+    "underscore", // TODO remove
     "ecmascript",
     "facts"
   ]);
@@ -36,6 +36,8 @@ Package.onUse(function(api) {
 
   // To use the promises in mturk-api from Fibers code
   api.use("promise");
+  // Modules: https://docs.meteor.com/v1.4/packages/modules.html
+  api.use("modules");
 
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
@@ -65,15 +67,15 @@ Package.onUse(function(api) {
   // Server files
   api.addFiles(
     [
-      "server/config.js",
+      "server/config.ts",
       "server/turkserver.js",
       "server/server_api.js",
       "server/mturk.js",
-      "server/lobby_server.js",
+      "server/lobby_server.ts",
       "server/batches.ts",
       "server/instance.ts",
-      "server/logging.js",
-      "server/assigners.js",
+      "server/logging.ts",
+      "server/assigners.ts",
       "server/assigners_extra.js",
       "server/assignment.ts",
       "server/connections.js",
@@ -121,6 +123,9 @@ Package.onUse(function(api) {
   );
 
   api.addFiles("admin/admin.ts", "server");
+
+  api.mainModule("server/index.ts", "server");
+  api.mainModule("server/index.ts", "client");
 
   api.export(["TurkServer"]);
 

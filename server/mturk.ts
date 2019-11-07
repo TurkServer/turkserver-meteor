@@ -1,5 +1,7 @@
-const mturk = Npm.require("mturk-api");
-const JSPath = Npm.require("jspath");
+import mturk from "mturk-api";
+import JSPath from "jspath";
+
+import { Meteor } from "meteor/meteor";
 
 let api = undefined;
 
@@ -19,7 +21,7 @@ if (!TurkServer.config.mturk.accessKeyId || !TurkServer.config.mturk.secretAcces
   api = Promise.resolve(promise).await();
 }
 
-TurkServer.mturk = function(op, params) {
+export function mturk(op, params) {
   if (!api) {
     console.log("Ignoring operation " + op + " because MTurk is not configured.");
     return;
@@ -29,7 +31,7 @@ TurkServer.mturk = function(op, params) {
   const result = Promise.resolve(promise).await();
 
   return transform(op, result);
-};
+}
 
 /*
   Translate results to be a little more similar to the original code:
