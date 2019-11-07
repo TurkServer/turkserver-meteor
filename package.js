@@ -74,8 +74,8 @@ Package.onUse(function(api) {
   api.addFiles(
     [
       "server/config.ts",
-      "server/turkserver.js",
-      "server/server_api.js",
+      "server/turkserver.ts",
+      "server/server_api.ts",
       "server/mturk.ts",
       "server/lobby_server.ts",
       "server/batches.ts",

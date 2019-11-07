@@ -14,8 +14,11 @@ import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 import { Accounts } from "meteor/accounts-base";
 
-import { Batches, Experiments, Treatments, Logs } from "../lib/shared";
 import {
+  Batches,
+  Experiments,
+  Treatments,
+  Logs,
   Qualifications,
   HITTypes,
   HITs,

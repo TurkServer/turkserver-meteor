@@ -1,10 +1,11 @@
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
-import { Experiments, Treatments } from "../lib/shared";
-import { TurkServer } from "../lib/common";
+import { Experiments, Treatments } from "../lib/common";
 import { Assignment } from "./assignment";
 import { Batch } from "./batches";
+import { log } from "./logging";
+import { _mergeTreatments } from "../lib/util";
 
 const init_queue = [];
 
@@ -91,7 +92,7 @@ export class Instance {
   setup() {
     // Can't use fat arrow here.
     this.bindOperation(function() {
-      TurkServer.log({
+      log({
         _meta: "initialized",
         treatmentData: this.instance.treatment()
       });
@@ -181,7 +182,7 @@ export class Instance {
 
     return (
       instance &&
-      TurkServer._mergeTreatments(
+      _mergeTreatments(
         Treatments.find({
           name: {
             $in: instance.treatments
@@ -220,7 +221,7 @@ export class Instance {
     const now = new Date();
 
     Partitioner.bindGroup(this.groupId, function() {
-      return TurkServer.log({
+      return log({
         _meta: "teardown",
         _timestamp: now
       });
@@ -260,7 +261,4 @@ export class Instance {
   }
 }
 
-TurkServer.Instance = Instance;
-
-// XXX back-compat
-TurkServer.initialize = Instance.initialize;
+export const initialize = Instance.initialize;

@@ -81,6 +81,7 @@ export type InstanceData = {
 
 export interface IAssignment {
   _id: string;
+  batchId: string;
   workerId: string;
   assignmentId: string;
   instances: InstanceData[];

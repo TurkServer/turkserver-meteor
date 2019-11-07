@@ -9,7 +9,9 @@ before_install:
 # Later stuff for Meteor 1.4: see https://github.com/arunoda/travis-ci-meteor-packages/pull/45
 # Make sure this matches what is in package.json.
 env:
-  - CXX=g++-4.8 METEOR_RELEASE=1.4.4.6
+  # barbatus:typescript requires ecmascript and modules from 1.6.x, so we just
+  # use that to run the test
+  - CXX=g++-4.8 METEOR_RELEASE=1.6.1.4
 addons:
   apt:
     sources:

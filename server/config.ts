@@ -1,5 +1,5 @@
 import * as os from "os";
-import merge from "deepmerge";
+import * as merge from "deepmerge";
 
 // Client-side default settings, for reference
 const defaultPublicSettings = {

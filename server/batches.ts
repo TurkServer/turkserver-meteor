@@ -3,8 +3,7 @@ import * as _ from "underscore";
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
-import { TurkServer } from "../lib/common";
-import { Batches, Treatments, Experiments } from "../lib/shared";
+import { Batches, Treatments, Experiments } from "../lib/common";
 
 import { Instance } from "./instance";
 import { Assignment } from "./assignment";

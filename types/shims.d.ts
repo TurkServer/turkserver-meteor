@@ -25,14 +25,6 @@ declare module "meteor/tracker" {
 declare var Partitioner: any;
 
 // Old MTurk stuff
-declare module "mturk-api" {
-  export default any;
-}
-
-declare module "jspath" {
-  export default any;
-}
-
-declare module "deepmerge" {
-  export default any;
-}
+declare module "mturk-api";
+declare module "jspath";
+declare module "deepmerge";

@@ -1,8 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { check, Match } from "meteor/check";
 
-import { Assignments, TurkServer, ErrMsg, Workers } from "../lib/common";
-import { Experiments } from "../lib/shared";
+import { Assignments, Experiments, ErrMsg, Workers } from "../lib/common";
 import { Batch } from "./batches";
 import { mturk } from "./mturk";
 

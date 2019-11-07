@@ -1,3 +1,18 @@
+import {
+  Batches,
+  Treatments,
+  LobbyStatus,
+  Experiments,
+  RoundTimers,
+  Logs,
+  Workers,
+  Assignments,
+  WorkerEmails,
+  Qualifications,
+  HITTypes,
+  HITs
+} from "../lib/common";
+
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
 /*
@@ -9,12 +24,16 @@
  */
 // Collection modifiers, in case running on insecure
 
-TurkServer.isAdminRule = userId => Meteor.users.findOne(userId).admin === true;
+function isAdminRule(userId: string): boolean {
+  if (userId == null) return false;
+  const user = Meteor.users.findOne(userId);
+  return (user && user.admin) || false;
+}
 
 const adminOnly = {
-  insert: TurkServer.isAdminRule,
-  update: TurkServer.isAdminRule,
-  remove: TurkServer.isAdminRule
+  insert: isAdminRule,
+  update: isAdminRule,
+  remove: isAdminRule
 };
 
 const always = {
@@ -224,7 +243,9 @@ Meteor.publish(null, function() {
   return sub.onStop(() => handle.stop());
 });
 
-TurkServer.startup = func => Meteor.startup(() => Partitioner.directOperation(func));
+export function startup(func) {
+  Meteor.startup(() => Partitioner.directOperation(func));
+}
 
 function __guard__(value, transform) {
   return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
