@@ -67,7 +67,8 @@ Package.onUse(function(api) {
   api.use("mizzao:user-status@0.6.5");
 
   // Shared files
-  api.addFiles(["lib/shared.ts", "lib/common.ts", "lib/util.js"]);
+  api.addFiles(["lib/shared.ts", "lib/util.ts"]);
+  api.addFiles("lib/common.ts");
 
   // Server files
   api.addFiles(

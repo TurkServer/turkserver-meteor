@@ -4,6 +4,7 @@ import { Batch, ensureBatchExists, ensureTreatmentExists } from "./batches";
 import { Instance } from "./instance";
 
 import { mturk } from "./mturk";
+import { formatMillis, _mergeTreatments } from "../lib/util";
 
 const TurkServer = {
   Assignment,
@@ -12,7 +13,9 @@ const TurkServer = {
   Instance,
   mturk,
   ensureBatchExists,
-  ensureTreatmentExists
+  ensureTreatmentExists,
+  formatMillis,
+  _mergeTreatments
 };
 
 export default TurkServer;

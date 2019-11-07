@@ -11,7 +11,7 @@
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import { Tracker } from "meteor/tracker";
-
+console.log(this);
 import { Batches, RoundTimers, Treatments } from "./shared";
 
 export interface Worker {
