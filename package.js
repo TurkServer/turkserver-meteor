@@ -14,6 +14,15 @@ Npm.depends({
 Package.onUse(function(api) {
   api.versionsFrom("1.4.4.6");
 
+  // TypeScript support
+  // Modules: https://docs.meteor.com/v1.4/packages/modules.html
+  api.use("modules");
+  api.use("ecmascript");
+  // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
+  // adornis:typescript from [1.4, 1.8)
+  api.use("adornis:typescript@0.9.14");
+  // api.use("barbatus:typescript@0.7.0");
+
   // Client-only deps
   api.use(["session", "ui", "templating", "reactive-var"], "client");
 
@@ -28,24 +37,16 @@ Package.onUse(function(api) {
     "jquery",
     "random",
     "underscore", // TODO remove
-    "ecmascript",
     "facts"
   ]);
 
   api.use(["ddp", "mongo"]); // For pub/sub and collections
 
   // To use the promises in mturk-api from Fibers code
-  // api.use("promise");
-  // Modules: https://docs.meteor.com/v1.4/packages/modules.html
-  api.use("modules");
+  api.use("promise");
 
   // Non-core packages
   api.use("aldeed:template-extension@3.4.3");
-
-  // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
-  // adornis:typescript from [1.4, 1.8)
-  api.use("adornis:typescript@0.9.14");
-  // api.use("barbatus:typescript@0.7.0");
 
   api.use("mizzao:bootboxjs@4.4.0");
   api.use("iron:router@1.0.11");
@@ -141,12 +142,17 @@ Package.onUse(function(api) {
 });
 
 Package.onTest(function(api) {
+  // Need these specific versions for tests to agree to run
+  api.use("modules@0.11.6");
+  api.use("ecmascript@0.10.8");
+  // api.use("barbatus:typescript@0.7.0"); // For compiling files below
+  api.use("adornis:typescript");
+
   api.use([
     "accounts-base",
     "accounts-password",
     "check",
     "deps",
-    "ecmascript",
     "mongo",
     "random",
     "ui",
@@ -156,9 +162,6 @@ Package.onTest(function(api) {
   api.use(["tinytest", "test-helpers"]);
 
   api.use("session", "client");
-
-  // api.use("barbatus:typescript@0.7.0"); // For compiling files below
-  api.use("adornis:typescript");
 
   api.use("iron:router"); // Needed so we can un-configure the router
   api.use("mizzao:partitioner");
