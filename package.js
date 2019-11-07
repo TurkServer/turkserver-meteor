@@ -22,8 +22,8 @@ Package.onUse(function(api) {
   api.use("ecmascript");
   // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
   // adornis:typescript from [1.4, 1.8)
-  // api.use("adornis:typescript@0.9.14");
-  api.use("barbatus:typescript@0.7.0");
+  api.use("adornis:typescript@0.8.1");
+  // api.use("barbatus:typescript@0.7.0");
 
   // Client-only deps
   api.use(["session", "ui", "templating", "reactive-var"], "client");
@@ -67,8 +67,7 @@ Package.onUse(function(api) {
   api.use("mizzao:user-status@0.6.5");
 
   // Shared files
-  api.addFiles("lib/common.ts");
-  api.addFiles("lib/util.ts");
+  api.addFiles(["lib/common.ts", "lib/util.ts"]);
 
   // Server files
   api.addFiles(
@@ -86,7 +85,8 @@ Package.onUse(function(api) {
       "server/assignment.ts",
       "server/connections.js",
       "server/timers_server.js",
-      "server/accounts_mturk.js"
+      "server/accounts_mturk.js",
+      "admin/admin.ts"
     ],
     "server"
   );
@@ -128,8 +128,6 @@ Package.onUse(function(api) {
     "client"
   );
 
-  api.addFiles("admin/admin.ts", "server");
-
   api.mainModule("server/index.ts", "server");
   api.mainModule("client/index.ts", "client");
 
@@ -148,8 +146,10 @@ Package.onTest(function(api) {
   // Need these specific versions for tests to agree to run
   api.use("modules");
   api.use("ecmascript");
-  api.use("barbatus:typescript"); // For compiling files below
-  // api.use("adornis:typescript");
+
+  // For compiling TS
+  // api.use("barbatus:typescript");
+  api.use("adornis:typescript");
 
   api.use([
     "accounts-base",
