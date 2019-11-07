@@ -1,6 +1,4 @@
 {
-  // This file is just for VSCode to produce the same output as the typescript
-  // compiler package. See https://github.com/barbatus/typescript
   "compilerOptions": {
     "lib": ["es2015", "dom"],
     "typeRoots": ["types/", "node_modules/@types"],
