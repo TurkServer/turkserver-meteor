@@ -4,9 +4,9 @@ import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
 import { Batches, Treatments, Experiments } from "../lib/common";
-
-import { Instance } from "./instance";
 import { Assignment } from "./assignment";
+import { Instance } from "./instance";
+
 import { Lobby } from "./lobby_server";
 import { Assigner } from "./assigners";
 import { log } from "./logging";

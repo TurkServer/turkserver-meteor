@@ -1,7 +1,8 @@
-import { Instance } from "./instance";
-import { Assignment } from "./assignment";
 import { Treatments } from "../lib/common";
 import { _mergeTreatments } from "../lib/util";
+
+import { Assignment } from "./assignment";
+import { Instance } from "./instance";
 
 export interface TreatmentData {
   [key: string]: any;
