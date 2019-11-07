@@ -8,7 +8,9 @@ Package.describe({
 Npm.depends({
   "mturk-api": "1.3.2",
   jspath: "0.3.2",
-  deepmerge: "0.2.7" // For merging config parameters
+  deepmerge: "0.2.7", // For merging config parameters
+  // For TS/ES compilation
+  "@babel/runtime": "7.0.0-beta.55"
 });
 
 Package.onUse(function(api) {
@@ -128,7 +130,7 @@ Package.onUse(function(api) {
   api.addFiles("admin/admin.ts", "server");
 
   api.mainModule("server/index.ts", "server");
-  api.mainModule("server/index.ts", "client");
+  api.mainModule("client/index.ts", "client");
 
   api.export(["TurkServer"]);
 
@@ -143,8 +145,8 @@ Package.onUse(function(api) {
 
 Package.onTest(function(api) {
   // Need these specific versions for tests to agree to run
-  api.use("modules@0.11.6");
-  api.use("ecmascript@0.10.8");
+  api.use("modules");
+  api.use("ecmascript");
   // api.use("barbatus:typescript@0.7.0"); // For compiling files below
   api.use("adornis:typescript");
 
