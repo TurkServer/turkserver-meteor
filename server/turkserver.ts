@@ -1,3 +1,5 @@
+import { Meteor } from "meteor/meteor";
+
 import {
   Batches,
   Treatments,
@@ -152,7 +154,9 @@ Meteor.publish(null, function() {
     return null;
   }
 
-  const cursors = [Meteor.users.find(this.userId, { fields: { turkserver: 1 } })];
+  const cursors: Mongo.Cursor<any>[] = [
+    Meteor.users.find(this.userId, { fields: { turkserver: 1 } })
+  ];
 
   // Current user assignment data, including idle and disconnection time
   // This won't be sent for the admin user

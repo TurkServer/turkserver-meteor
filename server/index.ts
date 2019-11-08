@@ -7,7 +7,8 @@ import { mturk } from "./mturk";
 import { formatMillis, _mergeTreatments } from "../lib/util";
 import { startup } from "./turkserver";
 
-const TurkServer = {
+// import * as TurkServer from "meteor/mizzao:turkserver";
+export default {
   Assignment,
   Assigner,
   Batch,
@@ -20,5 +21,3 @@ const TurkServer = {
   startup,
   _mergeTreatments
 };
-
-export default TurkServer;

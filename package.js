@@ -9,8 +9,8 @@ Npm.depends({
   "mturk-api": "1.3.2",
   jspath: "0.3.2",
   deepmerge: "0.2.7", // For merging config parameters
-  // For TS/ES compilation
-  "@babel/runtime": "7.0.0-beta.55"
+  // For TS/ES interpretation
+  "@babel/runtime": "7.7.2"
 });
 
 Package.onUse(function(api) {

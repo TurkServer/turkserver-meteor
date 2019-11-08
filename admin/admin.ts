@@ -32,6 +32,7 @@ import { Assignment } from "../server/assignment";
 import { Instance } from "../server/instance";
 import { Batch } from "../server/batches";
 import { mturk } from "../server/mturk";
+import { config } from "../server/config";
 
 function isAdmin(userId: string): boolean {
   if (userId == null) return false;
@@ -299,8 +300,8 @@ Meteor.methods({
 
     params.HITTypeId = hitType.HITTypeId;
     params.Question = `<ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd">
-  <ExternalURL>${TurkServer.config.mturk.externalUrl}?batchId=${hitType.batchId}</ExternalURL>
-  <FrameHeight>${TurkServer.config.mturk.frameHeight}</FrameHeight>
+  <ExternalURL>${config.mturk.externalUrl}?batchId=${hitType.batchId}</ExternalURL>
+  <FrameHeight>${config.mturk.frameHeight}</FrameHeight>
 </ExternalQuestion>\
 `;
 
@@ -705,7 +706,7 @@ Meteor.methods({
 
 // Create and set up admin user (and password) if not existent
 Meteor.startup(function() {
-  const adminPw = TurkServer.config != null ? TurkServer.config.adminPassword : undefined;
+  const adminPw = config != null ? config.adminPassword : undefined;
   if (adminPw == null) {
     Meteor._debug("No admin password found for Turkserver. Please configure it in your settings.");
     return;
