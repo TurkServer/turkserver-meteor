@@ -22,8 +22,8 @@ Package.onUse(function(api) {
   api.use("ecmascript");
   // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
   // adornis:typescript from [1.4, 1.8)
-  api.use("adornis:typescript@0.8.1");
-  // api.use("barbatus:typescript@0.7.0");
+  // api.use("adornis:typescript@0.8.1");
+  api.use("barbatus:typescript@0.7.0");
 
   // Client-only deps
   api.use(["session", "ui", "templating", "reactive-var"], "client");
@@ -148,8 +148,8 @@ Package.onTest(function(api) {
   api.use("ecmascript");
 
   // For compiling TS
-  // api.use("barbatus:typescript");
-  api.use("adornis:typescript");
+  api.use("barbatus:typescript");
+  // api.use("adornis:typescript");
 
   api.use([
     "accounts-base",
