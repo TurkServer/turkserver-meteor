@@ -14,13 +14,16 @@ Npm.depends({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom("1.8.2-rc.7");
+  api.versionsFrom("1.4.4.6");
 
+  // TypeScript support
   // Modules: https://docs.meteor.com/v1.4/packages/modules.html
   api.use("modules");
   api.use("ecmascript");
-  // Built-in 'typescript' in Meteor 1.8.2.
-  api.use("typescript");
+  // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
+  // adornis:typescript from [1.4, 1.8)
+  api.use("adornis:typescript@0.8.1");
+  // api.use("barbatus:typescript@0.7.0");
 
   // Client-only deps
   api.use(["session", "ui", "templating", "reactive-var"], "client");
@@ -143,7 +146,10 @@ Package.onTest(function(api) {
   // Need these specific versions for tests to agree to run
   api.use("modules");
   api.use("ecmascript");
-  api.use("typescript");
+
+  // For compiling TS
+  // api.use("barbatus:typescript");
+  api.use("adornis:typescript");
 
   api.use([
     "accounts-base",

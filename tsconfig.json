@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     /* Basic Options */
-    "target": "es2018",
+    "target": "es2015",
     "module": "esNext",
     "lib": ["esnext", "dom"],
     "allowJs": true,
@@ -30,9 +30,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "types": ["node"],
-    "typeRoots": ["types/", "node_modules/@types"],
-    "esModuleInterop": true,
-    "preserveSymlinks": true
-  },
-  "exclude": ["./.meteor/**", "./packages/**"]
+    "typeRoots": ["types/", "node_modules/@types"]
+  }
 }
