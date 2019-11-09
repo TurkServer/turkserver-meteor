@@ -168,16 +168,16 @@ Package.onTest(function(api) {
 
   api.addFiles("tests/display_fix.css");
 
-  api.addFiles("tests/utils.js"); // Deletes users so do it before insecure login
-  api.addFiles("tests/insecure_login.js");
+  api.addFiles("tests/utils.ts"); // Deletes users so do it before insecure login
+  api.addFiles("tests/insecure_login.ts");
 
-  api.addFiles("tests/lobby_tests.js");
-  api.addFiles("tests/admin_tests.js", "server");
-  api.addFiles("tests/auth_tests.js", "server");
-  api.addFiles("tests/connection_tests.js", "server");
-  api.addFiles("tests/experiment_tests.js", "server");
+  api.addFiles("tests/lobby_tests.ts");
+  api.addFiles("tests/admin_tests.ts", "server");
+  api.addFiles("tests/auth_tests.ts", "server");
+  api.addFiles("tests/connection_tests.ts", "server");
+  api.addFiles("tests/experiment_tests.ts", "server");
   api.addFiles("tests/experiment_client_tests.js");
-  api.addFiles("tests/timer_tests.js", "server");
+  api.addFiles("tests/timer_tests.ts", "server");
   api.addFiles("tests/logging_tests.js");
   // This goes after experiment tests, so we can be sure that assigning works
   api.addFiles("tests/assigner_tests.js", "server");

@@ -1,6 +1,8 @@
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
+import { Partitioner } from "meteor/mizzao:partitioner";
+
 import { Experiments, Treatments } from "../lib/common";
 import { Assignment } from "./assignment";
 import { Batch } from "./batches";
@@ -151,7 +153,8 @@ export class Instance {
    * @returns {Array} the list of userIds
    */
   users() {
-    return Experiments.findOne(this.groupId).users || [];
+    const instance = Experiments.findOne(this.groupId);
+    return (instance && instance.users) || [];
   }
 
   /**

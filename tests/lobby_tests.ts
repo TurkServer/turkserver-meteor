@@ -6,6 +6,12 @@
  * DS103: Rewrite code to no longer use __guard__
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { Meteor } from "meteor/meteor";
+import { Tinytest } from "meteor/tinytest";
+
+import { Batches, Assignments, LobbyStatus } from "../lib/common";
+import TurkServer, { TestUtils } from "../server";
+
 if (Meteor.isServer) {
   // Create a batch to test the lobby on
   const batchId = "lobbyBatchTest";

@@ -6,6 +6,11 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { Meteor } from "meteor/meteor";
+
+import { Assignments, Batches, Experiments, Treatments } from "../lib/common";
+import TurkServer, { TestUtils } from "../server";
+
 if (Meteor.isClient) {
   // Prevent router from complaining about missing path
   Router.map(function() {

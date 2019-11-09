@@ -1,7 +1,14 @@
-InsecureLogin = {
+import * as _ from "underscore";
+
+import { Meteor } from "meteor/meteor";
+import { Accounts } from "meteor/accounts-base";
+
+import { Batches } from "../lib/common";
+
+export const InsecureLogin = {
   queue: [],
   ran: false,
-  ready: function(callback) {
+  ready: function(callback: Function) {
     this.queue.push(callback);
     if (this.ran) this.unwind();
   },

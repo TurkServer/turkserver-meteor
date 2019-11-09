@@ -11,9 +11,9 @@
     "noEmit": true,
 
     /* Strict Type-Checking Options */
-    "strict": true,
+    "strict": false,
     "noImplicitAny": false, // TODO flip to true when ready
-    "strictNullChecks": true,
+    "strictNullChecks": false, // TODO flip to true when ready
 
     /* Additional Checks */
     "noUnusedLocals": true,

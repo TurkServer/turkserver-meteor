@@ -1,3 +1,12 @@
+import { Meteor } from "meteor/meteor";
+import { Random } from "meteor/random";
+import { Tinytest } from "meteor/tinytest";
+
+import { Batches, HITTypes, HITs, WorkerEmails, Workers } from "../lib/common";
+
+import TurkServer, { TestUtils } from "../server";
+import { assignQualification } from "../server/mturk";
+
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
 /*
@@ -14,6 +23,7 @@ Batches.upsert({ _id: batchId }, { _id: batchId });
 HITTypes.upsert({ HITTypeId: hitTypeId }, { $set: { batchId } });
 
 // Temporarily disable the admin check during these tests
+// TODO This won't work, so instead just make admin = true during tests.
 const _checkAdmin = TurkServer.checkAdmin;
 
 const withCleanup = TestUtils.getCleanupWrapper({
@@ -185,7 +195,7 @@ Tinytest.add(
       return test.equal(params.SendNotification, false);
     };
 
-    TurkServer.Util.assignQualification(workerId, qual, value, false);
+    assignQualification(workerId, qual, value, false);
 
     // Check that worker has been updated
     const worker = Workers.findOne(workerId);
@@ -216,7 +226,7 @@ Tinytest.add(
       return test.equal(params.IntegerValue, value);
     };
 
-    TurkServer.Util.assignQualification(workerId, qual, value, false);
+    assignQualification(workerId, qual, value, false);
 
     // Check that worker has been updated
     const worker = Workers.findOne(workerId);

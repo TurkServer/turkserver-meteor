@@ -8,6 +8,7 @@ import { startup } from "./turkserver";
 import { onConnect, onDisconnect, onIdle, onActive, connCallbacks } from "./connections";
 import { scheduleOutstandingRounds, clearRoundHandlers } from "./timers_server";
 import { authenticateWorker } from "./accounts_mturk";
+import { treatment } from "./server_api";
 
 import { formatMillis, _mergeTreatments } from "../lib/util";
 
@@ -29,6 +30,7 @@ export default {
   formatMillis,
   initialize,
   startup,
+  treatment,
   _mergeTreatments
 };
 

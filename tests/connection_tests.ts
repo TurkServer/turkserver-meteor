@@ -6,6 +6,15 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { Meteor } from "meteor/meteor";
+import { Tinytest } from "meteor/tinytest";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+
+import TurkServer, { TestUtils } from "../server";
+import { Batches, Assignments, ErrMsg } from "../lib/common";
+import { Assignment } from "../server/assignment";
+
 const batchId = "connectionBatch";
 
 Batches.upsert({ _id: batchId }, { _id: batchId });
@@ -20,7 +29,7 @@ const userId = "connectionUserId";
 
 Meteor.users.upsert(userId, { $set: { workerId } });
 
-let asst = null;
+let asst: Assignment = null;
 
 const instanceId = "connectionInstance";
 const instance = batch.createInstance();

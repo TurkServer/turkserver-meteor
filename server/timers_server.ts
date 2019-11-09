@@ -32,9 +32,9 @@ const ROUND_END_NEWROUND = "newstart";
  */
 export class Timers {
   // TODO: export the above properly or something.
-  ROUND_END_TIMEOUT = ROUND_END_TIMEOUT;
-  ROUND_END_MANUAL = ROUND_END_MANUAL;
-  ROUND_END_NEWROUND = ROUND_END_NEWROUND;
+  static ROUND_END_TIMEOUT = ROUND_END_TIMEOUT;
+  static ROUND_END_MANUAL = ROUND_END_MANUAL;
+  static ROUND_END_NEWROUND = ROUND_END_NEWROUND;
 
   /**
    * @summary Starts a new round in the current instance.

@@ -3,14 +3,14 @@
 /*
  * decaffeinate suggestions:
  * DS102: Remove unnecessary code created because of implicit returns
- * DS103: Rewrite code to no longer use __guard__
  * DS207: Consider shorter variations of null checks
- * DS208: Avoid top-level this
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import { Meteor } from "meteor/meteor";
 import { Mongo } from "meteor/mongo";
 import { Tracker } from "meteor/tracker";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
 
 export interface Batch {
   _id: string;
@@ -78,20 +78,25 @@ export type InstanceData = {
   id: string;
   joinTime: Date;
   lastDisconnect?: Date;
+  disconnectedTime?: number;
   lastIdle?: Date;
+  idleTime?: number;
 };
 
 export interface IAssignment {
   _id: string;
   batchId: string;
+  experimentId?: string;
+  hitId: string;
   workerId: string;
   assignmentId: string;
-  instances: InstanceData[];
-  treatments: string[];
-  mturkStatus: MTurkStatus;
-  status: "assigned" | "completed" | "returned";
-  bonusPaid: Date;
-  bonusPayment: number;
+  acceptTime?: Date;
+  instances?: InstanceData[];
+  treatments?: string[];
+  mturkStatus?: MTurkStatus;
+  status?: "assigned" | "completed" | "returned";
+  bonusPaid?: Date;
+  bonusPayment?: number;
 }
 export const Assignments = new Mongo.Collection<IAssignment>("ts.assignments");
 
@@ -164,8 +169,7 @@ Meteor.methods({
 
 // Check if a particular user is an admin.
 // If no user is specified, attempts to check the current user.
-export function isAdmin(userId?: string): boolean {
-  userId = userId || Meteor.userId();
+export function isAdmin(userId = Meteor.userId()): boolean {
   if (userId == null) return false;
 
   const user = Meteor.users.findOne(
@@ -233,7 +237,3 @@ TurkServer.partitionCollection(RoundTimers, {
     name: "_groupId_1_index_1_unique"
   }
 });
-
-function __guard__(value, transform) {
-  return typeof value !== "undefined" && value !== null ? transform(value) : undefined;
-}
