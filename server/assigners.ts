@@ -2,7 +2,7 @@ import * as _ from "underscore";
 
 import { Batch } from "./batches";
 import { Lobby } from "./lobby_server";
-import { Experiments } from "../lib/shared";
+import { Experiments } from "../lib/common";
 import { Instance } from "./instance";
 import { Assignment } from "./assignment";
 
@@ -53,7 +53,7 @@ export abstract class Assigner {
    * @summary Function that is called when a user enters the lobby, either from the initial entry or after returning from a world.
    * @param asst The user assignment {@link TurkServer.Assignment} (session) that just entered the lobby.
    */
-  abstract userJoined(asst: Assignment);
+  userJoined?(asst: Assignment);
 
   /**
    * @summary Function that is called when the status of a user in the lobby changes (such as the user changing from not ready to ready.)
@@ -61,13 +61,13 @@ export abstract class Assigner {
    * changed status.
    * @param newStatus
    */
-  abstract userStatusChanged(asst: Assignment, newStatus: boolean);
+  userStatusChanged?(asst: Assignment, newStatus: boolean);
 
   /**
    * @summary Function that is called when a user disconnects from the lobby. This is only triggered by users losing connectivity, not from being assigned to a new instance).
    * @param asst The user assignment {@link TurkServer.Assignment}  that departed.
    */
-  abstract userLeft(asst: Assignment);
+  userLeft?(asst: Assignment);
 }
 
 /**
@@ -103,9 +103,6 @@ export class TestAssigner extends Assigner {
       this.lobby.pluckUsers([asst.userId]);
     }
   }
-
-  userStatusChanged(asst: Assignment, newStatus: boolean) {}
-  userLeft(asst: Assignment) {}
 }
 
 /**
@@ -123,9 +120,6 @@ export class SimpleAssigner extends Assigner {
       this.assignToNewInstance([asst], treatments);
     }
   }
-
-  userStatusChanged(asst: Assignment, newStatus: boolean): void {}
-  userLeft(asst: Assignment): void {}
 }
 
 /************************************************************************
@@ -143,8 +137,6 @@ export class ThresholdAssigner extends Assigner {
     this.groupSize = groupSize;
   }
 
-  userJoined(asst: Assignment) {}
-
   userStatusChanged() {
     const readyAssts = this.lobby.getAssignments({
       status: true
@@ -157,8 +149,6 @@ export class ThresholdAssigner extends Assigner {
     const treatment = _.sample(this.batch.getTreatments());
     this.assignToNewInstance(readyAssts, [treatment]);
   }
-
-  userLeft(asst: Assignment) {}
 }
 
 /*
@@ -197,9 +187,6 @@ export class RoundRobinAssigner extends Assigner {
     this.lobby.pluckUsers([asst.userId]);
     minUserInstance.addAssignment(asst);
   }
-
-  userStatusChanged(asst: Assignment, newStatus: boolean) {}
-  userLeft(asst: Assignment) {}
 }
 
 /*
@@ -227,6 +214,4 @@ export class SequentialAssigner extends Assigner {
     this.lobby.pluckUsers([asst.userId]);
     this.instance.addAssignment(asst);
   }
-  userStatusChanged(asst: Assignment, newStatus: boolean) {}
-  userLeft(asst: Assignment) {}
 }

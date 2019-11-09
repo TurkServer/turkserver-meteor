@@ -1,5 +1,5 @@
-import { Logs } from "../lib/shared";
-import { ErrMsg } from "../lib/common";
+import { Meteor } from "meteor/meteor";
+import { ErrMsg, Logs } from "../lib/common";
 
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.

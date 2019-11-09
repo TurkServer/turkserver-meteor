@@ -1,28 +1,32 @@
-import mturk from "mturk-api";
+import * as mturk_api from "mturk-api";
 import JSPath from "jspath";
 
 import { Meteor } from "meteor/meteor";
+import { check, Match } from "meteor/check";
+
+import { config } from "./config";
+import { Workers, Qualifications } from "../lib/common";
 
 let api = undefined;
 
-if (!TurkServer.config.mturk.accessKeyId || !TurkServer.config.mturk.secretAccessKey) {
+if (!config.mturk.accessKeyId || !config.mturk.secretAccessKey) {
   Meteor._debug("Missing Amazon API keys for connecting to MTurk. Please configure.");
 } else {
-  const config = {
-    access: TurkServer.config.mturk.accessKeyId,
-    secret: TurkServer.config.mturk.secretAccessKey,
-    sandbox: TurkServer.config.mturk.sandbox
+  const mturkConfig = {
+    access: config.mturk.accessKeyId,
+    secret: config.mturk.secretAccessKey,
+    sandbox: config.mturk.sandbox
   };
 
-  const promise = mturk
-    .connect(config)
+  const promise = mturk_api
+    .connect(mturkConfig)
     .then(api => api)
     .catch(console.error);
   api = Promise.resolve(promise).await();
 }
 
 export function mturk(op, params) {
-  if (!api) {
+  if (api == null) {
     console.log("Ignoring operation " + op + " because MTurk is not configured.");
     return;
   }
@@ -67,9 +71,7 @@ function transform(op, result) {
   return result;
 }
 
-TurkServer.Util = TurkServer.Util || {};
-
-TurkServer.Util.assignQualification = function(workerId, qualId, value, notify = true) {
+export function assignQualification(workerId, qualId, value, notify = true) {
   check(workerId, String);
   check(qualId, String);
   check(value, Match.Integer);
@@ -84,7 +86,7 @@ TurkServer.Util.assignQualification = function(workerId, qualId, value, notify =
       "quals.id": qualId
     }) != null
   ) {
-    TurkServer.mturk("UpdateQualificationScore", {
+    mturk("UpdateQualificationScore", {
       SubjectId: workerId,
       QualificationTypeId: qualId,
       IntegerValue: value
@@ -101,7 +103,7 @@ TurkServer.Util.assignQualification = function(workerId, qualId, value, notify =
       }
     );
   } else {
-    TurkServer.mturk("AssignQualification", {
+    mturk("AssignQualification", {
       WorkerId: workerId,
       QualificationTypeId: qualId,
       IntegerValue: value,
@@ -116,7 +118,7 @@ TurkServer.Util.assignQualification = function(workerId, qualId, value, notify =
       }
     });
   }
-};
+}
 
 Meteor.startup(function() {
   Qualifications.upsert(

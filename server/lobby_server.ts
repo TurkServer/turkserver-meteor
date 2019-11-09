@@ -13,8 +13,7 @@ import * as _ from "underscore";
 import { Meteor } from "meteor/meteor";
 import { check } from "meteor/check";
 
-import { LobbyStatus, Batches } from "../lib/shared";
-import { ErrMsg } from "../lib/common";
+import { ErrMsg, LobbyStatus, Batches } from "../lib/common";
 import { Assignment } from "./assignment";
 import { Batch } from "./batches";
 
@@ -53,8 +52,8 @@ export class Lobby {
     return Meteor.defer(() => this.events.emit("user-join", asst));
   }
 
-  getAssignments(selector) {
-    selector = _.extend(selector || {}, { batchId: this.batchId });
+  getAssignments(selector = {}) {
+    selector = _.extend(selector, { batchId: this.batchId });
     return Array.from(LobbyStatus.find(selector).fetch()).map(record =>
       Assignment.getAssignment(record.asstId)
     );

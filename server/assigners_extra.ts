@@ -1,3 +1,11 @@
+import * as _ from "underscore";
+
+import { Experiments } from "../lib/common";
+import { Assigner } from "./assigners";
+import { Assignment } from "./assignment";
+import { ensureTreatmentExists } from "./batches";
+import { Instance } from "./instance";
+
 /*
   This file contains more involved assigners used in actual experiments.
   You can see the app code at https://github.com/TurkServer
@@ -8,7 +16,13 @@
  * Assigns users first to a tutorial treatment, then to a single group.
  * An event on the lobby is used to trigger the group.
  */
-TurkServer.Assigners.TutorialGroupAssigner = class extends TurkServer.Assigner {
+export class TutorialGroupAssigner extends Assigner {
+  readonly tutorialTreatments: string[];
+  readonly groupTreatments: string[];
+  autoAssign: boolean;
+
+  instance: Instance;
+
   constructor(tutorialTreatments, groupTreatments, autoAssign = false) {
     super();
 
@@ -38,7 +52,7 @@ TurkServer.Assigners.TutorialGroupAssigner = class extends TurkServer.Assigner {
     );
 
     if (exp != null) {
-      this.instance = TurkServer.Instance.getInstance(exp._id);
+      this.instance = Instance.getInstance(exp._id);
       console.log("Auto-assigning to existing instance " + this.instance.groupId);
       this.autoAssign = true;
     }
@@ -88,11 +102,11 @@ TurkServer.Assigners.TutorialGroupAssigner = class extends TurkServer.Assigner {
       this.instance.addAssignment(asst);
     }
   }
-};
+}
 
 function ensureGroupTreatments(sizeArray) {
   for (let size of _.uniq(sizeArray)) {
-    TurkServer.ensureTreatmentExists({
+    ensureTreatmentExists({
       name: "group_" + size,
       groupSize: size
     });
@@ -110,7 +124,11 @@ function ensureGroupTreatments(sizeArray) {
 
  This was created for executing the crisis mapping experiment.
  */
-TurkServer.Assigners.TutorialRandomizedGroupAssigner = class TutorialRandomizedGroupAssigner extends TurkServer.Assigner {
+export class TutorialRandomizedGroupAssigner extends Assigner {
+  tutorialTreatments: string[];
+  groupTreatments: string[];
+  autoAssign: boolean;
+
   static generateConfig(sizeArray, otherTreatments) {
     ensureGroupTreatments(sizeArray);
 
@@ -386,7 +404,7 @@ TurkServer.Assigners.TutorialRandomizedGroupAssigner = class TutorialRandomizedG
     this.lobby.pluckUsers([asst.userId]);
     instance.addAssignment(asst);
   }
-};
+}
 
 /*
  Assign people to a tutorial treatment and then sequentially to different sized
@@ -397,7 +415,7 @@ TurkServer.Assigners.TutorialRandomizedGroupAssigner = class TutorialRandomizedG
 
  After the last group is filled, there is no more assignment.
  */
-TurkServer.Assigners.TutorialMultiGroupAssigner = class TutorialMultiGroupAssigner extends TurkServer.Assigner {
+export class TutorialMultiGroupAssigner extends Assigner {
   static generateConfig(sizeArray, otherTreatments) {
     ensureGroupTreatments(sizeArray);
 
@@ -601,4 +619,4 @@ TurkServer.Assigners.TutorialMultiGroupAssigner = class TutorialMultiGroupAssign
 
     return instance;
   }
-};
+}
