@@ -1,3 +1,10 @@
+import { Meteor } from "meteor/meteor";
+import { Accounts } from "meteor/accounts-base";
+
+import { Assignments, HITs, HITTypes, ErrMsg, Batches } from "../lib/common";
+import { config } from "./config";
+import { Assignment } from "./assignment";
+
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
 /*
@@ -41,11 +48,11 @@ Accounts.validateLoginAttempt(function(info) {
   Authenticate a worker taking an assignment.
   Returns an assignment object corresponding to the assignment.
 */
-const authenticateWorker = function(loginRequest) {
+export function authenticateWorker(loginRequest) {
   const { batchId, hitId, assignmentId, workerId } = loginRequest;
 
   // check if batchId is correct except for testing logins
-  if (!loginRequest.test && !TurkServer.config.hits.acceptUnknownHits) {
+  if (!loginRequest.test && !config.hits.acceptUnknownHits) {
     const hit = HITs.findOne({
       HITId: hitId
     });
@@ -79,7 +86,7 @@ const authenticateWorker = function(loginRequest) {
 
   if (existing) {
     // Was a different account in progress?
-    const existingAsst = TurkServer.Assignment.getAssignment(existing._id);
+    const existingAsst = Assignment.getAssignment(existing._id);
     if (workerId === existing.workerId) {
       // Worker has already logged in to this HIT, no need to create record below
       return existingAsst;
@@ -104,7 +111,7 @@ const authenticateWorker = function(loginRequest) {
     Assignments.find({
       workerId,
       status: { $nin: ["completed", "returned"] }
-    }).count() >= TurkServer.config.experiment.limit.simultaneous
+    }).count() >= config.experiment.limit.simultaneous
   ) {
     throw new Meteor.Error(403, ErrMsg.simultaneousLimit);
   }
@@ -119,13 +126,13 @@ const authenticateWorker = function(loginRequest) {
     predicate.status = { $ne: "returned" };
   }
 
-  if (Assignments.find(predicate).count() >= TurkServer.config.experiment.limit.batch) {
+  if (Assignments.find(predicate).count() >= config.experiment.limit.batch) {
     throw new Meteor.Error(403, ErrMsg.batchLimit);
   }
 
   // Either no one has this assignment before or this worker replaced someone;
   // Create a new record for this worker on this assignment
-  return TurkServer.Assignment.createAssignment({
+  return Assignment.createAssignment({
     batchId,
     hitId: loginRequest.hitId,
     assignmentId: loginRequest.assignmentId,
@@ -133,7 +140,7 @@ const authenticateWorker = function(loginRequest) {
     acceptTime: new Date(),
     status: "assigned"
   });
-};
+}
 
 Accounts.registerLoginHandler("mturk", function(loginRequest) {
   // Don't handle unless we have an mturk login
@@ -170,6 +177,3 @@ Accounts.registerLoginHandler("mturk", function(loginRequest) {
     userId
   };
 });
-
-// Test exports
-TestUtils.authenticateWorker = authenticateWorker;

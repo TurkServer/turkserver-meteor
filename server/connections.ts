@@ -10,12 +10,15 @@
  */
 import { Meteor } from "meteor/meteor";
 
+import { Partitioner } from "meteor/mizzao:partitioner";
+import { UserStatus } from "meteor/mizzao:user-status";
+
 import { ErrMsg } from "../lib/common";
 import { Assignment } from "./assignment";
 import { Instance } from "./instance";
 import { Accounts } from "meteor/accounts-base";
 
-const attemptCallbacks = (callbacks, context, errMsg) =>
+const attemptCallbacks = (callbacks: Function[], context, errMsg) =>
   Array.from(callbacks).map(cb =>
     (() => {
       try {
@@ -26,15 +29,23 @@ const attemptCallbacks = (callbacks, context, errMsg) =>
     })()
   );
 
-const connectCallbacks = [];
-const disconnectCallbacks = [];
-const idleCallbacks = [];
-const activeCallbacks = [];
+const connectCallbacks: Function[] = [];
+const disconnectCallbacks: Function[] = [];
+const idleCallbacks: Function[] = [];
+const activeCallbacks: Function[] = [];
 
-TurkServer.onConnect = func => connectCallbacks.push(func);
-TurkServer.onDisconnect = func => disconnectCallbacks.push(func);
-TurkServer.onIdle = func => idleCallbacks.push(func);
-TurkServer.onActive = func => activeCallbacks.push(func);
+export function onConnect(func: Function) {
+  connectCallbacks.push(func);
+}
+export function onDisconnect(func: Function) {
+  disconnectCallbacks.push(func);
+}
+export function onIdle(func: Function) {
+  idleCallbacks.push(func);
+}
+export function onActive(func: Function) {
+  activeCallbacks.push(func);
+}
 
 // When getting user records in a session callback, we have to check if admin
 const getUserNonAdmin = function(userId) {
@@ -249,7 +260,7 @@ Meteor.startup(function() {
   TODO: we might want to make these tests end-to-end so that they ensure all of
   the user-status functionality is working as well.
 */
-TestUtils.connCallbacks = {
+export const connCallbacks = {
   sessionReconnect(doc) {
     sessionReconnect(doc);
     return userReconnect(Meteor.users.findOne(doc.userId));

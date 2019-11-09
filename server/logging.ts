@@ -1,4 +1,6 @@
 import { Meteor } from "meteor/meteor";
+import { Partitioner } from "meteor/mizzao:partitioner";
+
 import { ErrMsg, Logs } from "../lib/common";
 
 // TODO: This file was created by bulk-decaffeinate.

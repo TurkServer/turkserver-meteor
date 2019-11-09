@@ -22,7 +22,8 @@ declare module "meteor/tracker" {
 }
 
 // Partitioner
-declare var Partitioner: any;
+declare module "meteor/mizzao:partitioner";
+declare module "meteor/mizzao:user-status";
 
 // Old MTurk stuff
 declare module "mturk-api";

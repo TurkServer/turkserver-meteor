@@ -81,8 +81,8 @@ Package.onUse(function(api) {
       "server/assigners_extra.ts",
       "server/assignment.ts",
       "server/connections.ts",
-      "server/timers_server.js",
-      "server/accounts_mturk.js",
+      "server/timers_server.ts",
+      "server/accounts_mturk.ts",
       "admin/admin.ts"
     ],
     "server"

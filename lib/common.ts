@@ -16,6 +16,8 @@ export interface Batch {
   _id: string;
   active: boolean;
   treatments: string[];
+  // If a worker has returned an assignment, let them take another one
+  allowReturns: true;
 }
 export const Batches = new Mongo.Collection<Batch>("ts.batches");
 

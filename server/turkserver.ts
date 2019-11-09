@@ -1,4 +1,7 @@
 import { Meteor } from "meteor/meteor";
+import { Mongo } from "meteor/mongo";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
 
 import {
   Batches,
@@ -14,6 +17,7 @@ import {
   HITTypes,
   HITs
 } from "../lib/common";
+import { check } from "meteor/check";
 
 // TODO: This file was created by bulk-decaffeinate.
 // Sanity-check the conversion and remove this comment.
