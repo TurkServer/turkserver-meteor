@@ -213,7 +213,7 @@ Meteor.methods({
   "ts-admin-account-balance"() {
     TurkServer.checkAdmin();
     try {
-      return TurkServer.mturk.getAccountBalance();
+      return TurkServer.mturk.getAccountBalanceSync().AvailableBalance;
     } catch (e) {
       throw new Meteor.Error(403, e.toString());
     }
