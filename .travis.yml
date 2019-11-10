@@ -11,7 +11,7 @@ before_install:
 env:
   # barbatus:typescript requires ecmascript and modules from 1.6.x, so we just
   # use that to run the test
-  - CXX=g++-4.8 METEOR_RELEASE=1.6.1.4
+  - CXX=g++-4.8 METEOR_RELEASE=1.8.2-rc.7
 addons:
   apt:
     sources:

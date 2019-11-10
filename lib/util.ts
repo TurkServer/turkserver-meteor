@@ -9,7 +9,7 @@
 /*
   Server/client util files
 */
-import * as moment from "moment";
+import * as moment from "meteor/momentjs:moment";
 import * as _ from "underscore";
 
 export function formatMillis(millis) {

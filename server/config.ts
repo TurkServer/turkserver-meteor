@@ -1,5 +1,5 @@
 import * as os from "os";
-import * as merge from "deepmerge";
+import merge from "deepmerge";
 
 import { Meteor } from "meteor/meteor";
 
