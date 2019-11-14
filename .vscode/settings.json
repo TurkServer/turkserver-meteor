@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/.npm": true, // this excludes all folders from the explore tree
+    "**/node_modules": true,
+    "packages": true // this excludes the folder only from the root
+  }
+}

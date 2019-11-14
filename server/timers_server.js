@@ -24,7 +24,6 @@ const ROUND_END_NEWROUND = "newstart";
  * @namespace
  */
 class Timers {
-
   /**
    * @summary Starts a new round in the current instance.
    * @function TurkServer.Timers.startNewRound
@@ -49,16 +48,15 @@ class Timers {
     }
 
     // Find the most recent round
-    let currentRound = null, index = 1;
-    if( (currentRound = RoundTimers.findOne({}, {sort: {index: -1}})) != null ) {
+    let currentRound = null,
+      index = 1;
+    if ((currentRound = RoundTimers.findOne({}, { sort: { index: -1 } })) != null) {
       index = currentRound.index + 1;
 
       // Try ending the current round if it is in progress
       // If we aren't ending this round, we shouldn't try to start a new one
-      if( !currentRound.ended &&
-        !tryEndingRound(currentRound._id, ROUND_END_NEWROUND, now) ) {
-        throw new Error(
-          "Possible multiple concurrent calls to startNewRound detected.")
+      if (!currentRound.ended && !tryEndingRound(currentRound._id, ROUND_END_NEWROUND, now)) {
+        throw new Error("Possible multiple concurrent calls to startNewRound detected.");
       }
     }
 
@@ -73,10 +71,8 @@ class Timers {
       });
 
       scheduleRoundEnd(Partitioner.group(), newRoundId, endTime);
-    }
-    catch (e) {
-      throw new Error(
-        "Possible multiple concurrent calls to startNewRound detected.")
+    } catch (e) {
+      throw new Error("Possible multiple concurrent calls to startNewRound detected.");
     }
   }
 
@@ -87,15 +83,14 @@ class Timers {
    */
   static endCurrentRound() {
     let now = new Date();
-    const current = RoundTimers.findOne({ended: false});
+    const current = RoundTimers.findOne({ ended: false });
 
-    if( current == null ) {
+    if (current == null) {
       throw new Error("No current round to end");
     }
 
-    if ( !tryEndingRound(current._id, ROUND_END_MANUAL, now) ) {
-      throw new Error(
-        "Possible multiple concurrent calls to endCurrentRound detected.");
+    if (!tryEndingRound(current._id, ROUND_END_MANUAL, now)) {
+      throw new Error("Possible multiple concurrent calls to endCurrentRound detected.");
     }
   }
 
@@ -106,9 +101,9 @@ class Timers {
    * @param {Function} func The function to call when a round ends. The
    * function will be called with a single argument indicating the reason
    * the round ended, either
-   * TurkServer.Timers.NEW_ROUND_TIMEOUT,
-   * TurkServer.Timers.NEW_ROUND_MANUAL, or
-   * TurkServer.Timers.NEW_ROUND_NEWROUND.
+   * TurkServer.Timers.ROUND_END_TIMEOUT,
+   * TurkServer.Timers.ROUND_END_MANUAL, or
+   * TurkServer.Timers.ROUND_END_NEWROUND.
    */
   static onRoundEnd(func) {
     _round_handlers.push(func);
@@ -134,18 +129,21 @@ function tryEndingRound(roundId, endType, endTime = null) {
   const update = { ended: true };
   if (endTime != null) update.endTime = endTime;
 
-  const ups  = RoundTimers.update({
-    _id: roundId,
-    ended: false
-  }, {
-    $set: update
-  });
+  const ups = RoundTimers.update(
+    {
+      _id: roundId,
+      ended: false
+    },
+    {
+      $set: update
+    }
+  );
 
   // If the round with this id already ended somehow, don't call handlers
   if (ups === 0) return false;
 
   // Succeeded - call handlers with the round end type
-  for( handler of _round_handlers ) {
+  for (handler of _round_handlers) {
     handler.call(null, endType);
   }
   return true;
@@ -155,7 +153,7 @@ function tryEndingRound(roundId, endType, endTime = null) {
 function scheduleOutstandingRounds() {
   let scheduled = 0;
 
-  RoundTimers.direct.find({ended: false}).forEach( (round) => {
+  RoundTimers.direct.find({ ended: false }).forEach(round => {
     scheduleRoundEnd(round._groupId, round._id, round.endTime);
     scheduled++;
   });
@@ -179,7 +177,7 @@ TurkServer.Timers = Timers;
 /*
   Testing functions
  */
-TestUtils.clearRoundHandlers = function () {
+TestUtils.clearRoundHandlers = function() {
   _round_handlers.length = 0;
 };
 

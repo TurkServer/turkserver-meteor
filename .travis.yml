@@ -1,11 +1,18 @@
-language: objective-c
+sudo: required
+language: node_js
 node_js:
   - "0.10"
+
 before_install:
-  # Install phantomjs
-  - wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.0.0-macosx.zip
-  - unzip phantomjs-2.0.0-macosx.zip
-  - export PATH="`pwd`/phantomjs-2.0.0-macosx/bin:${PATH}"
-  # Run Arunoda's script
-  - "curl -L http://git.io/ejPSng | /bin/sh"
-script: "make test"
+  - "curl -L https://git.io/ejPSng | /bin/sh"
+
+# Later stuff for Meteor 1.4: see https://github.com/arunoda/travis-ci-meteor-packages/pull/45
+# Make sure this matches what is in package.json.
+env:
+  - CXX=g++-4.8 METEOR_RELEASE=1.4.4.6
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8

@@ -6,9 +6,12 @@
  */
 TurkServer.treatment = function(name) {
   if (name != null) {
-    return Treatments.findOne({name}, {
-      fields: { _id: 0 }
-    });
+    return Treatments.findOne(
+      { name },
+      {
+        fields: { _id: 0 }
+      }
+    );
   }
 
   // Merge all treatments into one document
@@ -40,7 +43,7 @@ TurkServer.inExperiment = function() {
  * @returns {Boolean} true if the user is in a completed experiment
  */
 TurkServer.instanceEnded = function() {
-  if ( !TurkServer.inExperiment() ) return false;
+  if (!TurkServer.inExperiment()) return false;
 
   const currentExp = Experiments.findOne();
   return currentExp && currentExp.endTime != null;
@@ -74,27 +77,93 @@ TurkServer.currentPayment = function() {
  * <code>startTime</code>, and <code>endTime</code>.
  */
 TurkServer.currentRound = function() {
-  let activeRound = RoundTimers.findOne({ended: false});
+  let activeRound = RoundTimers.findOne({ ended: false });
 
   // TODO this polls every second, which can be quite inefficient. Could be improved.
-  if( activeRound && activeRound.startTime <= TimeSync.serverTime() ) {
+  if (activeRound && activeRound.startTime <= TimeSync.serverTime()) {
     return activeRound;
   }
 
   // Return the round before this one, if any
-  if( activeRound != null ) {
-    return RoundTimers.findOne({index: activeRound.index - 1});
+  if (activeRound != null) {
+    return RoundTimers.findOne({ index: activeRound.index - 1 });
   }
 
   // If no active round and no round scheduled, return the highest one
-  return RoundTimers.findOne({}, { sort: {index: -1} } );
+  return RoundTimers.findOne({}, { sort: { index: -1 } });
 };
 
+// Called to start the monitor with given settings when in experiment
+// Similar to usage in user-status demo:
+// https://github.com/mizzao/meteor-user-status
+function safeStartMonitor(threshold, idleOnBlur) {
+  // We run this in an autorun block because it may fail on startup if time
+  // is not synced. As soon as it succeeds, we are done.
+  // See https://github.com/mizzao/meteor-user-status/blob/master/monitor.coffee
+  const settings = { threshold, idleOnBlur };
+
+  Tracker.autorun(c => {
+    try {
+      UserStatus.startMonitor(settings);
+      c.stop();
+      console.log("Idle monitor started with ", settings);
+    } catch (e) {}
+  });
+}
+
+function stopMonitor() {
+  if (Deps.nonreactive(UserStatus.isMonitoring)) {
+    UserStatus.stopMonitor();
+  }
+}
+
+// This Tracker Computation starts and stops idle monitoring as the user
+// enters/exits an experiment
+let idleComp = null;
+
+/**
+ * @summary Stop idle monitoring, if it's currently enabled.
+ * @locus Client
+ */
+TurkServer.disableIdleMonitor = function() {
+  if (idleComp != null) {
+    idleComp.stop();
+    stopMonitor();
+  }
+};
+
+/**
+ * @summary Start idle monitoring on the client with specific settings,
+ * automatically activating and deactivating as the user enters experiment
+ * instances.
+ *
+ * See {@link https://github.com/mizzao/meteor-user-status} for detailed
+ * meanings of the parameters.
+ *
+ * @locus Client
+ * @param threshold Time of inaction before a user is considered inactive.
+ * @param idleOnBlur Whether to count window blurs as inactivity.
+ */
+TurkServer.enableIdleMonitor = function(threshold, idleOnBlur) {
+  // If monitor is already started, stop it before trying new settings
+  TurkServer.disableIdleMonitor();
+
+  idleComp = Deps.autorun(() => {
+    if (TurkServer.inExperiment()) {
+      // This is reactive
+      safeStartMonitor(threshold, idleOnBlur);
+    } else {
+      stopMonitor();
+    }
+  });
+};
 
 /*
  * Currently internal functions
  */
 // Run a function some time after Meteor.startup
 TurkServer._delayedStartup = function(func, delay) {
-  Meteor.startup(function() { Meteor.setTimeout(func, delay) });
+  Meteor.startup(function() {
+    Meteor.setTimeout(func, delay);
+  });
 };
