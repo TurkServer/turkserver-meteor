@@ -84,7 +84,7 @@ Template.tsTestingLogin.helpers
 testLogin = ->
   # FIXME hack: never run this if we are live
   return if hitIsViewing
-  return if window.location.protocol is "https:" or window isnt window.parent
+  # return if window.location.protocol is "https:" or window isnt window.parent
   # Don't try logging in if we are logged in or already have parameters
   return if Meteor.userId() or Session.get("_loginParams")
   # Don't show this if we are trying to get at the admin interface
