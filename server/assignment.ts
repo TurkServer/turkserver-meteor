@@ -1,3 +1,10 @@
+import { Meteor } from "meteor/meteor";
+import { check, Match } from "meteor/check";
+
+import { Assignments, Experiments, ErrMsg, Workers } from "../lib/common";
+import { Batch } from "./batches";
+import { mturk } from "./mturk";
+
 const _assignments = {};
 const _userAssignments = {};
 
@@ -21,7 +28,16 @@ Assignments.find({ status: "assigned" }, { fields: { workerId: 1 } }).observe({
  * @class
  * @instancename assignment
  */
-class Assignment {
+export class Assignment {
+  userId: string;
+  asstId: string;
+  batchId: string;
+
+  // MTurk strings
+  hitId: string;
+  assignmentId: string;
+  workerId: string;
+
   static createAssignment(data) {
     const asstId = Assignments.insert(data);
     return (_assignments[asstId] = new Assignment(asstId, data));
@@ -137,7 +153,7 @@ class Assignment {
    * @returns {TurkServer.Batch} The assignment's batch.
    */
   getBatch() {
-    return TurkServer.Batch.getBatch(this.batchId);
+    return Batch.getBatch(this.batchId);
   }
 
   /**
@@ -152,7 +168,7 @@ class Assignment {
    * @summary Add one or more treatments to a user's assignment. These treatments will be available on the client side through TurkServer.treatment()
    * @param {String | String[]} String or list of strings corresponding to treatments to associate to the user
    */
-  addTreatment(names) {
+  addTreatment(names: string | string[]): void {
     check(names, Match.OneOf(String, [String]));
 
     /*
@@ -162,7 +178,7 @@ class Assignment {
          treatments: [ "foo, "bar" ]
        }
      */
-    if (_.isArray(names)) {
+    if (Array.isArray(names)) {
       Assignments.update(this.asstId, {
         $addToSet: { treatments: { $each: names } }
       });
@@ -335,7 +351,7 @@ class Assignment {
     let asstData;
 
     try {
-      asstData = TurkServer.mturk("GetAssignment", {
+      asstData = mturk("GetAssignment", {
         AssignmentId: this.assignmentId
       });
     } catch (e) {
@@ -386,7 +402,7 @@ class Assignment {
     check(message, String);
     this._checkSubmittedStatus();
 
-    TurkServer.mturk("ApproveAssignment", {
+    mturk("ApproveAssignment", {
       AssignmentId: this.assignmentId,
       RequesterFeedback: message
     });
@@ -410,7 +426,7 @@ class Assignment {
     check(message, String);
     this._checkSubmittedStatus();
 
-    TurkServer.mturk("RejectAssignment", {
+    mturk("RejectAssignment", {
       AssignmentId: this.assignmentId,
       RequesterFeedback: message
     });
@@ -438,7 +454,7 @@ class Assignment {
       throw new Error("Bonus already paid");
     }
 
-    TurkServer.mturk("GrantBonus", {
+    mturk("GrantBonus", {
       WorkerId: data.workerId,
       AssignmentId: data.assignmentId,
       BonusAmount: {
@@ -579,7 +595,7 @@ class Assignment {
 
     // Record a disconnect time if we are currently part of an instance
     const now = new Date();
-    updateObj = {
+    const updateObj = {
       $set: {
         "instances.$.lastDisconnect": now
       }
@@ -656,7 +672,7 @@ class Assignment {
   // TODO test that these are grabbing the right numbers
   _getLastDisconnect(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances, inst => {
+    const instanceData = instances.find(inst => {
       return inst.id === instanceId;
     });
     return instanceData && instanceData.lastDisconnect;
@@ -664,7 +680,7 @@ class Assignment {
 
   _getLastIdle(instanceId) {
     const instances = this.getInstances();
-    const instanceData = _.find(instances, inst => {
+    const instanceData = instances.find(inst => {
       return inst.id === instanceId;
     });
     return instanceData && instanceData.lastIdle;
@@ -696,5 +712,3 @@ function addResetIdleUpdateFields(obj, idleDurationMillis) {
   obj.$unset["instances.$.lastIdle"] = null;
   return obj;
 }
-
-TurkServer.Assignment = Assignment;

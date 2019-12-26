@@ -9,12 +9,10 @@
 /*
   Server/client util files
 */
+import * as moment from "moment";
+import * as _ from "underscore";
 
-if (TurkServer.Util == null) {
-  TurkServer.Util = {};
-}
-
-TurkServer.Util.formatMillis = function(millis) {
+export function formatMillis(millis) {
   if (millis == null) {
     return;
   } // Can be 0 in which case we should render it
@@ -23,13 +21,13 @@ TurkServer.Util.formatMillis = function(millis) {
   const time = diff.format("H:mm:ss");
   const days = +diff.format("DDD") - 1;
   return (negative ? "-" : "") + (days ? days + "d " : "") + time;
-};
+}
 
-TurkServer._mergeTreatments = function(arr) {
+export function _mergeTreatments(arr) {
   const fields = { treatments: [] };
   arr.forEach(function(treatment) {
     fields.treatments.push(treatment.name);
     return _.extend(fields, _.omit(treatment, "_id", "name"));
   });
   return fields;
-};
+}

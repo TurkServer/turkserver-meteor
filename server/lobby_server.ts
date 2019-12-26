@@ -7,11 +7,22 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const { EventEmitter } = Npm.require("events");
+import { EventEmitter } from "events";
+import * as _ from "underscore";
+
+import { Meteor } from "meteor/meteor";
+import { check } from "meteor/check";
+
+import { ErrMsg, LobbyStatus, Batches } from "../lib/common";
+import { Assignment } from "./assignment";
+import { Batch } from "./batches";
 
 // TODO add index on LobbyStatus if needed
 
-TurkServer.Lobby = class Lobby {
+export class Lobby {
+  batchId: string;
+  events: EventEmitter;
+
   constructor(batchId) {
     this.batchId = batchId;
     check(this.batchId, String);
@@ -41,10 +52,10 @@ TurkServer.Lobby = class Lobby {
     return Meteor.defer(() => this.events.emit("user-join", asst));
   }
 
-  getAssignments(selector) {
-    selector = _.extend(selector || {}, { batchId: this.batchId });
+  getAssignments(selector = {}) {
+    selector = _.extend(selector, { batchId: this.batchId });
     return Array.from(LobbyStatus.find(selector).fetch()).map(record =>
-      TurkServer.Assignment.getAssignment(record.asstId)
+      Assignment.getAssignment(record.asstId)
     );
   }
 
@@ -57,7 +68,7 @@ TurkServer.Lobby = class Lobby {
     const newStatus = !existing.status;
     LobbyStatus.update(userId, { $set: { status: newStatus } });
 
-    const asst = TurkServer.Assignment.getCurrentUserAssignment(userId);
+    const asst = Assignment.getCurrentUserAssignment(userId);
     return Meteor.defer(() => this.events.emit("user-status", asst, newStatus));
   }
 
@@ -72,7 +83,7 @@ TurkServer.Lobby = class Lobby {
       return Meteor.defer(() => this.events.emit("user-leave", asst));
     }
   }
-};
+}
 
 // Publish lobby contents for a particular batch, as well as users
 // TODO can we simplify this by publishing users with turkserver.state = "lobby",
@@ -141,7 +152,7 @@ Meteor.methods({
       throw new Meteor.Error(403, ErrMsg.userIdErr);
     }
 
-    TurkServer.Batch.currentBatch().lobby.toggleStatus(userId);
+    Batch.currentBatch().lobby.toggleStatus(userId);
     return this.unblock();
   }
 });

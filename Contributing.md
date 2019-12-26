@@ -1,13 +1,16 @@
 ## Code
 
-This repo is written in ES6 with a `.prettierrc` to auto-format code.
+This repo is written in ES6/TypeScript with a `.prettierrc` to auto-format code.
 
 Initial parts of this codebase were written in Coffeescript. However, ES6
 implements many useful functions from Coffeescript while allowing more people to
-read the code and contribute. We [decaffeinated] the repo and in the future may
-convert fully to TypeScript.
+read the code and contribute. We [decaffeinated] the repo then converted to TypeScript.
 
 [decaffeinated]: https://github.com/TurkServer/turkserver-meteor/pull/99
+
+## Development
+
+`yarn install` will grab `@types/meteor` for developing the package.
 
 TODO: set up format or lint hooks with something like AirBnb's [Javascript style
 guide](https://github.com/airbnb/javascript).

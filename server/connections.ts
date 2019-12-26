@@ -8,7 +8,17 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const attemptCallbacks = (callbacks, context, errMsg) =>
+import { Meteor } from "meteor/meteor";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+import { UserStatus } from "meteor/mizzao:user-status";
+
+import { ErrMsg } from "../lib/common";
+import { Assignment } from "./assignment";
+import { Instance } from "./instance";
+import { Accounts } from "meteor/accounts-base";
+
+const attemptCallbacks = (callbacks: Function[], context, errMsg) =>
   Array.from(callbacks).map(cb =>
     (() => {
       try {
@@ -19,15 +29,23 @@ const attemptCallbacks = (callbacks, context, errMsg) =>
     })()
   );
 
-const connectCallbacks = [];
-const disconnectCallbacks = [];
-const idleCallbacks = [];
-const activeCallbacks = [];
+const connectCallbacks: Function[] = [];
+const disconnectCallbacks: Function[] = [];
+const idleCallbacks: Function[] = [];
+const activeCallbacks: Function[] = [];
 
-TurkServer.onConnect = func => connectCallbacks.push(func);
-TurkServer.onDisconnect = func => disconnectCallbacks.push(func);
-TurkServer.onIdle = func => idleCallbacks.push(func);
-TurkServer.onActive = func => activeCallbacks.push(func);
+export function onConnect(func: Function) {
+  connectCallbacks.push(func);
+}
+export function onDisconnect(func: Function) {
+  disconnectCallbacks.push(func);
+}
+export function onIdle(func: Function) {
+  idleCallbacks.push(func);
+}
+export function onActive(func: Function) {
+  activeCallbacks.push(func);
+}
 
 // When getting user records in a session callback, we have to check if admin
 const getUserNonAdmin = function(userId) {
@@ -49,7 +67,7 @@ const sessionReconnect = function(doc) {
     return;
   }
 
-  const asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId);
+  const asst = Assignment.getCurrentUserAssignment(doc.userId);
 
   // TODO possible debug message, but probably caught below.
   if (asst == null) {
@@ -68,7 +86,7 @@ const sessionReconnect = function(doc) {
 
 const userReconnect = function(user) {
   let groupId;
-  const asst = TurkServer.Assignment.getCurrentUserAssignment(user._id);
+  const asst = Assignment.getCurrentUserAssignment(user._id);
 
   if (asst == null) {
     Meteor._debug(`${user._id} reconnected but has no active assignment`);
@@ -90,7 +108,7 @@ const userReconnect = function(user) {
   }
   asst._reconnected(groupId);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(
+  return Instance.getInstance(groupId).bindOperation(
     function() {
       TurkServer.log({
         _userId: user._id,
@@ -108,7 +126,7 @@ const userReconnect = function(user) {
 
 const userDisconnect = function(user) {
   let groupId;
-  const asst = TurkServer.Assignment.getCurrentUserAssignment(user._id);
+  const asst = Assignment.getCurrentUserAssignment(user._id);
 
   // If they are disconnecting after completing an assignment, there will be no
   // current assignment.
@@ -124,7 +142,7 @@ const userDisconnect = function(user) {
   }
   asst._disconnected(groupId);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(
+  return Instance.getInstance(groupId).bindOperation(
     function() {
       TurkServer.log({
         _userId: user._id,
@@ -150,10 +168,10 @@ const userIdle = function(user) {
     return;
   }
 
-  const asst = TurkServer.Assignment.getCurrentUserAssignment(user._id);
+  const asst = Assignment.getCurrentUserAssignment(user._id);
   asst._isIdle(groupId, user.status.lastActivity);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(
+  return Instance.getInstance(groupId).bindOperation(
     function() {
       TurkServer.log({
         _userId: user._id,
@@ -182,10 +200,10 @@ const sessionActive = function(doc) {
     return;
   }
 
-  const asst = TurkServer.Assignment.getCurrentUserAssignment(doc.userId);
+  const asst = Assignment.getCurrentUserAssignment(doc.userId);
   asst._isActive(groupId, doc.lastActivity);
 
-  return TurkServer.Instance.getInstance(groupId).bindOperation(
+  return Instance.getInstance(groupId).bindOperation(
     function() {
       TurkServer.log({
         _userId: doc.userId,
@@ -242,7 +260,7 @@ Meteor.startup(function() {
   TODO: we might want to make these tests end-to-end so that they ensure all of
   the user-status functionality is working as well.
 */
-TestUtils.connCallbacks = {
+export const connCallbacks = {
   sessionReconnect(doc) {
     sessionReconnect(doc);
     return userReconnect(Meteor.users.findOne(doc.userId));
@@ -294,7 +312,7 @@ Meteor.methods({
     }
 
     // TODO what if this doesn't exist?
-    const asst = TurkServer.Assignment.currentAssignment();
+    const asst = Assignment.currentAssignment();
     // mark assignment as completed and save the data
     asst.setCompleted(doc);
 

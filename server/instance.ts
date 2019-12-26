@@ -1,3 +1,14 @@
+import { Meteor } from "meteor/meteor";
+import { check } from "meteor/check";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+
+import { Experiments, Treatments } from "../lib/common";
+import { Assignment } from "./assignment";
+import { Batch } from "./batches";
+import { log } from "./logging";
+import { _mergeTreatments } from "../lib/util";
+
 const init_queue = [];
 
 /*
@@ -15,7 +26,9 @@ const _instances = new Map();
  * @class
  * @instancename instance
  */
-class Instance {
+export class Instance {
+  groupId: string;
+
   /**
    * @summary Get the instance by its id.
    * @param {String} groupId
@@ -34,7 +47,7 @@ class Instance {
     // A fiber may have created this at the same time; if so use that one
     if ((inst = _instances.get(groupId) && inst != null)) return inst;
 
-    inst = new TurkServer.Instance(groupId);
+    inst = new Instance(groupId);
     _instances.set(groupId, inst);
     return inst;
   }
@@ -70,7 +83,7 @@ class Instance {
    * @param {Function} func The function to execute.
    * @param {Object} context Optional context to pass to the function.
    */
-  bindOperation(func, context = {}) {
+  bindOperation(func, context: any = {}) {
     context.instance = this;
     Partitioner.bindGroup(this.groupId, func.bind(context));
   }
@@ -81,7 +94,7 @@ class Instance {
   setup() {
     // Can't use fat arrow here.
     this.bindOperation(function() {
-      TurkServer.log({
+      log({
         _meta: "initialized",
         treatmentData: this.instance.treatment()
       });
@@ -97,7 +110,7 @@ class Instance {
    * @param {TurkServer.Assignment} asst The user assignment to add.
    */
   addAssignment(asst) {
-    check(asst, TurkServer.Assignment);
+    check(asst, Assignment);
 
     if (this.isEnded()) {
       throw new Error("Cannot add a user to an instance that has ended.");
@@ -140,7 +153,8 @@ class Instance {
    * @returns {Array} the list of userIds
    */
   users() {
-    return Experiments.findOne(this.groupId).users || [];
+    const instance = Experiments.findOne(this.groupId);
+    return (instance && instance.users) || [];
   }
 
   /**
@@ -149,7 +163,7 @@ class Instance {
    */
   batch() {
     const instance = Experiments.findOne(this.groupId);
-    return instance && TurkServer.Batch.getBatch(instance.batchId);
+    return instance && Batch.getBatch(instance.batchId);
   }
 
   /**
@@ -171,7 +185,7 @@ class Instance {
 
     return (
       instance &&
-      TurkServer._mergeTreatments(
+      _mergeTreatments(
         Treatments.find({
           name: {
             $in: instance.treatments
@@ -210,7 +224,7 @@ class Instance {
     const now = new Date();
 
     Partitioner.bindGroup(this.groupId, function() {
-      return TurkServer.log({
+      return log({
         _meta: "teardown",
         _timestamp: now
       });
@@ -228,7 +242,7 @@ class Instance {
     const users = Experiments.findOne(this.groupId).users;
     if (users == null) return;
 
-    for (userId of users) {
+    for (let userId of users) {
       this.sendUserToLobby(userId);
     }
   }
@@ -239,7 +253,7 @@ class Instance {
    */
   sendUserToLobby(userId) {
     Partitioner.clearUserGroup(userId);
-    let asst = TurkServer.Assignment.getCurrentUserAssignment(userId);
+    let asst = Assignment.getCurrentUserAssignment(userId);
     if (asst == null) return;
 
     // If the user is still assigned, do final accounting and put them in lobby
@@ -250,7 +264,4 @@ class Instance {
   }
 }
 
-TurkServer.Instance = Instance;
-
-// XXX back-compat
-TurkServer.initialize = TurkServer.Instance.initialize;
+export const initialize = Instance.initialize;

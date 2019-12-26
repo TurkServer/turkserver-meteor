@@ -7,6 +7,15 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { Meteor } from "meteor/meteor";
+import { Tinytest } from "meteor/tinytest";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+
+import { TestUtils } from "../server";
+import { RoundTimers } from "../lib/common";
+import { Timers } from "../server/timers_server";
+
 const testGroup = "timerTest";
 
 // use a before here because tests are async
@@ -25,13 +34,13 @@ Tinytest.addAsync(
     Partitioner.bindGroup(testGroup, function() {
       const now = new Date();
 
-      TurkServer.Timers.onRoundEnd(function(type) {
-        test.equal(type, TurkServer.Timers.ROUND_END_TIMEOUT);
+      Timers.onRoundEnd(function(type) {
+        test.equal(type, Timers.ROUND_END_TIMEOUT);
         // Cancel group binding
         return Partitioner._currentGroup.withValue(null, next);
       });
 
-      return TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
+      return Timers.startNewRound(now, new Date(now.getTime() + 100));
     })
   )
 );
@@ -42,14 +51,14 @@ Tinytest.addAsync(
     Partitioner.bindGroup(testGroup, function() {
       const now = new Date();
 
-      TurkServer.Timers.onRoundEnd(function(type) {
-        test.equal(type, TurkServer.Timers.ROUND_END_NEWROUND);
+      Timers.onRoundEnd(function(type) {
+        test.equal(type, Timers.ROUND_END_NEWROUND);
 
         return Partitioner._currentGroup.withValue(null, next);
       });
 
-      TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
-      return TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
+      Timers.startNewRound(now, new Date(now.getTime() + 100));
+      return Timers.startNewRound(now, new Date(now.getTime() + 100));
     })
   )
 );
@@ -58,14 +67,14 @@ Tinytest.addAsync(
   "timers - end and start new rounds",
   withCleanup((test, next) =>
     Partitioner.bindGroup(testGroup, function() {
-      TurkServer.Timers.onRoundEnd(type => test.equal(type, TurkServer.Timers.ROUND_END_MANUAL));
+      Timers.onRoundEnd(type => test.equal(type, Timers.ROUND_END_MANUAL));
 
       const nRounds = 10;
 
       for (let i = 1, end = nRounds, asc = 1 <= end; asc ? i <= end : i >= end; asc ? i++ : i--) {
         const now = new Date();
-        TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
-        TurkServer.Timers.endCurrentRound();
+        Timers.startNewRound(now, new Date(now.getTime() + 100));
+        Timers.endCurrentRound();
       }
 
       // Make sure there are the right number of rounds
@@ -85,7 +94,7 @@ Tinytest.addAsync(
       let count = 0;
       const types = {};
 
-      TurkServer.Timers.onRoundEnd(function(type) {
+      Timers.onRoundEnd(function(type) {
         count++;
         if (types[type] == null) {
           types[type] = 0;
@@ -93,14 +102,14 @@ Tinytest.addAsync(
         return types[type]++;
       });
 
-      TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
+      Timers.startNewRound(now, new Date(now.getTime() + 100));
 
-      TurkServer.Timers.endCurrentRound();
+      Timers.endCurrentRound();
 
       // round end callback should only have been called once
       return Meteor.setTimeout(function() {
         test.equal(count, 1);
-        test.equal(types[TurkServer.Timers.ROUND_END_MANUAL], 1);
+        test.equal(types[Timers.ROUND_END_MANUAL], 1);
         // Cancel group binding
         return Partitioner._currentGroup.withValue(null, next);
       }, 150);
@@ -119,7 +128,7 @@ Tinytest.addAsync(
 
       const testFunc = function() {
         try {
-          return TurkServer.Timers.startNewRound(now, end);
+          return Timers.startNewRound(now, end);
         } catch (e) {
           // We should get at least one error here.
           console.log(e);
@@ -149,13 +158,13 @@ Tinytest.addAsync(
     Partitioner.bindGroup(testGroup, function() {
       const now = new Date();
 
-      TurkServer.Timers.onRoundEnd(function() {
+      Timers.onRoundEnd(function() {
         test.ok();
         // Cancel group binding
         return Partitioner._currentGroup.withValue(null, next);
       });
 
-      TurkServer.Timers.startNewRound(now, new Date(now.getTime() + 100));
+      Timers.startNewRound(now, new Date(now.getTime() + 100));
 
       // Prevent the normal timeout from being called
       Meteor.clearTimeout(TestUtils.lastScheduledRound);

@@ -9,7 +9,19 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-const Doobie = new Mongo.Collection("experiment_test");
+
+import { Meteor } from "meteor/meteor";
+import { Mongo } from "meteor/mongo";
+import { Accounts } from "meteor/accounts-base";
+import { Random } from "meteor/random";
+import { Tinytest } from "meteor/tinytest";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+
+import TurkServer, { TestUtils } from "../server";
+import { Batches, Assignments, Experiments, Logs } from "../lib/common";
+
+const Doobie = new Mongo.Collection<any>("experiment_test");
 
 Partitioner.partitionCollection(Doobie);
 

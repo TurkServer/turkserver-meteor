@@ -6,6 +6,13 @@
  * DS207: Consider shorter variations of null checks
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
+import { Meteor } from "meteor/meteor";
+import { Tinytest } from "meteor/tinytest";
+
+import TurkServer, { TestUtils } from "../server";
+import { Batches, HITTypes, HITs, Assignments, ErrMsg } from "../lib/common";
+import { authenticateWorker } from "../server/accounts_mturk";
+
 const hitType = "authHitType";
 
 const hitId = "authHitId";
@@ -62,7 +69,7 @@ const withCleanup = TestUtils.getCleanupWrapper({
 Tinytest.add(
   "auth - with first time hit assignment",
   withCleanup(function(test) {
-    const asst = TestUtils.authenticateWorker({
+    const asst = authenticateWorker({
       batchId: authBatchId,
       hitId,
       assignmentId,
@@ -92,7 +99,7 @@ Tinytest.add(
   "auth - reject incorrect batch",
   withCleanup(function(test) {
     const testFunc = () =>
-      TestUtils.authenticateWorker({
+      authenticateWorker({
         batchId: otherBatchId,
         hitId,
         assignmentId,
@@ -110,7 +117,7 @@ Tinytest.add(
     Batches.update(authBatchId, { $unset: { active: false } });
 
     const testFunc = () =>
-      TestUtils.authenticateWorker({
+      authenticateWorker({
         batchId: authBatchId,
         hitId,
         assignmentId,
@@ -133,7 +140,7 @@ Tinytest.add(
     });
 
     // This needs to return an assignment
-    const asst = TestUtils.authenticateWorker({
+    const asst = authenticateWorker({
       batchId: authBatchId,
       hitId,
       assignmentId,

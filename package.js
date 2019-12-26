@@ -8,11 +8,22 @@ Package.describe({
 Npm.depends({
   "mturk-api": "1.3.2",
   jspath: "0.3.2",
-  deepmerge: "0.2.7" // For merging config parameters
+  deepmerge: "0.2.7", // For merging config parameters
+  // For TS/ES interpretation
+  "@babel/runtime": "7.7.2"
 });
 
 Package.onUse(function(api) {
   api.versionsFrom("1.4.4.6");
+
+  // TypeScript support
+  // Modules: https://docs.meteor.com/v1.4/packages/modules.html
+  api.use("modules");
+  api.use("ecmascript");
+  // Should be replaced with straight up built-in 'typescript' in Meteor 1.8.2
+  // adornis:typescript from [1.4, 1.8)
+  // api.use("adornis:typescript@0.8.1");
+  api.use("barbatus:typescript@0.7.0");
 
   // Client-only deps
   api.use(["session", "ui", "templating", "reactive-var"], "client");
@@ -27,8 +38,7 @@ Package.onUse(function(api) {
     "ejson",
     "jquery",
     "random",
-    "underscore",
-    "ecmascript",
+    "underscore", // TODO remove
     "facts"
   ]);
 
@@ -57,25 +67,26 @@ Package.onUse(function(api) {
   api.use("mizzao:user-status@0.6.5");
 
   // Shared files
-  api.addFiles(["lib/shared.js", "lib/common.js", "lib/util.js"]);
+  api.addFiles(["lib/common.ts", "lib/util.ts"]);
 
   // Server files
   api.addFiles(
     [
-      "server/config.js",
-      "server/turkserver.js",
-      "server/server_api.js",
-      "server/mturk.js",
-      "server/lobby_server.js",
-      "server/batches.js",
-      "server/instance.js",
-      "server/logging.js",
-      "server/assigners.js",
-      "server/assigners_extra.js",
-      "server/assignment.js",
-      "server/connections.js",
-      "server/timers_server.js",
-      "server/accounts_mturk.js"
+      "server/config.ts",
+      "server/turkserver.ts",
+      "server/server_api.ts",
+      "server/mturk.ts",
+      "server/lobby_server.ts",
+      "server/batches.ts",
+      "server/instance.ts",
+      "server/logging.ts",
+      "server/assigners.ts",
+      "server/assigners_extra.ts",
+      "server/assignment.ts",
+      "server/connections.ts",
+      "server/timers_server.ts",
+      "server/accounts_mturk.ts",
+      "admin/admin.ts"
     ],
     "server"
   );
@@ -117,7 +128,8 @@ Package.onUse(function(api) {
     "client"
   );
 
-  api.addFiles("admin/admin.js", "server");
+  api.mainModule("server/index.ts", "server");
+  api.mainModule("client/index.ts", "client");
 
   api.export(["TurkServer"]);
 
@@ -131,12 +143,19 @@ Package.onUse(function(api) {
 });
 
 Package.onTest(function(api) {
+  // Need these specific versions for tests to agree to run
+  api.use("modules");
+  api.use("ecmascript");
+
+  // For compiling TS
+  api.use("barbatus:typescript");
+  // api.use("adornis:typescript");
+
   api.use([
     "accounts-base",
     "accounts-password",
     "check",
     "deps",
-    "ecmascript",
     "mongo",
     "random",
     "ui",
@@ -155,16 +174,16 @@ Package.onTest(function(api) {
 
   api.addFiles("tests/display_fix.css");
 
-  api.addFiles("tests/utils.js"); // Deletes users so do it before insecure login
-  api.addFiles("tests/insecure_login.js");
+  api.addFiles("tests/utils.ts"); // Deletes users so do it before insecure login
+  api.addFiles("tests/insecure_login.ts");
 
-  api.addFiles("tests/lobby_tests.js");
-  api.addFiles("tests/admin_tests.js", "server");
-  api.addFiles("tests/auth_tests.js", "server");
-  api.addFiles("tests/connection_tests.js", "server");
-  api.addFiles("tests/experiment_tests.js", "server");
+  api.addFiles("tests/lobby_tests.ts");
+  api.addFiles("tests/admin_tests.ts", "server");
+  api.addFiles("tests/auth_tests.ts", "server");
+  api.addFiles("tests/connection_tests.ts", "server");
+  api.addFiles("tests/experiment_tests.ts", "server");
   api.addFiles("tests/experiment_client_tests.js");
-  api.addFiles("tests/timer_tests.js", "server");
+  api.addFiles("tests/timer_tests.ts", "server");
   api.addFiles("tests/logging_tests.js");
   // This goes after experiment tests, so we can be sure that assigning works
   api.addFiles("tests/assigner_tests.js", "server");

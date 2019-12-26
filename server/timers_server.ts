@@ -1,3 +1,10 @@
+import { Meteor } from "meteor/meteor";
+import { check } from "meteor/check";
+
+import { Partitioner } from "meteor/mizzao:partitioner";
+
+import { RoundTimers } from "../lib/common";
+
 const _round_handlers = [];
 
 /**
@@ -23,7 +30,12 @@ const ROUND_END_NEWROUND = "newstart";
  * @summary Utilities for controlling round timers within instances.
  * @namespace
  */
-class Timers {
+export class Timers {
+  // TODO: export the above properly or something.
+  static ROUND_END_TIMEOUT = ROUND_END_TIMEOUT;
+  static ROUND_END_MANUAL = ROUND_END_MANUAL;
+  static ROUND_END_NEWROUND = ROUND_END_NEWROUND;
+
   /**
    * @summary Starts a new round in the current instance.
    * @function TurkServer.Timers.startNewRound
@@ -150,7 +162,7 @@ function tryEndingRound(roundId, endType, endTime = null) {
 }
 
 // When restarting server, re-schedule all un-ended rounds
-function scheduleOutstandingRounds() {
+export function scheduleOutstandingRounds() {
   let scheduled = 0;
 
   RoundTimers.direct.find({ ended: false }).forEach(round => {
@@ -166,19 +178,8 @@ function scheduleOutstandingRounds() {
 Meteor.startup(scheduleOutstandingRounds);
 
 /*
-  Exports
- */
-Timers.ROUND_END_TIMEOUT = ROUND_END_TIMEOUT;
-Timers.ROUND_END_MANUAL = ROUND_END_MANUAL;
-Timers.ROUND_END_NEWROUND = ROUND_END_NEWROUND;
-
-TurkServer.Timers = Timers;
-
-/*
   Testing functions
  */
-TestUtils.clearRoundHandlers = function() {
+export function clearRoundHandlers() {
   _round_handlers.length = 0;
-};
-
-TestUtils.scheduleOutstandingRounds = scheduleOutstandingRounds;
+}
